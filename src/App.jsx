@@ -165,13 +165,6 @@ function KVKGame() {
   }
 
   const total = scores.correct + scores.retry;
-  const feedback = phase === "ready"
-    ? "Tekan butang hijau untuk membuka pintu."
-    : phase === "opening"
-      ? "Pintunya sedang dibuka…"
-      : phase === "answering"
-        ? "Baca bunyi pada tiga panel."
-        : "Bagus. Sedia untuk pintu seterusnya.";
 
   return (
     <main className="app-shell">
@@ -199,17 +192,12 @@ function KVKGame() {
         </header>
 
         <div className="game-body">
-          <section className="door-room" aria-labelledby="door-heading">
-            <div className="room-topline">
-              <span className="room-label" id="door-heading">Pintu bacaan</span>
-              <span className="room-hint">Baca perlahan, sebut jelas</span>
-            </div>
+          <section className="door-room" aria-label="Pintu KVK">
             <div className="door-row" aria-live="polite" aria-label="Tiga panel huruf KVK">
               {Array.from({ length: 3 }, (_, index) => (
                 <DoorWindow key={`${roundId}-${index}`} letter={syllable[index] ?? "?"} index={index} phase={phase} />
               ))}
             </div>
-            <p className="feedback" role="status">{feedback}</p>
           </section>
 
           <div className="action-stack">
