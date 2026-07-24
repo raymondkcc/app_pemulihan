@@ -1,0 +1,197 @@
+import { useEffect, useRef, useState } from "react";
+import { BookOpen, Check, DoorOpen, LockKeyhole, RotateCcw, X } from "lucide-react";
+import { ENDINGS, pickSyllable } from "./data/kvk.js";
+import "./styles.css";
+
+const OPEN_DURATION = 1280;
+const NEXT_ROUND_DELAY = 900;
+
+function DoorWindow({ letter, index, phase }) {
+  const doorClass = [
+    "letter-door",
+    phase === "opening" ? "is-opening" : "",
+    phase === "answering" || phase === "feedback" ? "is-open" : ""
+  ].filter(Boolean).join(" ");
+
+  return (
+    <div
+      className={doorClass}
+      style={{ "--door-delay": `${index * 110}ms` }}
+      aria-label={`Huruf ${letter}`}
+    >
+      <span className="door-cavity" aria-hidden="true" />
+      <span className="letter-face" aria-hidden="true">{letter}</span>
+      <span className="saloon-leaf door-left" aria-hidden="true">
+        <span className="leaf-lattice" />
+        <span className="leaf-slats" />
+        <span className="leaf-hinge" />
+      </span>
+      <span className="saloon-leaf door-right" aria-hidden="true">
+        <span className="leaf-lattice" />
+        <span className="leaf-slats" />
+        <span className="leaf-hinge" />
+      </span>
+    </div>
+  );
+}
+
+function ScoreTile({ kind, label, value }) {
+  const Icon = kind === "correct" ? Check : kind === "retry" ? X : BookOpen;
+  return (
+    <div className={`score-tile score-${kind}`}>
+      <span className="score-label"><Icon size={14} strokeWidth={3} /> {label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function KVKGame() {
+  const [ending, setEnding] = useState(null);
+  const [phase, setPhase] = useState("ready");
+  const [syllable, setSyllable] = useState("???");
+  const [scores, setScores] = useState({ correct: 0, retry: 0 });
+  const previousSyllable = useRef("");
+  const timers = useRef([]);
+
+  useEffect(() => () => timers.current.forEach(window.clearTimeout), []);
+
+  function clearTimers() {
+    timers.current.forEach(window.clearTimeout);
+    timers.current = [];
+  }
+
+  function startRound(nextEnding = ending) {
+    if (phase === "opening") return;
+
+    clearTimers();
+    const nextSyllable = pickSyllable(nextEnding, previousSyllable.current);
+    previousSyllable.current = nextSyllable;
+    setEnding(nextEnding);
+    setSyllable(nextSyllable);
+    setPhase("opening");
+
+    timers.current.push(window.setTimeout(() => {
+      setPhase("answering");
+    }, OPEN_DURATION));
+  }
+
+  function recordAnswer(result) {
+    if (phase !== "answering") return;
+
+    setScores((current) => ({ ...current, [result]: current[result] + 1 }));
+    setPhase("feedback");
+    clearTimers();
+    timers.current.push(window.setTimeout(() => startRound(ending), NEXT_ROUND_DELAY));
+  }
+
+  function resetSession() {
+    clearTimers();
+    previousSyllable.current = "";
+    setEnding(null);
+    setPhase("ready");
+    setSyllable("???");
+    setScores({ correct: 0, retry: 0 });
+  }
+
+  const total = scores.correct + scores.retry;
+  const feedback = phase === "ready"
+    ? "Tekan butang hijau untuk membuka pintu."
+    : phase === "opening"
+      ? "Pintunya sedang dibuka…"
+      : phase === "answering"
+        ? "Baca bunyi pada tiga panel."
+        : "Bagus. Sedia untuk pintu seterusnya.";
+
+  return (
+    <main className="app-shell">
+      <section className="game-frame" aria-labelledby="game-title">
+        <header className="game-header">
+          <div className="brand-mark" aria-hidden="true"><DoorOpen size={25} strokeWidth={2.8} /></div>
+          <div>
+            <p className="kicker">Latihan membaca · KVK</p>
+            <h1 id="game-title">Bijak KVK</h1>
+            <p className="subtitle">Pintu Bacaan Interaktif</p>
+          </div>
+          <div className="header-lockup"><LockKeyhole size={15} /> sesi {String(total).padStart(2, "0")}</div>
+        </header>
+
+        <div className="game-body">
+          <section className="door-room" aria-labelledby="door-heading">
+            <div className="room-topline">
+              <span className="room-label" id="door-heading">Pintu bacaan</span>
+              <span className="room-hint">Baca perlahan, sebut jelas</span>
+            </div>
+            <div className="door-row" aria-live="polite" aria-label="Tiga panel huruf KVK">
+              {Array.from({ length: 3 }, (_, index) => (
+                <DoorWindow key={index} letter={syllable[index] ?? "?"} index={index} phase={phase} />
+              ))}
+            </div>
+            <p className="feedback" role="status">{feedback}</p>
+          </section>
+
+          <div className="action-stack">
+            <button className="primary-action" type="button" onClick={() => startRound(null)} disabled={phase === "opening"}>
+              <DoorOpen size={20} /> Buka pintu baharu
+            </button>
+            <div className="answer-actions">
+              <button className="answer-button answer-correct" type="button" onClick={() => recordAnswer("correct")} disabled={phase !== "answering"}>
+                <Check size={18} /> Betul
+              </button>
+              <button className="answer-button answer-retry" type="button" onClick={() => recordAnswer("retry")} disabled={phase !== "answering"}>
+                <X size={18} /> Cuba lagi
+              </button>
+            </div>
+          </div>
+
+          <div className="scoreboard" aria-label="Rekod sesi">
+            <ScoreTile kind="correct" label="Betul" value={scores.correct} />
+            <ScoreTile kind="retry" label="Cuba lagi" value={scores.retry} />
+            <ScoreTile kind="total" label="Jumlah" value={total} />
+          </div>
+
+          <div className="category-section">
+            <div className="category-heading">
+              <h2>Pilih pintu ikut huruf akhir</h2>
+              <span>atau rawak</span>
+            </div>
+            <div className="category-grid" aria-label="Kategori huruf akhir">
+              {ENDINGS.map((letter) => (
+                <button
+                  className={`category-button ${ending === letter ? "is-selected" : ""}`}
+                  type="button"
+                  key={letter}
+                  aria-pressed={ending === letter}
+                  onClick={() => startRound(letter)}
+                >
+                  -{letter}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button className="reset-button" type="button" onClick={resetSession}>
+            <RotateCcw size={15} /> Mula semula sesi
+          </button>
+        </div>
+      </section>
+      <p className="app-note">KVK = konsonan · vokal · konsonan</p>
+    </main>
+  );
+}
+
+function HomePlaceholder() {
+  return (
+    <main className="placeholder-page">
+      <div className="placeholder-mark"><DoorOpen /></div>
+      <p className="kicker">Bijak · pemulihan bacaan</p>
+      <h1>Ruang latihan</h1>
+      <p>Modul sedang disusun. Mulakan dengan pintu KVK.</p>
+      <a className="placeholder-link" href="/kvk">Buka Bijak KVK <span aria-hidden="true">→</span></a>
+    </main>
+  );
+}
+
+export default function App() {
+  const path = window.location.pathname.replace(/\/+$/, "") || "/";
+  return path === "/kvk" ? <KVKGame /> : <HomePlaceholder />;
+}
