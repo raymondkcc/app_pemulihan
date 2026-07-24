@@ -1,10 +1,25 @@
 import { useEffect, useRef, useState } from "react";
-import { BookOpen, Check, DoorOpen, LockKeyhole, RotateCcw, X } from "lucide-react";
+import { BookOpen, Check, DoorOpen, LockKeyhole, Maximize2, Minimize2, RotateCcw, X } from "lucide-react";
 import { ENDINGS, pickSyllable } from "./data/kvk.js";
 import "./styles.css";
 
 const OPEN_DURATION = 1280;
 const NEXT_ROUND_DELAY = 900;
+
+function createExitChallenge() {
+  const operator = Math.random() > 0.5 ? "+" : "−";
+  let first = 10 + Math.floor(Math.random() * 90);
+  let second = 10 + Math.floor(Math.random() * 90);
+
+  if (operator === "−" && second > first) [first, second] = [second, first];
+
+  return {
+    first,
+    second,
+    operator,
+    answer: operator === "+" ? first + second : first - second
+  };
+}
 
 function DoorWindow({ letter, index, phase }) {
   const doorClass = [
@@ -50,10 +65,28 @@ function KVKGame() {
   const [phase, setPhase] = useState("ready");
   const [syllable, setSyllable] = useState("???");
   const [scores, setScores] = useState({ correct: 0, retry: 0 });
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fullscreenAvailable, setFullscreenAvailable] = useState(false);
+  const [exitChallenge, setExitChallenge] = useState(null);
+  const [exitAnswer, setExitAnswer] = useState("");
+  const [exitError, setExitError] = useState("");
   const previousSyllable = useRef("");
   const timers = useRef([]);
+  const exitAnswerInput = useRef(null);
 
   useEffect(() => () => timers.current.forEach(window.clearTimeout), []);
+
+  useEffect(() => {
+    const updateFullscreenState = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    setFullscreenAvailable(Boolean(document.fullscreenEnabled && document.documentElement.requestFullscreen));
+    updateFullscreenState();
+    document.addEventListener("fullscreenchange", updateFullscreenState);
+    return () => document.removeEventListener("fullscreenchange", updateFullscreenState);
+  }, []);
+
+  useEffect(() => {
+    if (exitChallenge) exitAnswerInput.current?.focus();
+  }, [exitChallenge]);
 
   function clearTimers() {
     timers.current.forEach(window.clearTimeout);
@@ -93,6 +126,32 @@ function KVKGame() {
     setScores({ correct: 0, retry: 0 });
   }
 
+  async function enterFullscreen() {
+    try {
+      await document.documentElement.requestFullscreen();
+    } catch {
+      setExitError("Skrin penuh tidak tersedia pada pelayar ini.");
+    }
+  }
+
+  function requestExitFullscreen() {
+    setExitChallenge(createExitChallenge());
+    setExitAnswer("");
+    setExitError("");
+  }
+
+  async function submitExitChallenge(event) {
+    event.preventDefault();
+    if (!exitChallenge || Number(exitAnswer) !== exitChallenge.answer) {
+      setExitError("Jawapan belum tepat. Cuba kira semula.");
+      return;
+    }
+
+    setExitChallenge(null);
+    setExitError("");
+    if (document.fullscreenElement) await document.exitFullscreen();
+  }
+
   const total = scores.correct + scores.retry;
   const feedback = phase === "ready"
     ? "Tekan butang hijau untuk membuka pintu."
@@ -112,7 +171,19 @@ function KVKGame() {
             <h1 id="game-title">Bijak KVK</h1>
             <p className="subtitle">Pintu Bacaan Interaktif</p>
           </div>
-          <div className="header-lockup"><LockKeyhole size={15} /> sesi {String(total).padStart(2, "0")}</div>
+          <div className="header-actions">
+            <div className="header-lockup"><LockKeyhole size={15} /> sesi {String(total).padStart(2, "0")}</div>
+            <button
+              className="fullscreen-button"
+              type="button"
+              onClick={isFullscreen ? requestExitFullscreen : enterFullscreen}
+              disabled={!fullscreenAvailable}
+              title={isFullscreen ? "Keluar skrin penuh" : "Buka skrin penuh"}
+            >
+              {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+              <span>{isFullscreen ? "Keluar" : "Skrin penuh"}</span>
+            </button>
+          </div>
         </header>
 
         <div className="game-body">
@@ -173,6 +244,36 @@ function KVKGame() {
             <RotateCcw size={15} /> Mula semula sesi
           </button>
         </div>
+
+        {exitChallenge && (
+          <div className="challenge-backdrop">
+            <form className="challenge-dialog" role="dialog" aria-modal="true" aria-labelledby="challenge-title" onSubmit={submitExitChallenge}>
+              <p className="challenge-kicker">Semakan ringkas</p>
+              <h2 id="challenge-title">Jawab sebelum keluar</h2>
+              <p className="challenge-copy">Kira soalan ini untuk menutup skrin penuh.</p>
+              <div className="math-question" aria-live="polite">
+                {exitChallenge.first} {exitChallenge.operator} {exitChallenge.second} <span>= ?</span>
+              </div>
+              <label className="challenge-label" htmlFor="exit-answer">Jawapan</label>
+              <input
+                ref={exitAnswerInput}
+                id="exit-answer"
+                className="challenge-input"
+                type="number"
+                inputMode="numeric"
+                value={exitAnswer}
+                onChange={(event) => setExitAnswer(event.target.value)}
+                autoComplete="off"
+                required
+              />
+              {exitError && <p className="challenge-error" role="alert">{exitError}</p>}
+              <div className="challenge-actions">
+                <button className="stay-button" type="button" onClick={() => setExitChallenge(null)}>Kekal di sini</button>
+                <button className="leave-button" type="submit">Keluar skrin penuh</button>
+              </div>
+            </form>
+          </div>
+        )}
       </section>
       <p className="app-note">KVK = konsonan · vokal · konsonan</p>
     </main>
