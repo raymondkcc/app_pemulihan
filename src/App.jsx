@@ -117,11 +117,34 @@ function KVKGame() {
   const previousSyllable = useRef("");
   const timers = useRef([]);
   const exitAnswerInput = useRef(null);
+  const fullscreenWasActive = useRef(false);
+  const permittedExit = useRef(false);
+  const challengeRef = useRef(null);
 
   useEffect(() => () => timers.current.forEach(window.clearTimeout), []);
 
   useEffect(() => {
-    const updateFullscreenState = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    const updateFullscreenState = () => {
+      const active = Boolean(document.fullscreenElement);
+      setIsFullscreen(active);
+
+      if (active) {
+        fullscreenWasActive.current = true;
+        return;
+      }
+
+      if (fullscreenWasActive.current) {
+        fullscreenWasActive.current = false;
+        if (!permittedExit.current && !challengeRef.current) {
+          const challenge = createExitChallenge();
+          challengeRef.current = challenge;
+          setExitChallenge(challenge);
+          setExitAnswer("");
+          setExitError("Skrin penuh ditutup. Jawab soalan untuk teruskan.");
+        }
+        permittedExit.current = false;
+      }
+    };
     setFullscreenAvailable(Boolean(document.fullscreenEnabled && document.documentElement.requestFullscreen));
     updateFullscreenState();
     document.addEventListener("fullscreenchange", updateFullscreenState);
@@ -206,8 +229,16 @@ function KVKGame() {
   }
 
   function requestExitFullscreen() {
-    setExitChallenge(createExitChallenge());
+    const challenge = createExitChallenge();
+    challengeRef.current = challenge;
+    setExitChallenge(challenge);
     setExitAnswer("");
+    setExitError("");
+  }
+
+  function cancelExitChallenge() {
+    challengeRef.current = null;
+    setExitChallenge(null);
     setExitError("");
   }
 
@@ -218,9 +249,12 @@ function KVKGame() {
       return;
     }
 
+    permittedExit.current = true;
+    challengeRef.current = null;
     setExitChallenge(null);
     setExitError("");
     if (document.fullscreenElement) await document.exitFullscreen();
+    else permittedExit.current = false;
   }
 
   const total = scores.correct + scores.retry;
@@ -331,7 +365,7 @@ function KVKGame() {
               />
               {exitError && <p className="challenge-error" role="alert">{exitError}</p>}
               <div className="challenge-actions">
-                <button className="stay-button" type="button" onClick={() => setExitChallenge(null)}>Kekal di sini</button>
+                <button className="stay-button" type="button" onClick={cancelExitChallenge}>Kekal di sini</button>
                 <button className="leave-button" type="submit">Keluar skrin penuh</button>
               </div>
             </form>
