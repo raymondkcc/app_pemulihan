@@ -22,10 +22,20 @@ function createExitChallenge() {
 }
 
 function DoorWindow({ letter, index, phase }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    setIsOpen(false);
+    if (phase === "opening") {
+      const frame = window.requestAnimationFrame(() => setIsOpen(true));
+      return () => window.cancelAnimationFrame(frame);
+    }
+    if (phase === "answering" || phase === "feedback") setIsOpen(true);
+  }, [letter, phase]);
+
   const doorClass = [
     "letter-door",
-    phase === "opening" ? "is-opening" : "",
-    phase === "answering" || phase === "feedback" ? "is-open" : ""
+    isOpen ? "is-open" : ""
   ].filter(Boolean).join(" ");
 
   return (
@@ -65,6 +75,7 @@ function KVKGame() {
   const [phase, setPhase] = useState("ready");
   const [syllable, setSyllable] = useState("???");
   const [scores, setScores] = useState({ correct: 0, retry: 0 });
+  const [roundId, setRoundId] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenAvailable, setFullscreenAvailable] = useState(false);
   const [exitChallenge, setExitChallenge] = useState(null);
@@ -101,6 +112,7 @@ function KVKGame() {
     previousSyllable.current = nextSyllable;
     setEnding(nextEnding);
     setSyllable(nextSyllable);
+    setRoundId((current) => current + 1);
     setPhase("opening");
 
     timers.current.push(window.setTimeout(() => {
@@ -194,7 +206,7 @@ function KVKGame() {
             </div>
             <div className="door-row" aria-live="polite" aria-label="Tiga panel huruf KVK">
               {Array.from({ length: 3 }, (_, index) => (
-                <DoorWindow key={index} letter={syllable[index] ?? "?"} index={index} phase={phase} />
+                <DoorWindow key={`${roundId}-${index}`} letter={syllable[index] ?? "?"} index={index} phase={phase} />
               ))}
             </div>
             <p className="feedback" role="status">{feedback}</p>
