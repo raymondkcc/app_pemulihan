@@ -18,3 +18,23 @@ export function pickSyllable(ending, previous = "") {
   while (next === previous) next = choices[Math.floor(Math.random() * choices.length)];
   return next;
 }
+
+export function pickAdaptiveEnding(stats, previous = "") {
+  const pool = ENDINGS.length > 1 ? ENDINGS.filter((ending) => ending !== previous) : ENDINGS;
+  const weights = pool.map((ending) => {
+    const current = stats[ending] ?? { correct: 0, wrong: 0 };
+    const attempts = current.correct + current.wrong;
+    const errorRate = attempts === 0 ? 0 : current.wrong / attempts;
+    const freshPracticeBoost = attempts === 0 ? 1.5 : 0;
+    return 1 + (errorRate * 5) + freshPracticeBoost;
+  });
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  let pick = Math.random() * totalWeight;
+
+  for (let index = 0; index < pool.length; index += 1) {
+    pick -= weights[index];
+    if (pick <= 0) return pool[index];
+  }
+
+  return pool[pool.length - 1];
+}

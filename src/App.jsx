@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { BookOpen, Check, DoorOpen, LockKeyhole, Maximize2, Minimize2, RotateCcw, X } from "lucide-react";
-import { ENDINGS, pickSyllable } from "./data/kvk.js";
+import { ENDINGS, pickAdaptiveEnding, pickSyllable } from "./data/kvk.js";
 import "./styles.css";
 
 const OPEN_DURATION = 1280;
@@ -70,11 +70,44 @@ function ScoreTile({ kind, label, value }) {
   );
 }
 
+function emptyCategoryStats() {
+  return Object.fromEntries(ENDINGS.map((ending) => [ending, { correct: 0, wrong: 0 }]));
+}
+
+function CategoryStats({ stats }) {
+  return (
+    <section className="category-stats" aria-labelledby="category-stats-title">
+      <div className="category-stats-heading">
+        <h2 id="category-stats-title">Prestasi setiap kategori</h2>
+        <span>Latihan akan ikut keperluan</span>
+      </div>
+      <div className="category-stats-grid">
+        {ENDINGS.map((ending) => {
+          const current = stats[ending];
+          const attempts = current.correct + current.wrong;
+          const accuracy = attempts ? Math.round((current.correct / attempts) * 100) : null;
+          const needsPractice = attempts >= 2 && accuracy < 60;
+          return (
+            <div className={`category-stat ${needsPractice ? "needs-practice" : ""}`} key={ending}>
+              <strong>-{ending}</strong>
+              <span className="stat-accuracy">{accuracy === null ? "-" : `${accuracy}%`}</span>
+              <span className="stat-detail"><b>{current.correct}</b> betul · <b>{current.wrong}</b> salah</span>
+              <span className="stat-bar" aria-hidden="true"><i style={{ width: `${accuracy ?? 0}%` }} /></span>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function KVKGame() {
-  const [ending, setEnding] = useState(null);
+  const [selectedEnding, setSelectedEnding] = useState(null);
+  const [currentEnding, setCurrentEnding] = useState(null);
   const [phase, setPhase] = useState("ready");
   const [syllable, setSyllable] = useState("???");
   const [scores, setScores] = useState({ correct: 0, retry: 0 });
+  const [categoryStats, setCategoryStats] = useState(emptyCategoryStats);
   const [roundId, setRoundId] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenAvailable, setFullscreenAvailable] = useState(false);
@@ -104,13 +137,13 @@ function KVKGame() {
     timers.current = [];
   }
 
-  function startRound(nextEnding = ending) {
+  function beginRound(nextEnding) {
     if (phase === "opening") return;
 
     clearTimers();
     const nextSyllable = pickSyllable(nextEnding, previousSyllable.current);
     previousSyllable.current = nextSyllable;
-    setEnding(nextEnding);
+    setCurrentEnding(nextEnding);
     setSyllable(nextSyllable);
     setRoundId((current) => current + 1);
     setPhase("opening");
@@ -120,22 +153,48 @@ function KVKGame() {
     }, OPEN_DURATION));
   }
 
+  function startAdaptiveRound() {
+    if (phase === "opening") return;
+    setSelectedEnding(null);
+    beginRound(pickAdaptiveEnding(categoryStats, currentEnding));
+  }
+
+  function startCategoryRound(nextEnding) {
+    if (phase === "opening") return;
+    setSelectedEnding(nextEnding);
+    beginRound(nextEnding);
+  }
+
+  function startNextRound() {
+    const nextEnding = selectedEnding ?? pickAdaptiveEnding(categoryStats, currentEnding);
+    beginRound(nextEnding);
+  }
+
   function recordAnswer(result) {
     if (phase !== "answering") return;
 
     setScores((current) => ({ ...current, [result]: current[result] + 1 }));
+    setCategoryStats((current) => ({
+      ...current,
+      [currentEnding]: {
+        ...current[currentEnding],
+        [result === "correct" ? "correct" : "wrong"]: current[currentEnding][result === "correct" ? "correct" : "wrong"] + 1
+      }
+    }));
     setPhase("feedback");
     clearTimers();
-    timers.current.push(window.setTimeout(() => startRound(ending), NEXT_ROUND_DELAY));
+    timers.current.push(window.setTimeout(startNextRound, NEXT_ROUND_DELAY));
   }
 
   function resetSession() {
     clearTimers();
     previousSyllable.current = "";
-    setEnding(null);
+    setSelectedEnding(null);
+    setCurrentEnding(null);
     setPhase("ready");
     setSyllable("???");
     setScores({ correct: 0, retry: 0 });
+    setCategoryStats(emptyCategoryStats());
   }
 
   async function enterFullscreen() {
@@ -201,9 +260,11 @@ function KVKGame() {
           </section>
 
           <div className="action-stack">
-            <button className="primary-action" type="button" onClick={() => startRound(null)} disabled={phase === "opening"}>
-              <DoorOpen size={20} /> Buka pintu baharu
-            </button>
+            {phase === "ready" && (
+              <button className="primary-action" type="button" onClick={startAdaptiveRound}>
+                <DoorOpen size={20} /> Mula!
+              </button>
+            )}
             <div className="answer-actions">
               <button className="answer-button answer-correct" type="button" onClick={() => recordAnswer("correct")} disabled={phase !== "answering"}>
                 <Check size={18} /> Betul
@@ -228,17 +289,19 @@ function KVKGame() {
             <div className="category-grid" aria-label="Kategori huruf akhir">
               {ENDINGS.map((letter) => (
                 <button
-                  className={`category-button ${ending === letter ? "is-selected" : ""}`}
+                  className={`category-button ${selectedEnding === letter ? "is-selected" : ""}`}
                   type="button"
                   key={letter}
-                  aria-pressed={ending === letter}
-                  onClick={() => startRound(letter)}
+                  aria-pressed={selectedEnding === letter}
+                  onClick={() => startCategoryRound(letter)}
                 >
                   -{letter}
                 </button>
               ))}
             </div>
           </div>
+
+          <CategoryStats stats={categoryStats} />
 
           <button className="reset-button" type="button" onClick={resetSession}>
             <RotateCcw size={15} /> Mula semula sesi
