@@ -2,24 +2,31 @@ import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
+  AudioLines,
   BookOpen,
   Calculator,
   Check,
   CheckCircle2,
   ChevronRight,
   DoorOpen,
+  Eraser,
   Image,
   Languages,
   LockKeyhole,
   Maximize2,
+  Mic,
   Minimize2,
   Minus,
+  PenLine,
   Pencil,
+  Play,
   Plus,
+  RefreshCcw,
   RotateCcw,
   Sparkles,
   Star,
   Trophy,
+  Volume2,
   X
 } from "lucide-react";
 import { ENDINGS, pickAdaptiveEnding, pickSyllable } from "./data/kvk.js";
@@ -204,8 +211,14 @@ function KVKGame() {
     beginRound(pickAdaptiveEnding(categoryStats, currentEnding));
   }
 
-  function startCategoryRound(nextEnding) {
+  function toggleCategoryRound(nextEnding) {
     if (phase === "opening") return;
+
+    if (selectedEnding === nextEnding) {
+      setSelectedEnding(null);
+      return;
+    }
+
     setSelectedEnding(nextEnding);
     beginRound(nextEnding);
   }
@@ -340,7 +353,7 @@ function KVKGame() {
           <div className="category-section">
             <div className="category-heading">
               <h2>Pilih pintu ikut huruf akhir</h2>
-              <span>atau rawak</span>
+              <span>tekan lagi untuk buang pilihan</span>
             </div>
             <div className="category-grid" aria-label="Kategori huruf akhir">
               {ENDINGS.map((letter) => (
@@ -349,7 +362,7 @@ function KVKGame() {
                   type="button"
                   key={letter}
                   aria-pressed={selectedEnding === letter}
-                  onClick={() => startCategoryRound(letter)}
+                  onClick={() => toggleCategoryRound(letter)}
                 >
                   -{letter}
                 </button>
@@ -420,6 +433,119 @@ const MATH_OPERATIONS = [
   { id: "darab", title: "Operasi darab", english: "Multiplication", symbol: "x", helper: "Kumpulan sama banyak", color: "lemon", Icon: Star },
   { id: "bahagi", title: "Operasi bahagi", english: "Division", symbol: "÷", helper: "Kongsi sama rata", color: "blue", Icon: Calculator }
 ];
+
+const HURUF = [
+  { letter: "A", sound: "a", word: "ayam", emoji: "\u{1F414}", accepted: ["a", "ay", "ei"] },
+  { letter: "B", sound: "be", word: "bola", emoji: "\u{26BD}", accepted: ["b", "be", "bee"] },
+  { letter: "C", sound: "ce", word: "cawan", emoji: "\u{1F375}", accepted: ["c", "ce", "si", "see"] },
+  { letter: "D", sound: "de", word: "dadu", emoji: "\u{1F3B2}", accepted: ["d", "de", "di", "dee"] }
+];
+
+const LETTER_STROKES = {
+  A: ["M 48 168 L 98 32", "M 98 32 L 150 168", "M 70 112 L 128 112"],
+  B: ["M 54 168 L 54 32", "M 54 34 C 142 18 144 84 58 92", "M 58 92 C 154 76 158 170 54 166"],
+  C: ["M 148 58 C 112 16 54 30 45 96 C 36 160 112 184 150 138"],
+  D: ["M 54 168 L 54 32", "M 55 34 C 166 18 170 174 55 166"]
+};
+
+const BM_MODULES = [
+  { id: "huruf", title: "Huruf", english: "Letters", description: "Kenal bentuk, bunyi dan cara menulis huruf.", sample: "A a", color: "coral", Icon: PenLine },
+  { id: "suku-kata", title: "Suku Kata", english: "Syllables", description: "Buka bunyi KV, KVK dan pintu bacaan seterusnya.", sample: "ba · bas", color: "mint", Icon: BookOpen },
+  { id: "perkataan", title: "Perkataan", english: "Words", description: "Padan perkataan dengan gambar ikut level.", sample: "epal · rumah", color: "blue", Icon: Image }
+];
+
+function speakLetter(letter) {
+  if (!window.speechSynthesis) return;
+  const voiceLine = new window.SpeechSynthesisUtterance(`${letter.sound}. ${letter.word}`);
+  voiceLine.lang = "ms-MY";
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(voiceLine);
+}
+
+function BMLearningPicker({ onBack, onChoose }) {
+  return (
+    <div className="home-content hub-content bm-picker-content">
+      <div className="hub-hero">
+        <button className="back-button" type="button" onClick={onBack} title="Kembali pilih subjek">
+          <ArrowLeft size={18} /> <span>Subjek</span>
+        </button>
+        <div className="hub-title-block">
+          <span className="hub-eyebrow"><BookOpen size={15} /> Bahasa Melayu <span>/ Malay</span></span>
+          <h1>Apa mahu belajar?</h1>
+          <p>Choose a learning path before we start the game.</p>
+        </div>
+        <div className="hub-hero-badge"><Star size={18} fill="currentColor" /><span><strong>3</strong> pilihan belajar</span></div>
+      </div>
+
+      <section className="bm-module-section" aria-labelledby="bm-module-title">
+        <div className="section-heading-row">
+          <div>
+            <span className="section-kicker">Bahasa Melayu / Malay</span>
+            <h2 id="bm-module-title">Pilih satu ruang</h2>
+            <p>Start with the skill you want to practise today.</p>
+          </div>
+          <span className="skill-count"><Sparkles size={15} /> Jom belajar</span>
+        </div>
+        <div className="bm-module-grid">
+          {BM_MODULES.map(({ id, title, english, description, sample, color, Icon }) => (
+            <button className={`bm-module-card bm-module-card-${color}`} type="button" key={id} onClick={() => onChoose(id)}>
+              <span className="bm-module-icon"><Icon size={24} strokeWidth={2.5} /></span>
+              <span className="bm-module-sample">{sample}</span>
+              <span className="bm-module-copy"><strong>{title}</strong><span>{english}</span><em>{description}</em></span>
+              <span className="bm-module-action">Buka ruang <ChevronRight size={17} /></span>
+            </button>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function LetterRecognitionPanel({ selectedLetter, onSelect }) {
+  return (
+    <div className="letter-panel letter-recognition-panel">
+      <div className="letter-panel-heading">
+        <span className="section-kicker">Aktiviti 01 / Kenal</span>
+        <h3>Kenal huruf</h3>
+        <p>Pilih huruf. Look at its shape, sound and example.</p>
+      </div>
+      <div className="letter-choice-row" aria-label="Pilih huruf untuk belajar">
+        {HURUF.map((item) => (
+          <button className={`letter-choice ${selectedLetter.letter === item.letter ? "is-selected" : ""}`} type="button" key={item.letter} onClick={() => onSelect(item)} aria-pressed={selectedLetter.letter === item.letter}>
+            <strong>{item.letter}</strong><span>{item.letter.toLowerCase()}</span>
+          </button>
+        ))}
+      </div>
+      <div className="letter-focus-card">
+        <div className="letter-focus-pair"><span>{selectedLetter.letter}</span><span>{selectedLetter.letter.toLowerCase()}</span></div>
+        <div className="letter-focus-word"><span className="letter-picture" aria-hidden="true">{selectedLetter.emoji}</span><strong>{selectedLetter.word}</strong><span>bunyi {selectedLetter.sound}</span></div>
+        <button className="round-icon-action" type="button" onClick={() => speakLetter(selectedLetter)} title="Dengar bunyi huruf"><Volume2 size={20} /></button>
+      </div>
+    </div>
+  );
+}
+
+function LetterStrokePractice({ letter }) {
+  const [strokeRun, setStrokeRun] = useState(0);
+  const strokes = LETTER_STROKES[letter.letter];
+
+  return (
+    <div className="letter-panel stroke-practice-panel">
+      <div className="letter-panel-heading">
+        <span className="section-kicker">Aktiviti 02 / Tulis</span>
+        <h3>Ikut jejak huruf</h3>
+        <p>Follow the moving strokes, then try it on paper.</p>
+      </div>
+      <div className="stroke-board">
+        <svg key={strokeRun} className="stroke-guide-svg is-playing" viewBox="0 0 200 200" role="img" aria-label={`Animasi menulis huruf ${letter.letter}`}>
+          {strokes.map((path, index) => <path key={path} d={path} style={{ "--stroke-delay": `${index * .28}s` }} />)}
+        </svg>
+        <span className="stroke-board-letter">{letter.letter}</span>
+      </div>
+      <button className="secondary-action" type="button" onClick={() => setStrokeRun((current) => current + 1)}><Play size={16} /> Lihat langkah lagi</button>
+    </div>
+  );
+}
 
 function LearningTiles({ type = "book" }) {
   if (type === "math") {
@@ -519,8 +645,11 @@ function MatchPreview({ level, onChooseLevel }) {
   );
 }
 
-function BahasaMelayuHub({ onBack, onComingSoon, notice }) {
+function BMPracticeModule({ view, onBack, onComingSoon, notice }) {
   const [selectedLevel, setSelectedLevel] = useState(WORD_LEVELS[0]);
+
+  const showSyllables = view === "suku-kata";
+  const showWords = view === "perkataan";
 
   return (
     <div className="home-content hub-content">
@@ -530,13 +659,13 @@ function BahasaMelayuHub({ onBack, onComingSoon, notice }) {
         </button>
         <div className="hub-title-block">
           <span className="hub-eyebrow"><BookOpen size={15} /> Bahasa Melayu <span>/ Malay</span></span>
-          <h1>Jom baca dan padan!</h1>
-          <p>Read, sound it out, and find the right picture.</p>
+          <h1>{showSyllables ? "Membaca suku kata" : "Perkataan"}</h1>
+          <p>{showSyllables ? "Read sounds and open the next reading door." : "Match each word to the picture that belongs."}</p>
         </div>
-        <div className="hub-hero-badge"><Trophy size={18} /><span><strong>1</strong> permainan sedia</span></div>
+        <div className="hub-hero-badge"><Trophy size={18} /><span><strong>{showSyllables ? "1" : "4"}</strong> {showSyllables ? "permainan sedia" : "level sedia"}</span></div>
       </div>
 
-      <section className="hub-section syllable-section" aria-labelledby="syllable-title">
+      {showSyllables && <section className="hub-section syllable-section" aria-labelledby="syllable-title">
         <div className="section-heading-row">
           <div>
             <span className="section-kicker">01 / Bunyi</span>
@@ -548,9 +677,9 @@ function BahasaMelayuHub({ onBack, onComingSoon, notice }) {
         <div className="syllable-grid">
           {SYLLABLE_FAMILIES.map((family) => <SyllableCard key={family.id} family={family} onComingSoon={onComingSoon} />)}
         </div>
-      </section>
+      </section>}
 
-      <section className="hub-section word-section" aria-labelledby="word-title">
+      {showWords && <section className="hub-section word-section" aria-labelledby="word-title">
         <div className="section-heading-row">
           <div>
             <span className="section-kicker">02 / Padanan</span>
@@ -567,11 +696,242 @@ function BahasaMelayuHub({ onBack, onComingSoon, notice }) {
           </div>
           <MatchPreview level={selectedLevel} onChooseLevel={() => onComingSoon(`Perkataan level ${selectedLevel.number}`)} />
         </div>
-      </section>
+      </section>}
 
       {notice && <div className="home-notice" role="status"><Sparkles size={17} /> <span>{notice}</span></div>}
     </div>
   );
+}
+
+function LetterMatchTest() {
+  const [target, setTarget] = useState(HURUF[0]);
+  const [feedback, setFeedback] = useState(null);
+
+  function chooseAnswer(answer) {
+    setFeedback(answer.letter === target.letter
+      ? { type: "correct", text: `Betul! ${target.letter} jadi ${target.letter.toLowerCase()}.` }
+      : { type: "retry", text: `Cuba lagi. Cari pasangan kecil untuk ${target.letter}.` });
+  }
+
+  function nextQuestion() {
+    const nextIndex = (HURUF.findIndex((item) => item.letter === target.letter) + 1) % HURUF.length;
+    setTarget(HURUF[nextIndex]);
+    setFeedback(null);
+  }
+
+  return (
+    <div className="letter-test-card match-test-card">
+      <div className="letter-test-heading"><span className="test-number">01</span><div><span className="section-kicker">Uji diri</span><h3>Padan besar dengan kecil</h3></div></div>
+      <p className="letter-test-prompt">Cari pasangan untuk</p>
+      <div className="match-target-letter">{target.letter}</div>
+      <div className="lowercase-choice-row" aria-label={`Pilih huruf kecil untuk ${target.letter}`}>
+        {HURUF.map((item) => <button className="lowercase-choice" type="button" key={item.letter} onClick={() => chooseAnswer(item)}>{item.letter.toLowerCase()}</button>)}
+      </div>
+      {feedback && <p className={`letter-feedback ${feedback.type}`} role="status">{feedback.text}</p>}
+      <button className="secondary-action" type="button" onClick={nextQuestion} disabled={feedback?.type !== "correct"}><RefreshCcw size={16} /> Soalan seterusnya</button>
+    </div>
+  );
+}
+
+function LetterSoundTest({ letter }) {
+  const [status, setStatus] = useState({ type: "idle", text: "Tekan mula untuk gunakan mikrofon." });
+  const recognitionRef = useRef(null);
+
+  useEffect(() => () => recognitionRef.current?.abort(), []);
+
+  async function startListening() {
+    if (recognitionRef.current) recognitionRef.current.abort();
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setStatus({ type: "error", text: "Mikrofon tidak tersedia pada pelayar ini." });
+      return;
+    }
+
+    setStatus({ type: "requesting", text: "Minta izin mikrofon..." });
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((track) => track.stop());
+    } catch {
+      setStatus({ type: "error", text: "Izin mikrofon belum diberi. Cuba benarkan mikrofon dan ulang lagi." });
+      return;
+    }
+
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!Recognition) {
+      setStatus({ type: "error", text: "Auto marking suara belum disokong oleh pelayar ini." });
+      return;
+    }
+
+    const recognition = new Recognition();
+    recognition.lang = "ms-MY";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onstart = () => setStatus({ type: "listening", text: `Sebut bunyi ${letter.sound}...` });
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript.toLowerCase().trim();
+      const normalized = transcript.replace(/[^a-z]/g, "");
+      const correct = letter.accepted.some((word) => normalized.includes(word.replace(/[^a-z]/g, "")));
+      setStatus(correct
+        ? { type: "correct", text: `Betul! Saya dengar "${transcript}".` }
+        : { type: "retry", text: `Saya dengar "${transcript}". Cuba sebut ${letter.sound}.` });
+    };
+    recognition.onerror = () => setStatus({ type: "error", text: "Bacaan suara belum dapat didengar. Cuba sekali lagi." });
+    recognitionRef.current = recognition;
+    setStatus({ type: "listening", text: `Sebut bunyi ${letter.sound}...` });
+    try {
+      recognition.start();
+    } catch {
+      setStatus({ type: "error", text: "Bacaan suara belum dapat dimulakan." });
+    }
+  }
+
+  return (
+    <div className="letter-test-card sound-test-card">
+      <div className="letter-test-heading"><span className="test-number">02</span><div><span className="section-kicker">Uji diri</span><h3>Dengar dan baca</h3></div></div>
+      <p className="letter-test-prompt">Baca huruf ini dengan kuat</p>
+      <div className="sound-target"><strong>{letter.letter}</strong><span>{letter.sound}</span></div>
+      <button className="mic-action" type="button" onClick={startListening} disabled={status.type === "requesting" || status.type === "listening"}><Mic size={18} /> {status.type === "listening" ? "Sedang dengar..." : "Mula baca"}</button>
+      <p className={`letter-feedback ${status.type}`} role="status"><AudioLines size={15} /> {status.text}</p>
+    </div>
+  );
+}
+
+function LetterWritingTest({ letter }) {
+  const canvasRef = useRef(null);
+  const drawingRef = useRef(false);
+  const [hasMarks, setHasMarks] = useState(false);
+  const [result, setResult] = useState("");
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return undefined;
+    const resizeCanvas = () => {
+      const bounds = canvas.getBoundingClientRect();
+      const density = window.devicePixelRatio || 1;
+      canvas.width = Math.max(1, Math.round(bounds.width * density));
+      canvas.height = Math.max(1, Math.round(bounds.height * density));
+      const context = canvas.getContext("2d");
+      context.scale(density, density);
+      context.lineWidth = 5;
+      context.lineCap = "round";
+      context.lineJoin = "round";
+      context.strokeStyle = "#19384a";
+    };
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+    return () => window.removeEventListener("resize", resizeCanvas);
+  }, []);
+
+  function pointerPoint(event) {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    return { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
+  }
+
+  function beginStroke(event) {
+    const canvas = event.currentTarget;
+    canvas.setPointerCapture?.(event.pointerId);
+    const point = pointerPoint(event);
+    const context = canvas.getContext("2d");
+    context.beginPath();
+    context.moveTo(point.x, point.y);
+    drawingRef.current = true;
+    setHasMarks(true);
+    setResult("");
+  }
+
+  function drawStroke(event) {
+    if (!drawingRef.current) return;
+    const point = pointerPoint(event);
+    const context = event.currentTarget.getContext("2d");
+    context.lineTo(point.x, point.y);
+    context.stroke();
+  }
+
+  function endStroke() {
+    drawingRef.current = false;
+  }
+
+  function clearWriting() {
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext("2d");
+    if (!canvas || !context) return;
+    context.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+    setHasMarks(false);
+    setResult("");
+  }
+
+  return (
+    <div className="letter-test-card writing-test-card">
+      <div className="letter-test-heading"><span className="test-number">03</span><div><span className="section-kicker">Uji diri</span><h3>Tulis huruf</h3></div></div>
+      <p className="letter-test-prompt">Tulis huruf <strong>{letter.letter}</strong> di dalam kotak</p>
+      <div className="writing-canvas-wrap">
+        <span className="writing-target-letter" aria-hidden="true">{letter.letter}</span>
+        <canvas ref={canvasRef} aria-label={`Ruang menulis huruf ${letter.letter}`} onPointerDown={beginStroke} onPointerMove={drawStroke} onPointerUp={endStroke} onPointerCancel={endStroke} />
+      </div>
+      <div className="writing-actions">
+        <button className="secondary-action" type="button" onClick={clearWriting}><Eraser size={16} /> Bersih</button>
+        <button className="primary-mini-action" type="button" onClick={() => setResult(hasMarks ? `Ada jejak tulisan. Cuba ikut bentuk ${letter.letter} sekali lagi.` : "Cuba tulis dahulu.")}><CheckCircle2 size={16} /> Semak</button>
+      </div>
+      {result && <p className="letter-feedback" role="status">{result}</p>}
+    </div>
+  );
+}
+
+function HurufModule({ onBack }) {
+  const [selectedLetter, setSelectedLetter] = useState(HURUF[0]);
+
+  return (
+    <div className="home-content hub-content letter-learning-content">
+      <div className="hub-hero letter-hero">
+        <button className="back-button" type="button" onClick={onBack} title="Kembali pilih ruang Bahasa Melayu">
+          <ArrowLeft size={18} /> <span>Bahasa Melayu</span>
+        </button>
+        <div className="hub-title-block">
+          <span className="hub-eyebrow"><PenLine size={15} /> Huruf <span>/ Letters</span></span>
+          <h1>Kenal, bunyi, tulis!</h1>
+          <p>Look, listen and make each letter with your own hand.</p>
+        </div>
+        <div className="letter-hero-badge"><span>A</span><span>a</span><strong>4 huruf</strong></div>
+      </div>
+
+      <section className="letter-learning-section" aria-labelledby="letter-learning-title">
+        <div className="section-heading-row">
+          <div><span className="section-kicker">Aktiviti belajar / Learn</span><h2 id="letter-learning-title">Huruf hari ini</h2><p>Pilih huruf, lihat jejaknya dan dengar bunyinya.</p></div>
+          <span className="skill-count"><Volume2 size={15} /> Comic handwriting</span>
+        </div>
+        <div className="letter-learning-grid">
+          <LetterRecognitionPanel selectedLetter={selectedLetter} onSelect={setSelectedLetter} />
+          <LetterStrokePractice letter={selectedLetter} />
+        </div>
+      </section>
+
+      <section className="letter-test-section" aria-labelledby="letter-test-title">
+        <div className="section-heading-row">
+          <div><span className="section-kicker">Test / Uji diri</span><h2 id="letter-test-title">Cuba sendiri</h2><p>Three small challenges to show what you know.</p></div>
+          <span className="skill-count"><CheckCircle2 size={15} /> 3 aktiviti</span>
+        </div>
+        <div className="letter-test-grid">
+          <LetterMatchTest />
+          <LetterSoundTest letter={selectedLetter} />
+          <LetterWritingTest letter={selectedLetter} />
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function BahasaMelayuHub({ onBack, onComingSoon, notice }) {
+  const [module, setModule] = useState(null);
+
+  function changeModule(nextModule) {
+    setModule(nextModule);
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
+
+  if (module === "huruf") return <HurufModule onBack={() => changeModule(null)} />;
+  if (module === "suku-kata") return <BMPracticeModule view="suku-kata" onBack={() => changeModule(null)} onComingSoon={onComingSoon} notice={notice} />;
+  if (module === "perkataan") return <BMPracticeModule view="perkataan" onBack={() => changeModule(null)} onComingSoon={onComingSoon} notice={notice} />;
+
+  return <BMLearningPicker onBack={onBack} onChoose={changeModule} />;
 }
 
 function MathematicsHub({ onBack, onComingSoon, notice }) {
