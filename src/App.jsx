@@ -2,14 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
-  AudioLines,
   BookOpen,
   Calculator,
   Check,
   CheckCircle2,
   ChevronRight,
   DoorOpen,
-  Eraser,
   Image,
   Languages,
   LockKeyhole,
@@ -26,7 +24,6 @@ import {
   Sparkles,
   Star,
   Trophy,
-  Volume2,
   X
 } from "lucide-react";
 import { ENDINGS, pickAdaptiveEnding, pickSyllable } from "./data/kvk.js";
@@ -534,8 +531,22 @@ function speakLetter(letter) {
   if (!window.speechSynthesis) return;
   const voiceLine = new window.SpeechSynthesisUtterance(`${letter.sound}. ${letter.word}`);
   voiceLine.lang = "ms-MY";
+  voiceLine.rate = 0.82;
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(voiceLine);
+}
+
+function warmSpeechEngine() {
+  if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return () => {};
+  window.speechSynthesis.getVoices();
+  const refreshVoices = () => window.speechSynthesis.getVoices();
+  window.speechSynthesis.addEventListener("voiceschanged", refreshVoices);
+  const primer = new window.SpeechSynthesisUtterance("a");
+  primer.volume = 0;
+  primer.rate = 10;
+  window.speechSynthesis.speak(primer);
+  window.speechSynthesis.cancel();
+  return () => window.speechSynthesis.removeEventListener("voiceschanged", refreshVoices);
 }
 
 function BMLearningPicker({ onBack, onChoose }) {
@@ -577,35 +588,60 @@ function BMLearningPicker({ onBack, onChoose }) {
   );
 }
 
-function LetterRecognitionPanel({ selectedLetter, onSelect, letterCase }) {
+function LetterRecognitionPanel({ selectedLetter, onSelect }) {
+  const [speakingLetter, setSpeakingLetter] = useState(null);
+  const soundTimer = useRef(null);
+
+  useEffect(() => {
+    const removeVoiceListener = warmSpeechEngine();
+    return () => {
+      removeVoiceListener();
+      window.clearTimeout(soundTimer.current);
+    };
+  }, []);
+
+  function chooseLetter(item) {
+    onSelect(item);
+    speakLetter(item);
+    setSpeakingLetter(item.letter);
+    window.clearTimeout(soundTimer.current);
+    soundTimer.current = window.setTimeout(() => setSpeakingLetter(null), 900);
+  }
+
+  const selectedGlyph = selectedLetter.letter;
+
   return (
     <div className="letter-panel letter-recognition-panel">
       <div className="letter-panel-heading">
         <span className="section-kicker">Aktiviti 01 / Kenal</span>
         <h3>Kenal huruf</h3>
-        <p>Pilih huruf. Look at its shape, sound and example.</p>
+        <p>Tekan satu huruf untuk dengar bunyinya.</p>
       </div>
       <div className="letter-choice-row" aria-label="Pilih huruf untuk belajar">
-        {HURUF.map((item) => (
-          <button className={`letter-choice ${selectedLetter.letter === item.letter ? "is-selected" : ""}`} type="button" key={item.letter} onClick={() => onSelect(item)} aria-pressed={selectedLetter.letter === item.letter}>
-            <strong>{letterCase === "capital" ? item.letter : item.letter.toLowerCase()}</strong><span>{letterCase === "capital" ? item.letter.toLowerCase() : item.letter}</span>
-          </button>
-        ))}
+        {HURUF.map((item, index) => {
+          const glyph = item.letter;
+          return (
+            <button className={`letter-choice ${selectedLetter.letter === item.letter ? "is-selected" : ""} ${speakingLetter === item.letter ? "is-speaking" : ""}`} style={{ "--letter-index": index }} type="button" key={item.letter} onClick={() => chooseLetter(item)} aria-pressed={selectedLetter.letter === item.letter} aria-label={`Dengar bunyi huruf ${glyph}`} title={`Dengar ${glyph}`}>
+              <strong>{glyph}</strong>
+              <span className="letter-button-ripple" aria-hidden="true"><i /><i /><i /></span>
+            </button>
+          );
+        })}
       </div>
-      <div className="letter-focus-card">
-        <div className="letter-focus-pair"><span className={letterCase === "capital" ? "is-current" : ""}>{selectedLetter.letter}</span><span className={letterCase === "small" ? "is-current" : ""}>{selectedLetter.letter.toLowerCase()}</span></div>
-        <div className="letter-focus-word"><span className="letter-picture" aria-hidden="true">{selectedLetter.emoji}</span><strong>{selectedLetter.word}</strong><span>bunyi {selectedLetter.sound}</span></div>
-        <button className="round-icon-action" type="button" onClick={() => speakLetter(selectedLetter)} title="Dengar bunyi huruf"><Volume2 size={20} /></button>
+      <div className="letter-selected-card" role="status" aria-live="polite">
+        <span>Huruf dipilih</span>
+        <strong>{selectedGlyph}</strong>
+        <em>{speakingLetter ? "Sedang sebut..." : "Tekan huruf untuk dengar"}</em>
       </div>
     </div>
   );
 }
 
-function LetterStrokePractice({ letter, letterCase }) {
+function LetterStrokePractice({ letter }) {
   const [strokeRun, setStrokeRun] = useState(0);
-  const lesson = MANUSCRIPT_STROKES[letterCase][letter.letter];
-  const glyph = letterCase === "capital" ? letter.letter : letter.letter.toLowerCase();
-  const markerId = `stroke-arrow-${letterCase}-${letter.letter}`;
+  const lesson = MANUSCRIPT_STROKES.capital[letter.letter];
+  const glyph = letter.letter;
+  const markerId = `stroke-arrow-capital-${letter.letter}`;
 
   return (
     <div className="letter-panel stroke-practice-panel">
@@ -824,10 +860,10 @@ function LetterMatchTest() {
   );
 }
 
-function LetterSoundTest({ letter, letterCase }) {
+function LetterSoundTest({ letter }) {
   const [status, setStatus] = useState({ type: "idle", text: "Tekan mula untuk gunakan mikrofon." });
   const recognitionRef = useRef(null);
-  const glyph = letterCase === "capital" ? letter.letter : letter.letter.toLowerCase();
+  const glyph = letter.letter;
 
   useEffect(() => () => recognitionRef.current?.abort(), []);
 
@@ -882,96 +918,13 @@ function LetterSoundTest({ letter, letterCase }) {
       <p className="letter-test-prompt">Baca huruf ini dengan kuat</p>
       <div className="sound-target"><strong>{glyph}</strong><span>{letter.sound}</span></div>
       <button className="mic-action" type="button" onClick={startListening} disabled={status.type === "requesting" || status.type === "listening"}><Mic size={18} /> {status.type === "listening" ? "Sedang dengar..." : "Mula baca"}</button>
-      <p className={`letter-feedback ${status.type}`} role="status"><AudioLines size={15} /> {status.text}</p>
-    </div>
-  );
-}
-
-function LetterWritingTest({ letter, letterCase }) {
-  const canvasRef = useRef(null);
-  const drawingRef = useRef(false);
-  const [hasMarks, setHasMarks] = useState(false);
-  const [result, setResult] = useState("");
-  const glyph = letterCase === "capital" ? letter.letter : letter.letter.toLowerCase();
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return undefined;
-    const resizeCanvas = () => {
-      const bounds = canvas.getBoundingClientRect();
-      const density = window.devicePixelRatio || 1;
-      canvas.width = Math.max(1, Math.round(bounds.width * density));
-      canvas.height = Math.max(1, Math.round(bounds.height * density));
-      const context = canvas.getContext("2d");
-      context.scale(density, density);
-      context.lineWidth = 5;
-      context.lineCap = "round";
-      context.lineJoin = "round";
-      context.strokeStyle = "#19384a";
-    };
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
-    return () => window.removeEventListener("resize", resizeCanvas);
-  }, []);
-
-  function pointerPoint(event) {
-    const bounds = event.currentTarget.getBoundingClientRect();
-    return { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
-  }
-
-  function beginStroke(event) {
-    const canvas = event.currentTarget;
-    canvas.setPointerCapture?.(event.pointerId);
-    const point = pointerPoint(event);
-    const context = canvas.getContext("2d");
-    context.beginPath();
-    context.moveTo(point.x, point.y);
-    drawingRef.current = true;
-    setHasMarks(true);
-    setResult("");
-  }
-
-  function drawStroke(event) {
-    if (!drawingRef.current) return;
-    const point = pointerPoint(event);
-    const context = event.currentTarget.getContext("2d");
-    context.lineTo(point.x, point.y);
-    context.stroke();
-  }
-
-  function endStroke() {
-    drawingRef.current = false;
-  }
-
-  function clearWriting() {
-    const canvas = canvasRef.current;
-    const context = canvas?.getContext("2d");
-    if (!canvas || !context) return;
-    context.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
-    setHasMarks(false);
-    setResult("");
-  }
-
-  return (
-    <div className="letter-test-card writing-test-card">
-      <div className="letter-test-heading"><span className="test-number">03</span><div><span className="section-kicker">Uji diri</span><h3>Tulis huruf</h3></div></div>
-      <p className="letter-test-prompt">Tulis huruf <strong>{glyph}</strong> di dalam kotak</p>
-      <div className="writing-canvas-wrap">
-        <span className="writing-target-letter" aria-hidden="true">{glyph}</span>
-        <canvas ref={canvasRef} aria-label={`Ruang menulis huruf ${glyph}`} onPointerDown={beginStroke} onPointerMove={drawStroke} onPointerUp={endStroke} onPointerCancel={endStroke} />
-      </div>
-      <div className="writing-actions">
-        <button className="secondary-action" type="button" onClick={clearWriting}><Eraser size={16} /> Bersih</button>
-        <button className="primary-mini-action" type="button" onClick={() => setResult(hasMarks ? `Ada jejak tulisan. Cuba ikut bentuk ${glyph} sekali lagi.` : "Cuba tulis dahulu.")}><CheckCircle2 size={16} /> Semak</button>
-      </div>
-      {result && <p className="letter-feedback" role="status">{result}</p>}
+      <p className={`letter-feedback ${status.type}`} role="status">{status.text}</p>
     </div>
   );
 }
 
 function HurufModule({ onBack }) {
   const [selectedLetter, setSelectedLetter] = useState(HURUF[0]);
-  const [letterCase, setLetterCase] = useState("capital");
 
   return (
     <div className="home-content hub-content letter-learning-content">
@@ -984,33 +937,28 @@ function HurufModule({ onBack }) {
           <h1>Kenal, bunyi, tulis!</h1>
           <p>Look, listen and make each letter with your own hand.</p>
         </div>
-        <div className="letter-hero-badge"><span>A</span><span>a</span><strong>26 huruf</strong></div>
+        <div className="letter-hero-badge"><span>A</span><strong>26 huruf</strong></div>
       </div>
 
       <section className="letter-learning-section" aria-labelledby="letter-learning-title">
         <div className="section-heading-row">
           <div><span className="section-kicker">Aktiviti belajar / Learn</span><h2 id="letter-learning-title">Huruf hari ini</h2><p>Pilih huruf, lihat jejaknya dan dengar bunyinya.</p></div>
-          <span className="skill-count"><Volume2 size={15} /> Comic handwriting</span>
-        </div>
-        <div className="case-switcher" role="tablist" aria-label="Pilih jenis huruf">
-          <button className={letterCase === "capital" ? "is-selected" : ""} type="button" role="tab" aria-selected={letterCase === "capital"} onClick={() => setLetterCase("capital")}><strong>Huruf besar</strong><span>Capital letters</span></button>
-          <button className={letterCase === "small" ? "is-selected" : ""} type="button" role="tab" aria-selected={letterCase === "small"} onClick={() => setLetterCase("small")}><strong>Huruf kecil</strong><span>Small letters</span></button>
+          <span className="skill-count">Comic handwriting</span>
         </div>
         <div className="letter-learning-grid">
-          <LetterRecognitionPanel selectedLetter={selectedLetter} onSelect={setSelectedLetter} letterCase={letterCase} />
-          <LetterStrokePractice letter={selectedLetter} letterCase={letterCase} />
+          <LetterRecognitionPanel selectedLetter={selectedLetter} onSelect={setSelectedLetter} />
+          <LetterStrokePractice letter={selectedLetter} />
         </div>
       </section>
 
       <section className="letter-test-section" aria-labelledby="letter-test-title">
         <div className="section-heading-row">
-          <div><span className="section-kicker">Test / Uji diri</span><h2 id="letter-test-title">Cuba sendiri</h2><p>Three small challenges to show what you know.</p></div>
-          <span className="skill-count"><CheckCircle2 size={15} /> 3 aktiviti</span>
+          <div><span className="section-kicker">Test / Uji diri</span><h2 id="letter-test-title">Cuba sendiri</h2><p>Two small challenges to show what you know.</p></div>
+          <span className="skill-count"><CheckCircle2 size={15} /> 2 aktiviti</span>
         </div>
         <div className="letter-test-grid">
           <LetterMatchTest />
-          <LetterSoundTest letter={selectedLetter} letterCase={letterCase} />
-          <LetterWritingTest key={`${selectedLetter.letter}-${letterCase}`} letter={selectedLetter} letterCase={letterCase} />
+          <LetterSoundTest letter={selectedLetter} />
         </div>
       </section>
     </div>

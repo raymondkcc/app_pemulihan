@@ -656,11 +656,6 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .bm-module-section,
 .letter-learning-section,
 .letter-test-section { margin-top: 4.2rem; padding-top: 1.2rem; border-top: 2px solid var(--home-line); }
-.case-switcher { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; width: min(100%, 560px); margin-top: 1.15rem; }
-.case-switcher button { display: flex; min-height: 58px; flex-direction: column; align-items: flex-start; justify-content: center; border: 2px solid var(--home-line); border-radius: 8px; padding: .55rem .75rem; color: var(--home-muted); background: rgba(255,255,255,.66); text-align: left; transition: transform .16s ease, border-color .16s ease, background .16s ease; }
-.case-switcher button strong { color: var(--home-ink); font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.05rem; line-height: 1; }
-.case-switcher button span { margin-top: .18rem; font-size: .7rem; font-weight: 800; }
-.case-switcher button.is-selected { border-color: var(--home-ink); background: var(--home-lemon); box-shadow: 4px 4px 0 rgba(25,56,74,.1); transform: translateY(-2px); }
 .bm-module-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .7rem; margin-top: 1.25rem; }
 .bm-module-card { position: relative; display: flex; min-height: 330px; flex-direction: column; align-items: flex-start; overflow: hidden; border: 2px solid var(--home-ink); border-radius: 8px; padding: 1rem; color: var(--home-ink); text-align: left; box-shadow: 5px 6px 0 rgba(25,56,74,.1); transition: transform .18s ease, box-shadow .18s ease; }
 .bm-module-card::after { position: absolute; right: -52px; bottom: -58px; width: 170px; height: 170px; border: 2px solid rgba(25,56,74,.14); border-radius: 50%; content: ""; }
@@ -695,22 +690,30 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .letter-panel-heading h3 { margin: .35rem 0 0; color: var(--home-ink); font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.55rem; line-height: 1; }
 .letter-panel-heading p { max-width: 370px; margin: .4rem 0 0; color: var(--home-muted); font-family: "Nunito", "Trebuchet MS", sans-serif; font-size: .78rem; font-weight: 700; line-height: 1.4; }
 .letter-choice-row { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .45rem; margin-top: 1.25rem; }
-.letter-choice { display: grid; min-height: 70px; place-items: center; border: 2px solid var(--home-ink); border-radius: 7px; color: var(--home-ink); background: rgba(255,255,255,.66); transition: transform .15s ease, background .15s ease; }
+.letter-choice { position: relative; display: grid; min-height: 70px; place-items: center; overflow: hidden; border: 2px solid var(--home-ink); border-radius: 7px; color: var(--home-ink); background: rgba(255,255,255,.66); transition: transform .15s ease, background .15s ease, box-shadow .15s ease; animation: letter-tile-in .45s calc(var(--letter-index) * 18ms) both; }
+.letter-choice:nth-child(4n + 1) { background: #fff0b1; }
+.letter-choice:nth-child(4n + 2) { background: #d9f3e9; }
+.letter-choice:nth-child(4n + 3) { background: #ffd8cd; }
+.letter-choice:nth-child(4n) { background: #e9e3ff; }
 .letter-choice strong { font-family: "Comic Sans MS", "Comic Neue", "Chalkboard SE", cursive; font-size: 1.65rem; line-height: .9; }
-.letter-choice span { color: var(--home-muted); font-family: "Comic Sans MS", "Comic Neue", cursive; font-size: .9rem; }
-.letter-choice.is-selected { background: var(--home-lemon); box-shadow: 3px 3px 0 rgba(25,56,74,.12); transform: translateY(-3px) rotate(-2deg); }
-.letter-focus-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem; margin-top: 1.25rem; border-top: 2px dashed rgba(25,56,74,.18); padding-top: 1.25rem; }
+.letter-choice .letter-button-ripple { position: absolute; right: 6px; bottom: 6px; display: flex; width: 13px; height: 13px; align-items: end; justify-content: center; gap: 2px; color: var(--home-ink); opacity: .38; }
+.letter-choice .letter-button-ripple i { display: block; width: 2px; height: 4px; border-radius: 99px; background: currentColor; transform-origin: bottom; }
+.letter-choice .letter-button-ripple i:nth-child(2) { height: 8px; }
+.letter-choice .letter-button-ripple i:nth-child(3) { height: 12px; }
+.letter-choice.is-selected { border-color: var(--home-ink); background: var(--home-lemon); box-shadow: 3px 3px 0 rgba(25,56,74,.12); transform: translateY(-3px) rotate(-2deg); }
+.letter-choice.is-speaking { background: var(--home-coral); box-shadow: 0 0 0 5px rgba(241,120,93,.22), 4px 5px 0 rgba(25,56,74,.15); transform: translateY(-4px) rotate(2deg) scale(1.04); }
+.letter-choice.is-speaking .letter-button-ripple i { animation: sound-bar .45s ease-in-out infinite alternate; }
+.letter-choice.is-speaking .letter-button-ripple i:nth-child(2) { animation-delay: .08s; }
+.letter-choice.is-speaking .letter-button-ripple i:nth-child(3) { animation-delay: .16s; }
+.letter-selected-card { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: .65rem; margin-top: 1.25rem; border-top: 2px dashed rgba(25,56,74,.18); padding-top: 1rem; }
+.letter-selected-card > span { color: var(--home-muted); font-family: "Nunito", "Trebuchet MS", sans-serif; font-size: .72rem; font-weight: 900; }
+.letter-selected-card strong { color: var(--home-coral-dark); font-family: "Comic Sans MS", "Comic Neue", cursive; font-size: 2.2rem; line-height: .85; }
+.letter-selected-card em { color: var(--home-muted); font-family: "Nunito", "Trebuchet MS", sans-serif; font-size: .7rem; font-style: normal; font-weight: 800; }
 .letter-focus-pair { display: flex; align-items: baseline; gap: .2rem; color: var(--home-coral-dark); font-family: "Comic Sans MS", "Comic Neue", "Chalkboard SE", cursive; font-weight: 700; line-height: 1; }
 .letter-focus-pair span:first-child { font-size: 4.6rem; }
 .letter-focus-pair span:last-child { color: var(--home-blue); font-size: 2.9rem; }
 .letter-focus-pair span:not(.is-current) { opacity: .38; }
 .letter-focus-pair span.is-current { text-decoration: underline; text-decoration-color: var(--home-lemon); text-decoration-thickness: .14em; text-underline-offset: .08em; }
-.letter-focus-word { display: flex; flex-direction: column; gap: .12rem; }
-.letter-picture { font-family: sans-serif; font-size: 2rem; line-height: 1; }
-.letter-focus-word strong { color: var(--home-ink); font-family: "Comic Sans MS", "Comic Neue", cursive; font-size: 1.3rem; line-height: 1; }
-.letter-focus-word > span:last-child { color: var(--home-muted); font-family: "Nunito", "Trebuchet MS", sans-serif; font-size: .72rem; font-weight: 800; }
-.round-icon-action { display: grid; width: 42px; height: 42px; place-items: center; border: 2px solid var(--home-ink); border-radius: 50%; color: var(--home-ink); background: var(--home-lemon); transition: transform .15s ease; }
-.round-icon-action:hover { transform: rotate(8deg) scale(1.05); }
 .stroke-board { position: relative; display: grid; min-height: 215px; place-items: center; margin-top: .85rem; overflow: hidden; border: 2px dashed rgba(25,56,74,.25); border-radius: 7px; background: repeating-linear-gradient(to bottom, transparent 0 41px, rgba(88,121,232,.14) 42px 43px); }
 .stroke-guide-svg { position: absolute; width: 200px; height: 200px; overflow: visible; }
 .stroke-guide-svg path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
@@ -760,6 +763,8 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .writing-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .45rem; margin-top: .65rem; }
 
 @keyframes write-stroke { to { stroke-dashoffset: 0; } }
+@keyframes sound-bar { from { scale: 1 .55; } to { scale: 1 1.25; } }
+@keyframes letter-tile-in { from { opacity: 0; translate: 0 8px; } to { opacity: 1; translate: 0 0; } }
 
 @media (hover: hover) {
   .bm-module-card:hover { box-shadow: 7px 8px 0 rgba(25,56,74,.15); transform: translateY(-3px); }
@@ -782,8 +787,6 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
   .letter-choice-row { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .3rem; }
   .letter-choice { min-height: 54px; }
   .letter-choice strong { font-size: 1.25rem; }
-  .letter-choice span { font-size: .68rem; }
-  .letter-focus-card { gap: .55rem; }
   .letter-focus-pair span:first-child { font-size: 3.6rem; }
   .letter-focus-pair span:last-child { font-size: 2.4rem; }
   .letter-test-grid { grid-template-columns: 1fr; }
