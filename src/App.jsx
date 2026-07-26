@@ -2,14 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
-  AudioLines,
   BookOpen,
   Calculator,
   Check,
   CheckCircle2,
   ChevronRight,
   DoorOpen,
-  Eraser,
   Image,
   Languages,
   LockKeyhole,
@@ -19,7 +17,6 @@ import {
   Minus,
   PenLine,
   Pencil,
-  Play,
   Plus,
   RefreshCcw,
   RotateCcw,
@@ -413,7 +410,7 @@ function KVKGame() {
 }
 
 const SYLLABLE_FAMILIES = [
-  { id: "kv", title: "KV", subtitle: "bunyi asas", example: "ba · bi · bu", live: false, color: "mint" },
+  { id: "kv", title: "KV", subtitle: "bunyi asas", example: "ba · be · bi · bo · bu", live: true, color: "mint" },
   { id: "kvk", title: "KVK", subtitle: "pintu yang sudah siap", example: "bas · jam · tin", live: true, color: "coral" },
   { id: "kvkk", title: "KVKK", subtitle: "bunyi bergabung", example: "bank · lamp", live: false, color: "lemon" },
   { id: "diftong", title: "Diftong", subtitle: "dua bunyi jadi satu", example: "ai · au · oi", live: false, color: "blue" },
@@ -526,16 +523,134 @@ const MANUSCRIPT_STROKES = {
 
 const BM_MODULES = [
   { id: "huruf", title: "Huruf", english: "Letters", description: "Kenal bentuk, bunyi dan cara menulis huruf.", sample: "A a", color: "coral", Icon: PenLine },
+  { id: "vokal", title: "Vokal", english: "Vowels", description: "Dengar bunyi a, e, i, o dan u dalam Bahasa Melayu.", sample: "a e i o u", color: "lemon", Icon: Volume2 },
   { id: "suku-kata", title: "Suku Kata", english: "Syllables", description: "Buka bunyi KV, KVK dan pintu bacaan seterusnya.", sample: "ba · bas", color: "mint", Icon: BookOpen },
   { id: "perkataan", title: "Perkataan", english: "Words", description: "Padan perkataan dengan gambar ikut level.", sample: "epal · rumah", color: "blue", Icon: Image }
 ];
 
-function speakLetter(letter) {
-  if (!window.speechSynthesis) return;
-  const voiceLine = new window.SpeechSynthesisUtterance(`${letter.sound}. ${letter.word}`);
-  voiceLine.lang = "ms-MY";
+const VOKAL = [
+  { id: "a", label: "a", sound: "a" },
+  { id: "e", label: "e", sound: "e" },
+  { id: "i", label: "i", sound: "i" },
+  { id: "o", label: "o", sound: "o" },
+  { id: "u", label: "u", sound: "u" }
+];
+
+const KV_SYLLABLES = VOKAL.map((vowel) => ({
+  ...vowel,
+  id: `b${vowel.id}`,
+  label: `b${vowel.label}`,
+  sound: `b${vowel.sound}`
+}));
+
+let speechVoiceCache = null;
+const letterAudioCache = new Map();
+let activeLetterAudio = null;
+
+function preloadLetterAudio() {
+  if (!window.Audio) return;
+  HURUF.forEach(({ letter }) => {
+    const key = letter.toLowerCase();
+    const audio = letterAudioCache.get(key) || new window.Audio(`/audio/letters/${key}.mp3`);
+    audio.preload = "auto";
+    audio.load();
+    letterAudioCache.set(key, audio);
+  });
+}
+
+function playLetterAudio(letter) {
+  if (!window.Audio) {
+    speakLetter(letter);
+    return;
+  }
+  const key = letter.letter.toLowerCase();
+  const audio = letterAudioCache.get(key) || new window.Audio(`/audio/letters/${key}.mp3`);
+  letterAudioCache.set(key, audio);
+  if (activeLetterAudio && activeLetterAudio !== audio) {
+    activeLetterAudio.pause();
+    activeLetterAudio.currentTime = 0;
+  }
+  activeLetterAudio = audio;
+  audio.pause();
+  audio.currentTime = 0;
+  const playback = audio.play();
+  playback?.catch(() => {
+    if (activeLetterAudio === audio) activeLetterAudio = null;
+    speakLetter(letter);
+  });
+}
+
+function preferredFemaleVoice() {
+  if (!window.speechSynthesis) return null;
+  const voices = window.speechSynthesis.getVoices();
+  const femaleHints = /female|woman|zira|samantha|karen|susan|hazel|aria|jenny|google us english|google uk english/i;
+  return voices.find((voice) => femaleHints.test(voice.name))
+    || voices.find((voice) => /^ms[-_]/i.test(voice.lang))
+    || voices.find((voice) => /^en[-_]/i.test(voice.lang))
+    || voices[0]
+    || null;
+}
+
+function preferredMalayVoice() {
+  if (!window.speechSynthesis) return null;
+  const voices = window.speechSynthesis.getVoices();
+  return voices.find((voice) => /^ms[-_]/i.test(voice.lang)) || null;
+}
+
+function speakMalayText(text) {
+  if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
+  const voiceLine = new window.SpeechSynthesisUtterance(text);
+  const voice = preferredMalayVoice();
+  if (voice) {
+    voiceLine.voice = voice;
+    voiceLine.lang = voice.lang;
+  } else {
+    voiceLine.lang = "ms-MY";
+  }
+  voiceLine.rate = 0.58;
+  voiceLine.pitch = 1.08;
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(voiceLine);
+}
+
+function speakLetter(letter) {
+  if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
+  const voiceLine = new window.SpeechSynthesisUtterance(letter.letter);
+  const voice = speechVoiceCache || preferredFemaleVoice();
+  speechVoiceCache = voice;
+  const playfulPitch = 1.55 + ((letter.letter.charCodeAt(0) % 3) * 0.06);
+  if (voice) {
+    voiceLine.voice = voice;
+    voiceLine.lang = voice.lang;
+  } else {
+    voiceLine.lang = "en-US";
+  }
+  voiceLine.rate = 0.63;
+  voiceLine.pitch = playfulPitch;
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(voiceLine);
+}
+
+function warmSpeechEngine() {
+  if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return () => {};
+  window.speechSynthesis.getVoices();
+  speechVoiceCache = preferredFemaleVoice();
+  const refreshVoices = () => {
+    speechVoiceCache = preferredFemaleVoice();
+  };
+  window.speechSynthesis.addEventListener("voiceschanged", refreshVoices);
+  const primer = new window.SpeechSynthesisUtterance("A");
+  const voice = speechVoiceCache || preferredFemaleVoice();
+  if (voice) {
+    primer.voice = voice;
+    primer.lang = voice.lang;
+  }
+  primer.volume = 0;
+  primer.rate = 0.63;
+  primer.pitch = 1.62;
+  window.speechSynthesis.speak(primer);
+  window.speechSynthesis.cancel();
+  return () => window.speechSynthesis.removeEventListener("voiceschanged", refreshVoices);
 }
 
 function BMLearningPicker({ onBack, onChoose }) {
@@ -550,7 +665,7 @@ function BMLearningPicker({ onBack, onChoose }) {
           <h1>Apa mahu belajar?</h1>
           <p>Choose a learning path before we start the game.</p>
         </div>
-        <div className="hub-hero-badge"><Star size={18} fill="currentColor" /><span><strong>3</strong> pilihan belajar</span></div>
+        <div className="hub-hero-badge"><Star size={18} fill="currentColor" /><span><strong>4</strong> pilihan belajar</span></div>
       </div>
 
       <section className="bm-module-section" aria-labelledby="bm-module-title">
@@ -578,62 +693,51 @@ function BMLearningPicker({ onBack, onChoose }) {
 }
 
 function LetterRecognitionPanel({ selectedLetter, onSelect, letterCase }) {
+  const [speakingLetter, setSpeakingLetter] = useState(null);
+  const soundTimer = useRef(null);
+
+  useEffect(() => {
+    const removeVoiceListener = warmSpeechEngine();
+    preloadLetterAudio();
+    return () => {
+      removeVoiceListener();
+      window.clearTimeout(soundTimer.current);
+    };
+  }, []);
+
+  function chooseLetter(item) {
+    onSelect(item);
+    setSpeakingLetter(item.letter);
+    window.clearTimeout(soundTimer.current);
+    soundTimer.current = window.setTimeout(() => setSpeakingLetter(null), 900);
+    playLetterAudio(item);
+  }
+
+  const selectedGlyph = letterCase === "capital" ? selectedLetter.letter : selectedLetter.letter.toLowerCase();
+
   return (
     <div className="letter-panel letter-recognition-panel">
       <div className="letter-panel-heading">
         <span className="section-kicker">Aktiviti 01 / Kenal</span>
         <h3>Kenal huruf</h3>
-        <p>Pilih huruf. Look at its shape, sound and example.</p>
+        <p>Tekan satu huruf untuk dengar bunyinya.</p>
       </div>
       <div className="letter-choice-row" aria-label="Pilih huruf untuk belajar">
-        {HURUF.map((item) => (
-          <button className={`letter-choice ${selectedLetter.letter === item.letter ? "is-selected" : ""}`} type="button" key={item.letter} onClick={() => onSelect(item)} aria-pressed={selectedLetter.letter === item.letter}>
-            <strong>{letterCase === "capital" ? item.letter : item.letter.toLowerCase()}</strong><span>{letterCase === "capital" ? item.letter.toLowerCase() : item.letter}</span>
-          </button>
-        ))}
+        {HURUF.map((item, index) => {
+          const glyph = letterCase === "capital" ? item.letter : item.letter.toLowerCase();
+          return (
+            <button className={`letter-choice ${selectedLetter.letter === item.letter ? "is-selected" : ""} ${speakingLetter === item.letter ? "is-speaking" : ""}`} style={{ "--letter-index": index }} type="button" key={item.letter} onClick={() => chooseLetter(item)} aria-pressed={selectedLetter.letter === item.letter} aria-label={`Dengar bunyi huruf ${glyph}`} title={`Dengar ${glyph}`}>
+              <strong>{glyph}</strong>
+              <span className="letter-button-ripple" aria-hidden="true"><i /><i /><i /></span>
+            </button>
+          );
+        })}
       </div>
-      <div className="letter-focus-card">
-        <div className="letter-focus-pair"><span className={letterCase === "capital" ? "is-current" : ""}>{selectedLetter.letter}</span><span className={letterCase === "small" ? "is-current" : ""}>{selectedLetter.letter.toLowerCase()}</span></div>
-        <div className="letter-focus-word"><span className="letter-picture" aria-hidden="true">{selectedLetter.emoji}</span><strong>{selectedLetter.word}</strong><span>bunyi {selectedLetter.sound}</span></div>
-        <button className="round-icon-action" type="button" onClick={() => speakLetter(selectedLetter)} title="Dengar bunyi huruf"><Volume2 size={20} /></button>
+      <div className="letter-selected-card" role="status" aria-live="polite">
+        <span>Huruf dipilih</span>
+        <strong>{selectedGlyph}</strong>
+        <em>{speakingLetter ? "Sedang sebut..." : "Tekan huruf untuk dengar"}</em>
       </div>
-    </div>
-  );
-}
-
-function LetterStrokePractice({ letter, letterCase }) {
-  const [strokeRun, setStrokeRun] = useState(0);
-  const lesson = MANUSCRIPT_STROKES[letterCase][letter.letter];
-  const glyph = letterCase === "capital" ? letter.letter : letter.letter.toLowerCase();
-  const markerId = `stroke-arrow-${letterCase}-${letter.letter}`;
-
-  return (
-    <div className="letter-panel stroke-practice-panel">
-      <div className="letter-panel-heading">
-        <span className="section-kicker">Aktiviti 02 / Tulis</span>
-        <h3>Ikut jejak huruf</h3>
-        <p>Follow the numbered strokes, then try it on paper.</p>
-      </div>
-      <div className="stroke-board">
-        <svg key={strokeRun} className="stroke-guide-svg is-playing" viewBox="0 0 200 200" role="img" aria-label={`Animasi menulis huruf ${glyph}`}>
-          <defs>
-            <marker id={markerId} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 0 L 10 5 L 0 10 z" />
-            </marker>
-          </defs>
-          {lesson.paths.map((path, index) => (
-            <g key={path}>
-              <path className="stroke-track" d={path} />
-              <path className="stroke-animated" d={path} markerEnd={`url(#${markerId})`} style={{ "--stroke-delay": `${index * .28}s` }} />
-            </g>
-          ))}
-        </svg>
-        <span className="stroke-board-letter">{glyph}</span>
-      </div>
-      <div className="stroke-step-list" aria-label={`Langkah menulis huruf ${glyph}`}>
-        {lesson.steps.map((step, index) => <div className="stroke-step" key={step}><span>{index + 1}</span><strong>{step}</strong></div>)}
-      </div>
-      <button className="secondary-action" type="button" onClick={() => setStrokeRun((current) => current + 1)}><Play size={16} /> Lihat langkah lagi</button>
     </div>
   );
 }
@@ -680,7 +784,7 @@ function SubjectCard({ title, english, description, type, color, onClick }) {
   );
 }
 
-function SyllableCard({ family, onComingSoon }) {
+function SyllableCard({ family, onComingSoon, onOpenKV }) {
   const content = (
     <>
       <span className="syllable-card-topline">
@@ -696,6 +800,9 @@ function SyllableCard({ family, onComingSoon }) {
   );
 
   if (family.live) {
+    if (family.id === "kv") {
+      return <button className={`syllable-card syllable-card-${family.color}`} type="button" onClick={onOpenKV}>{content}</button>;
+    }
     return <a className={`syllable-card syllable-card-${family.color} is-live`} href="/kvk">{content}</a>;
   }
 
@@ -736,7 +843,7 @@ function MatchPreview({ level, onChooseLevel }) {
   );
 }
 
-function BMPracticeModule({ view, onBack, onComingSoon, notice }) {
+function BMPracticeModule({ view, onBack, onComingSoon, notice, onOpenKV }) {
   const [selectedLevel, setSelectedLevel] = useState(WORD_LEVELS[0]);
 
   const showSyllables = view === "suku-kata";
@@ -763,10 +870,10 @@ function BMPracticeModule({ view, onBack, onComingSoon, notice }) {
             <h2 id="syllable-title">Membaca suku kata</h2>
             <p>Pilih bunyi yang mahu kita buka hari ini.</p>
           </div>
-          <span className="progress-stamp"><CheckCircle2 size={16} /> 1 / 5 sedia</span>
+          <span className="progress-stamp"><CheckCircle2 size={16} /> 2 / 5 sedia</span>
         </div>
         <div className="syllable-grid">
-          {SYLLABLE_FAMILIES.map((family) => <SyllableCard key={family.id} family={family} onComingSoon={onComingSoon} />)}
+          {SYLLABLE_FAMILIES.map((family) => <SyllableCard key={family.id} family={family} onComingSoon={onComingSoon} onOpenKV={onOpenKV} />)}
         </div>
       </section>}
 
@@ -820,6 +927,161 @@ function LetterMatchTest() {
       </div>
       {feedback && <p className={`letter-feedback ${feedback.type}`} role="status">{feedback.text}</p>}
       <button className="secondary-action" type="button" onClick={nextQuestion} disabled={feedback?.type !== "correct"}><RefreshCcw size={16} /> Soalan seterusnya</button>
+    </div>
+  );
+}
+
+function SoundChoice({ item, isSelected, isSpeaking, index, onChoose, kind = "vowel" }) {
+  return (
+    <button
+      className={`sound-choice sound-choice-${kind} ${isSelected ? "is-selected" : ""} ${isSpeaking ? "is-speaking" : ""}`}
+      style={{ "--sound-index": index }}
+      type="button"
+      onClick={() => onChoose(item)}
+      aria-pressed={isSelected}
+      aria-label={`Dengar bunyi ${item.label}`}
+      title={`Dengar ${item.label}`}
+    >
+      <strong>{item.label}</strong>
+      <span className="letter-button-ripple" aria-hidden="true"><i /><i /><i /></span>
+    </button>
+  );
+}
+
+function MalaySoundPanel({ items, selectedItem, onSelect, title, description, kind = "vowel" }) {
+  const [speakingItem, setSpeakingItem] = useState(null);
+  const soundTimer = useRef(null);
+
+  useEffect(() => {
+    const removeVoiceListener = warmSpeechEngine();
+    return () => {
+      removeVoiceListener();
+      window.clearTimeout(soundTimer.current);
+    };
+  }, []);
+
+  function chooseItem(item) {
+    onSelect(item);
+    setSpeakingItem(item.id);
+    window.clearTimeout(soundTimer.current);
+    soundTimer.current = window.setTimeout(() => setSpeakingItem(null), 900);
+    speakMalayText(item.sound);
+  }
+
+  return (
+    <div className={`letter-panel sound-learning-panel sound-learning-panel-${kind}`}>
+      <div className="letter-panel-heading">
+        <span className="section-kicker">Aktiviti 01 / Dengar</span>
+        <h3>{title}</h3>
+        <p>{description}</p>
+      </div>
+      <div className={`sound-choice-row sound-choice-row-${kind}`} aria-label={`Pilih ${title.toLowerCase()}`}>
+        {items.map((item, index) => (
+          <SoundChoice key={item.id} item={item} index={index} kind={kind} isSelected={selectedItem.id === item.id} isSpeaking={speakingItem === item.id} onChoose={chooseItem} />
+        ))}
+      </div>
+      <div className="letter-selected-card sound-selected-card" role="status" aria-live="polite">
+        <span>Bunyi dipilih</span>
+        <strong>{selectedItem.label}</strong>
+        <em>{speakingItem ? "Sedang bunyi..." : "Tekan petak untuk dengar"}</em>
+      </div>
+    </div>
+  );
+}
+
+function VokalModule({ onBack }) {
+  const [selectedVowel, setSelectedVowel] = useState(VOKAL[0]);
+
+  return (
+    <div className="home-content hub-content sound-module-content">
+      <div className="hub-hero sound-hero">
+        <button className="back-button" type="button" onClick={onBack} title="Kembali pilih ruang Bahasa Melayu">
+          <ArrowLeft size={18} /> <span>Bahasa Melayu</span>
+        </button>
+        <div className="hub-title-block">
+          <span className="hub-eyebrow"><Volume2 size={15} /> Vokal <span>/ Vowels</span></span>
+          <h1>Dengar bunyi vokal</h1>
+          <p>Tekan a, e, i, o atau u untuk dengar bunyi Bahasa Melayu.</p>
+        </div>
+        <div className="sound-hero-badge"><Volume2 size={18} /><span><strong>5</strong> bunyi sedia</span></div>
+      </div>
+
+      <section className="letter-learning-section" aria-labelledby="vowel-learning-title">
+        <div className="section-heading-row">
+          <div><span className="section-kicker">Aktiviti belajar / Learn</span><h2 id="vowel-learning-title">Vokal Bahasa Melayu</h2><p>Pilih satu vokal dan dengar bunyinya.</p></div>
+          <span className="skill-count"><Volume2 size={15} /> Bunyi Melayu</span>
+        </div>
+        <div className="letter-learning-grid letter-learning-grid-single">
+          <MalaySoundPanel items={VOKAL} selectedItem={selectedVowel} onSelect={setSelectedVowel} title="Kenal bunyi vokal" description="Tekan satu vokal untuk dengar bunyinya." />
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function KVSoundTable({ selectedItem, onSelect }) {
+  const [speakingItem, setSpeakingItem] = useState(null);
+  const soundTimer = useRef(null);
+
+  useEffect(() => {
+    const removeVoiceListener = warmSpeechEngine();
+    return () => {
+      removeVoiceListener();
+      window.clearTimeout(soundTimer.current);
+    };
+  }, []);
+
+  function chooseItem(item) {
+    onSelect(item);
+    setSpeakingItem(item.id);
+    window.clearTimeout(soundTimer.current);
+    soundTimer.current = window.setTimeout(() => setSpeakingItem(null), 1000);
+    speakMalayText(item.sound);
+  }
+
+  return (
+    <div className="kv-table-wrap">
+      <div className="kv-table" role="table" aria-label="Jadual bunyi vokal dan suku kata ba be bi bo bu">
+        <div className="kv-table-corner" role="columnheader">Bunyi</div>
+        {VOKAL.map((item) => <div className="kv-table-vowel" role="columnheader" key={`head-${item.id}`}>{item.label}</div>)}
+        <div className="kv-table-label" role="rowheader">Vokal</div>
+        {VOKAL.map((item, index) => <SoundChoice key={`vowel-${item.id}`} item={item} index={index} kind="table-vowel" isSelected={selectedItem.id === item.id} isSpeaking={speakingItem === item.id} onChoose={chooseItem} />)}
+        <div className="kv-table-label kv-table-label-kv" role="rowheader">KV</div>
+        {KV_SYLLABLES.map((item, index) => <SoundChoice key={item.id} item={item} index={index} kind="table-syllable" isSelected={selectedItem.id === item.id} isSpeaking={speakingItem === item.id} onChoose={chooseItem} />)}
+      </div>
+      <div className="letter-selected-card sound-selected-card" role="status" aria-live="polite">
+        <span>Bunyi dipilih</span>
+        <strong>{selectedItem.label}</strong>
+        <em>{speakingItem ? "Sedang bunyi..." : "Tekan petak untuk dengar"}</em>
+      </div>
+    </div>
+  );
+}
+
+function KVModule({ onBack }) {
+  const [selectedItem, setSelectedItem] = useState(KV_SYLLABLES[0]);
+
+  return (
+    <div className="home-content hub-content sound-module-content">
+      <div className="hub-hero sound-hero">
+        <button className="back-button" type="button" onClick={onBack} title="Kembali ke suku kata">
+          <ArrowLeft size={18} /> <span>Suku Kata</span>
+        </button>
+        <div className="hub-title-block">
+          <span className="hub-eyebrow"><BookOpen size={15} /> KV <span>/ Suku kata</span></span>
+          <h1>Buka bunyi KV</h1>
+          <p>Tekan mana-mana petak untuk dengar bunyi vokal atau suku kata.</p>
+        </div>
+        <div className="sound-hero-badge"><BookOpen size={18} /><span><strong>10</strong> bunyi sedia</span></div>
+      </div>
+
+      <section className="letter-learning-section kv-learning-section" aria-labelledby="kv-learning-title">
+        <div className="section-heading-row">
+          <div><span className="section-kicker">Aktiviti belajar / Learn</span><h2 id="kv-learning-title">Vokal dan suku kata</h2><p>Mulakan dengan vokal, kemudian baca bunyi ba, be, bi, bo dan bu.</p></div>
+          <span className="skill-count"><Volume2 size={15} /> Tekan untuk dengar</span>
+        </div>
+        <KVSoundTable selectedItem={selectedItem} onSelect={setSelectedItem} />
+      </section>
     </div>
   );
 }
@@ -880,91 +1142,9 @@ function LetterSoundTest({ letter, letterCase }) {
     <div className="letter-test-card sound-test-card">
       <div className="letter-test-heading"><span className="test-number">02</span><div><span className="section-kicker">Uji diri</span><h3>Dengar dan baca</h3></div></div>
       <p className="letter-test-prompt">Baca huruf ini dengan kuat</p>
-      <div className="sound-target"><strong>{glyph}</strong><span>{letter.sound}</span></div>
+      <div className="sound-target"><strong>{glyph}</strong></div>
       <button className="mic-action" type="button" onClick={startListening} disabled={status.type === "requesting" || status.type === "listening"}><Mic size={18} /> {status.type === "listening" ? "Sedang dengar..." : "Mula baca"}</button>
-      <p className={`letter-feedback ${status.type}`} role="status"><AudioLines size={15} /> {status.text}</p>
-    </div>
-  );
-}
-
-function LetterWritingTest({ letter, letterCase }) {
-  const canvasRef = useRef(null);
-  const drawingRef = useRef(false);
-  const [hasMarks, setHasMarks] = useState(false);
-  const [result, setResult] = useState("");
-  const glyph = letterCase === "capital" ? letter.letter : letter.letter.toLowerCase();
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return undefined;
-    const resizeCanvas = () => {
-      const bounds = canvas.getBoundingClientRect();
-      const density = window.devicePixelRatio || 1;
-      canvas.width = Math.max(1, Math.round(bounds.width * density));
-      canvas.height = Math.max(1, Math.round(bounds.height * density));
-      const context = canvas.getContext("2d");
-      context.scale(density, density);
-      context.lineWidth = 5;
-      context.lineCap = "round";
-      context.lineJoin = "round";
-      context.strokeStyle = "#19384a";
-    };
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
-    return () => window.removeEventListener("resize", resizeCanvas);
-  }, []);
-
-  function pointerPoint(event) {
-    const bounds = event.currentTarget.getBoundingClientRect();
-    return { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
-  }
-
-  function beginStroke(event) {
-    const canvas = event.currentTarget;
-    canvas.setPointerCapture?.(event.pointerId);
-    const point = pointerPoint(event);
-    const context = canvas.getContext("2d");
-    context.beginPath();
-    context.moveTo(point.x, point.y);
-    drawingRef.current = true;
-    setHasMarks(true);
-    setResult("");
-  }
-
-  function drawStroke(event) {
-    if (!drawingRef.current) return;
-    const point = pointerPoint(event);
-    const context = event.currentTarget.getContext("2d");
-    context.lineTo(point.x, point.y);
-    context.stroke();
-  }
-
-  function endStroke() {
-    drawingRef.current = false;
-  }
-
-  function clearWriting() {
-    const canvas = canvasRef.current;
-    const context = canvas?.getContext("2d");
-    if (!canvas || !context) return;
-    context.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
-    setHasMarks(false);
-    setResult("");
-  }
-
-  return (
-    <div className="letter-test-card writing-test-card">
-      <div className="letter-test-heading"><span className="test-number">03</span><div><span className="section-kicker">Uji diri</span><h3>Tulis huruf</h3></div></div>
-      <p className="letter-test-prompt">Tulis huruf <strong>{glyph}</strong> di dalam kotak</p>
-      <div className="writing-canvas-wrap">
-        <span className="writing-target-letter" aria-hidden="true">{glyph}</span>
-        <canvas ref={canvasRef} aria-label={`Ruang menulis huruf ${glyph}`} onPointerDown={beginStroke} onPointerMove={drawStroke} onPointerUp={endStroke} onPointerCancel={endStroke} />
-      </div>
-      <div className="writing-actions">
-        <button className="secondary-action" type="button" onClick={clearWriting}><Eraser size={16} /> Bersih</button>
-        <button className="primary-mini-action" type="button" onClick={() => setResult(hasMarks ? `Ada jejak tulisan. Cuba ikut bentuk ${glyph} sekali lagi.` : "Cuba tulis dahulu.")}><CheckCircle2 size={16} /> Semak</button>
-      </div>
-      {result && <p className="letter-feedback" role="status">{result}</p>}
+      <p className={`letter-feedback ${status.type}`} role="status">{status.text}</p>
     </div>
   );
 }
@@ -981,36 +1161,34 @@ function HurufModule({ onBack }) {
         </button>
         <div className="hub-title-block">
           <span className="hub-eyebrow"><PenLine size={15} /> Huruf <span>/ Letters</span></span>
-          <h1>Kenal, bunyi, tulis!</h1>
-          <p>Look, listen and make each letter with your own hand.</p>
+          <h1>Kenal dan bunyi!</h1>
+          <p>Choose a letter and press it to hear the sound.</p>
         </div>
-        <div className="letter-hero-badge"><span>A</span><span>a</span><strong>26 huruf</strong></div>
+        <div className="letter-hero-badge"><span>A</span><strong>26 huruf</strong></div>
       </div>
 
       <section className="letter-learning-section" aria-labelledby="letter-learning-title">
         <div className="section-heading-row">
-          <div><span className="section-kicker">Aktiviti belajar / Learn</span><h2 id="letter-learning-title">Huruf hari ini</h2><p>Pilih huruf, lihat jejaknya dan dengar bunyinya.</p></div>
-          <span className="skill-count"><Volume2 size={15} /> Comic handwriting</span>
+          <div><span className="section-kicker">Aktiviti belajar / Learn</span><h2 id="letter-learning-title">Huruf hari ini</h2><p>Pilih huruf besar atau huruf kecil, kemudian tekan untuk dengar.</p></div>
+          <span className="skill-count">Comic handwriting</span>
         </div>
-        <div className="case-switcher" role="tablist" aria-label="Pilih jenis huruf">
-          <button className={letterCase === "capital" ? "is-selected" : ""} type="button" role="tab" aria-selected={letterCase === "capital"} onClick={() => setLetterCase("capital")}><strong>Huruf besar</strong><span>Capital letters</span></button>
-          <button className={letterCase === "small" ? "is-selected" : ""} type="button" role="tab" aria-selected={letterCase === "small"} onClick={() => setLetterCase("small")}><strong>Huruf kecil</strong><span>Small letters</span></button>
+        <div className="case-toggle" role="tablist" aria-label="Tukar huruf besar atau kecil">
+          <button className={letterCase === "capital" ? "is-selected" : ""} type="button" role="tab" aria-selected={letterCase === "capital"} onClick={() => setLetterCase("capital")}><strong>A</strong><span>Huruf besar</span></button>
+          <button className={letterCase === "small" ? "is-selected" : ""} type="button" role="tab" aria-selected={letterCase === "small"} onClick={() => setLetterCase("small")}><strong>a</strong><span>Huruf kecil</span></button>
         </div>
-        <div className="letter-learning-grid">
+        <div className="letter-learning-grid letter-learning-grid-single">
           <LetterRecognitionPanel selectedLetter={selectedLetter} onSelect={setSelectedLetter} letterCase={letterCase} />
-          <LetterStrokePractice letter={selectedLetter} letterCase={letterCase} />
         </div>
       </section>
 
       <section className="letter-test-section" aria-labelledby="letter-test-title">
         <div className="section-heading-row">
-          <div><span className="section-kicker">Test / Uji diri</span><h2 id="letter-test-title">Cuba sendiri</h2><p>Three small challenges to show what you know.</p></div>
-          <span className="skill-count"><CheckCircle2 size={15} /> 3 aktiviti</span>
+          <div><span className="section-kicker">Test / Uji diri</span><h2 id="letter-test-title">Cuba sendiri</h2><p>Two small challenges to show what you know.</p></div>
+          <span className="skill-count"><CheckCircle2 size={15} /> 2 aktiviti</span>
         </div>
         <div className="letter-test-grid">
           <LetterMatchTest />
           <LetterSoundTest letter={selectedLetter} letterCase={letterCase} />
-          <LetterWritingTest key={`${selectedLetter.letter}-${letterCase}`} letter={selectedLetter} letterCase={letterCase} />
         </div>
       </section>
     </div>
@@ -1026,7 +1204,9 @@ function BahasaMelayuHub({ onBack, onComingSoon, notice }) {
   }
 
   if (module === "huruf") return <HurufModule onBack={() => changeModule(null)} />;
-  if (module === "suku-kata") return <BMPracticeModule view="suku-kata" onBack={() => changeModule(null)} onComingSoon={onComingSoon} notice={notice} />;
+  if (module === "vokal") return <VokalModule onBack={() => changeModule(null)} />;
+  if (module === "kv") return <KVModule onBack={() => changeModule("suku-kata")} />;
+  if (module === "suku-kata") return <BMPracticeModule view="suku-kata" onBack={() => changeModule(null)} onComingSoon={onComingSoon} notice={notice} onOpenKV={() => changeModule("kv")} />;
   if (module === "perkataan") return <BMPracticeModule view="perkataan" onBack={() => changeModule(null)} onComingSoon={onComingSoon} notice={notice} />;
 
   return <BMLearningPicker onBack={onBack} onChoose={changeModule} />;
