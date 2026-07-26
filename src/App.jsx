@@ -528,43 +528,23 @@ const BM_MODULES = [
 
 let speechVoiceCache = null;
 
-const LETTER_SPEECH_OVERRIDES = {
-  G: "guh",
-  J: "juh",
-  P: "puh",
-  T: "tuh",
-  V: "vuh"
-};
-
 function preferredFemaleVoice() {
   if (!window.speechSynthesis) return null;
   const voices = window.speechSynthesis.getVoices();
-  const preferredNames = [
-    /jenny/i,
-    /aria/i,
-    /zira/i,
-    /samantha/i,
-    /karen/i,
-    /susan/i,
-    /hazel/i,
-    /google us english female/i,
-    /google uk english female/i
-  ];
-  return preferredNames.map((hint) => voices.find((voice) => hint.test(voice.name))).find(Boolean)
-    || voices.find((voice) => /female|woman/i.test(voice.name))
-    || voices.find((voice) => /^en[-_]/i.test(voice.lang))
+  const femaleHints = /female|woman|zira|samantha|karen|susan|hazel|aria|jenny|google us english|google uk english/i;
+  return voices.find((voice) => femaleHints.test(voice.name))
     || voices.find((voice) => /^ms[-_]/i.test(voice.lang))
+    || voices.find((voice) => /^en[-_]/i.test(voice.lang))
     || voices[0]
     || null;
 }
 
 function speakLetter(letter) {
   if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
-  const sound = LETTER_SPEECH_OVERRIDES[letter.letter] || letter.letter;
-  const voiceLine = new window.SpeechSynthesisUtterance(sound);
+  const voiceLine = new window.SpeechSynthesisUtterance(letter.letter);
   const voice = speechVoiceCache || preferredFemaleVoice();
   speechVoiceCache = voice;
-  const playfulPitch = 1.76 + ((letter.letter.charCodeAt(0) % 3) * 0.05);
+  const playfulPitch = 1.55 + ((letter.letter.charCodeAt(0) % 3) * 0.06);
   if (voice) {
     voiceLine.voice = voice;
     voiceLine.lang = voice.lang;
@@ -593,7 +573,7 @@ function warmSpeechEngine() {
   }
   primer.volume = 0;
   primer.rate = 0.63;
-  primer.pitch = 1.82;
+  primer.pitch = 1.62;
   window.speechSynthesis.speak(primer);
   window.speechSynthesis.cancel();
   return () => window.speechSynthesis.removeEventListener("voiceschanged", refreshVoices);
