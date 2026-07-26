@@ -438,14 +438,90 @@ const HURUF = [
   { letter: "A", sound: "a", word: "ayam", emoji: "\u{1F414}", accepted: ["a", "ay", "ei"] },
   { letter: "B", sound: "be", word: "bola", emoji: "\u{26BD}", accepted: ["b", "be", "bee"] },
   { letter: "C", sound: "ce", word: "cawan", emoji: "\u{1F375}", accepted: ["c", "ce", "si", "see"] },
-  { letter: "D", sound: "de", word: "dadu", emoji: "\u{1F3B2}", accepted: ["d", "de", "di", "dee"] }
+  { letter: "D", sound: "de", word: "dadu", emoji: "\u{1F3B2}", accepted: ["d", "de", "di", "dee"] },
+  { letter: "E", sound: "e", word: "epal", emoji: "\u{1F34E}", accepted: ["e", "i"] },
+  { letter: "F", sound: "ef", word: "feri", emoji: "\u{26F4}", accepted: ["f", "ef"] },
+  { letter: "G", sound: "je", word: "gajah", emoji: "\u{1F418}", accepted: ["g", "je", "gee"] },
+  { letter: "H", sound: "ha", word: "harimau", emoji: "\u{1F42F}", accepted: ["h", "ha", "aitch"] },
+  { letter: "I", sound: "i", word: "ikan", emoji: "\u{1F41F}", accepted: ["i", "ee"] },
+  { letter: "J", sound: "je", word: "jam", emoji: "\u{23F0}", accepted: ["j", "je", "jay"] },
+  { letter: "K", sound: "ke", word: "kereta", emoji: "\u{1F697}", accepted: ["k", "ke", "kay"] },
+  { letter: "L", sound: "el", word: "lampu", emoji: "\u{1F4A1}", accepted: ["l", "el"] },
+  { letter: "M", sound: "em", word: "mata", emoji: "\u{1F441}", accepted: ["m", "em"] },
+  { letter: "N", sound: "en", word: "nasi", emoji: "\u{1F35A}", accepted: ["n", "en"] },
+  { letter: "O", sound: "o", word: "oren", emoji: "\u{1F34A}", accepted: ["o", "oh"] },
+  { letter: "P", sound: "pe", word: "pisang", emoji: "\u{1F34C}", accepted: ["p", "pe", "pee"] },
+  { letter: "Q", sound: "kiu", word: "qari", emoji: "\u{1F4D6}", accepted: ["q", "kiu", "cue"] },
+  { letter: "R", sound: "ar", word: "rumah", emoji: "\u{1F3E0}", accepted: ["r", "ar"] },
+  { letter: "S", sound: "es", word: "sudu", emoji: "\u{1F944}", accepted: ["s", "es"] },
+  { letter: "T", sound: "te", word: "topi", emoji: "\u{1F3A9}", accepted: ["t", "te", "tee"] },
+  { letter: "U", sound: "u", word: "ular", emoji: "\u{1F40D}", accepted: ["u", "you"] },
+  { letter: "V", sound: "ve", word: "van", emoji: "\u{1F69A}", accepted: ["v", "ve"] },
+  { letter: "W", sound: "dabliu", word: "wau", emoji: "\u{1FA81}", accepted: ["w", "dabliu", "double you"] },
+  { letter: "X", sound: "eks", word: "x-ray", emoji: "\u{1F50D}", accepted: ["x", "eks"] },
+  { letter: "Y", sound: "wai", word: "yo-yo", emoji: "\u{1FA80}", accepted: ["y", "wai", "why"] },
+  { letter: "Z", sound: "zet", word: "zebra", emoji: "\u{1F993}", accepted: ["z", "zet", "zee"] }
 ];
 
-const LETTER_STROKES = {
-  A: ["M 48 168 L 98 32", "M 98 32 L 150 168", "M 70 112 L 128 112"],
-  B: ["M 54 168 L 54 32", "M 54 34 C 142 18 144 84 58 92", "M 58 92 C 154 76 158 170 54 166"],
-  C: ["M 148 58 C 112 16 54 30 45 96 C 36 160 112 184 150 138"],
-  D: ["M 54 168 L 54 32", "M 55 34 C 166 18 170 174 55 166"]
+const makeStrokeLesson = (paths, steps) => ({ paths, steps });
+
+const MANUSCRIPT_STROKES = {
+  capital: {
+    A: makeStrokeLesson(["M 48 168 L 98 32", "M 98 32 L 150 168", "M 70 112 L 128 112"], ["Serong turun", "Serong naik", "Palang tengah"]),
+    B: makeStrokeLesson(["M 54 168 L 54 32", "M 54 34 C 142 18 144 84 58 92", "M 58 92 C 154 76 158 170 54 166"], ["Garis turun", "Bulat atas", "Bulat bawah"]),
+    C: makeStrokeLesson(["M 148 58 C 112 16 54 30 45 96 C 36 160 112 184 150 138"], ["Mula atas, pusing dan tutup bawah"]),
+    D: makeStrokeLesson(["M 54 168 L 54 32", "M 55 34 C 166 18 170 174 55 166"], ["Garis turun", "Bulat besar ke bawah"]),
+    E: makeStrokeLesson(["M 52 32 L 52 168", "M 52 32 L 150 32", "M 52 100 L 130 100", "M 52 168 L 150 168"], ["Garis turun", "Palang atas", "Palang tengah", "Palang bawah"]),
+    F: makeStrokeLesson(["M 52 168 L 52 32", "M 52 32 L 150 32", "M 52 100 L 130 100"], ["Garis turun", "Palang atas", "Palang tengah"]),
+    G: makeStrokeLesson(["M 150 58 C 114 15 54 30 45 96 C 38 160 116 184 154 130", "M 154 105 L 105 105"], ["Bentuk bulat", "Masuk palang"]),
+    H: makeStrokeLesson(["M 52 32 L 52 168", "M 148 32 L 148 168", "M 52 100 L 148 100"], ["Garis kiri", "Garis kanan", "Palang tengah"]),
+    I: makeStrokeLesson(["M 50 32 L 150 32", "M 100 32 L 100 168", "M 50 168 L 150 168"], ["Palang atas", "Garis turun", "Palang bawah"]),
+    J: makeStrokeLesson(["M 50 32 L 150 32", "M 130 32 L 130 135 C 130 178 54 180 50 130"], ["Palang atas", "Garis turun dan lengkung"]),
+    K: makeStrokeLesson(["M 52 32 L 52 168", "M 52 104 L 148 32", "M 52 104 L 148 168"], ["Garis turun", "Serong atas", "Serong bawah"]),
+    L: makeStrokeLesson(["M 52 32 L 52 168", "M 52 168 L 150 168"], ["Garis turun", "Garis bawah"]),
+    M: makeStrokeLesson(["M 48 168 L 48 32 L 100 112 L 152 32 L 152 168"], ["Satu garisan bersambung"]),
+    N: makeStrokeLesson(["M 52 168 L 52 32", "M 52 32 L 148 168", "M 148 168 L 148 32"], ["Garis kiri", "Serong turun", "Garis kanan"]),
+    O: makeStrokeLesson(["M 100 30 C 38 30 38 170 100 170 C 162 170 162 30 100 30"], ["Pusing bulat tanpa putus"]),
+    P: makeStrokeLesson(["M 54 168 L 54 32", "M 54 34 C 154 18 154 100 54 96"], ["Garis turun", "Bulat atas"]),
+    Q: makeStrokeLesson(["M 100 30 C 38 30 38 170 100 170 C 162 170 162 30 100 30", "M 110 128 L 158 174"], ["Pusing bulat", "Tarik ekor"]),
+    R: makeStrokeLesson(["M 54 168 L 54 32", "M 54 34 C 154 18 154 100 54 96", "M 92 96 L 150 168"], ["Garis turun", "Bulat atas", "Serong kaki"]),
+    S: makeStrokeLesson(["M 148 48 C 118 16 55 28 50 70 C 45 104 145 100 150 140 C 154 176 76 186 46 144"], ["Pusing dari atas ke bawah"]),
+    T: makeStrokeLesson(["M 45 32 L 155 32", "M 100 32 L 100 168"], ["Palang atas", "Garis tengah"]),
+    U: makeStrokeLesson(["M 52 32 L 52 125 C 52 184 148 184 148 125 L 148 32"], ["Turun, pusing dan naik"]),
+    V: makeStrokeLesson(["M 45 32 L 100 168 L 155 32"], ["Serong turun dan serong naik"]),
+    W: makeStrokeLesson(["M 38 32 L 70 168 L 100 90 L 130 168 L 162 32"], ["Empat serong bersambung"]),
+    X: makeStrokeLesson(["M 48 32 L 152 168", "M 152 32 L 48 168"], ["Serong turun", "Serong silang"]),
+    Y: makeStrokeLesson(["M 48 32 L 100 98 L 152 32", "M 100 98 L 100 168"], ["Dua serong bertemu", "Garis turun"]),
+    Z: makeStrokeLesson(["M 48 32 L 152 32", "M 152 32 L 48 168", "M 48 168 L 152 168"], ["Palang atas", "Serong turun", "Palang bawah"])
+  },
+  small: {
+    A: makeStrokeLesson(["M 50 130 C 50 74 142 74 142 130", "M 50 130 C 50 166 142 166 142 130", "M 142 78 L 142 166"], ["Bulat kecil", "Tutup bulat", "Garis akhir"]),
+    B: makeStrokeLesson(["M 58 168 L 58 32", "M 58 96 C 150 72 150 168 58 154"], ["Garis turun", "Bulat bawah"]),
+    C: makeStrokeLesson(["M 146 92 C 112 62 54 72 50 122 C 46 166 108 174 146 142"], ["Bulat terbuka"]),
+    D: makeStrokeLesson(["M 142 32 L 142 166", "M 142 96 C 50 72 50 168 142 150"], ["Garis tinggi", "Bulat bawah"]),
+    E: makeStrokeLesson(["M 52 128 C 80 128 120 128 146 106 C 124 70 54 76 50 126 C 48 168 110 178 148 148"], ["Bulat dengan palang"]),
+    F: makeStrokeLesson(["M 118 42 C 78 14 66 56 66 96 L 66 168", "M 42 92 L 108 92"], ["Lengkung dan turun", "Palang kecil"]),
+    G: makeStrokeLesson(["M 146 94 C 110 62 54 76 52 124 C 50 170 120 174 142 140", "M 142 118 L 104 118 L 104 174"], ["Bulat", "Turun ekor"]),
+    H: makeStrokeLesson(["M 58 32 L 58 168", "M 58 110 C 90 78 142 82 142 122 L 142 168"], ["Garis tinggi", "Bahu dan turun"]),
+    I: makeStrokeLesson(["M 84 92 L 84 168", "M 84 58 L 84 58"], ["Garis turun", "Titik"]),
+    J: makeStrokeLesson(["M 112 92 L 112 166 C 112 190 52 190 52 150", "M 112 58 L 112 58"], ["Garis turun dan lengkung", "Titik"]),
+    K: makeStrokeLesson(["M 60 32 L 60 168", "M 60 124 L 132 84", "M 60 124 L 132 168"], ["Garis tinggi", "Serong atas", "Serong bawah"]),
+    L: makeStrokeLesson(["M 92 32 L 92 168"], ["Satu garis turun"]),
+    M: makeStrokeLesson(["M 44 168 L 44 96 C 44 76 78 76 92 108 C 108 76 148 76 148 108 L 148 168"], ["Turun, dua bahu, turun"]),
+    N: makeStrokeLesson(["M 52 168 L 52 100 C 52 76 142 76 142 112 L 142 168"], ["Turun, bahu, turun"]),
+    O: makeStrokeLesson(["M 100 82 C 44 82 44 170 100 170 C 156 170 156 82 100 82"], ["Pusing bulat kecil"]),
+    P: makeStrokeLesson(["M 58 210 L 58 96 C 58 76 142 76 142 118 C 142 156 58 150 58 118"], ["Garis turun", "Bulat dan ekor bawah"]),
+    Q: makeStrokeLesson(["M 100 82 C 44 82 44 170 100 170 C 156 170 156 82 100 82", "M 112 140 L 150 190"], ["Pusing bulat", "Tarik ekor"]),
+    R: makeStrokeLesson(["M 58 168 L 58 96 C 58 76 142 76 142 118 C 142 142 102 150 78 132"], ["Turun dan bahu"]),
+    S: makeStrokeLesson(["M 142 94 C 124 70 58 74 54 112 C 50 148 134 130 142 164 C 148 194 78 188 52 162"], ["Pusing kecil dari atas"]),
+    T: makeStrokeLesson(["M 54 88 L 138 88", "M 96 44 L 96 168"], ["Palang", "Garis turun"]),
+    U: makeStrokeLesson(["M 54 92 L 54 140 C 54 180 142 180 142 140 L 142 92"], ["Turun, pusing dan naik"]),
+    V: makeStrokeLesson(["M 52 94 L 96 168 L 142 94"], ["Serong turun dan naik"]),
+    W: makeStrokeLesson(["M 40 94 L 66 168 L 96 112 L 126 168 L 154 94"], ["Serong berganda"]),
+    X: makeStrokeLesson(["M 54 94 L 142 168", "M 142 94 L 54 168"], ["Serong turun", "Serong silang"]),
+    Y: makeStrokeLesson(["M 52 94 L 98 132 L 144 94", "M 98 132 L 98 194"], ["Dua serong bertemu", "Ekor turun"]),
+    Z: makeStrokeLesson(["M 54 94 L 144 94", "M 144 94 L 54 168", "M 54 168 L 144 168"], ["Palang atas", "Serong turun", "Palang bawah"])
+  }
 };
 
 const BM_MODULES = [
@@ -501,7 +577,7 @@ function BMLearningPicker({ onBack, onChoose }) {
   );
 }
 
-function LetterRecognitionPanel({ selectedLetter, onSelect }) {
+function LetterRecognitionPanel({ selectedLetter, onSelect, letterCase }) {
   return (
     <div className="letter-panel letter-recognition-panel">
       <div className="letter-panel-heading">
@@ -512,12 +588,12 @@ function LetterRecognitionPanel({ selectedLetter, onSelect }) {
       <div className="letter-choice-row" aria-label="Pilih huruf untuk belajar">
         {HURUF.map((item) => (
           <button className={`letter-choice ${selectedLetter.letter === item.letter ? "is-selected" : ""}`} type="button" key={item.letter} onClick={() => onSelect(item)} aria-pressed={selectedLetter.letter === item.letter}>
-            <strong>{item.letter}</strong><span>{item.letter.toLowerCase()}</span>
+            <strong>{letterCase === "capital" ? item.letter : item.letter.toLowerCase()}</strong><span>{letterCase === "capital" ? item.letter.toLowerCase() : item.letter}</span>
           </button>
         ))}
       </div>
       <div className="letter-focus-card">
-        <div className="letter-focus-pair"><span>{selectedLetter.letter}</span><span>{selectedLetter.letter.toLowerCase()}</span></div>
+        <div className="letter-focus-pair"><span className={letterCase === "capital" ? "is-current" : ""}>{selectedLetter.letter}</span><span className={letterCase === "small" ? "is-current" : ""}>{selectedLetter.letter.toLowerCase()}</span></div>
         <div className="letter-focus-word"><span className="letter-picture" aria-hidden="true">{selectedLetter.emoji}</span><strong>{selectedLetter.word}</strong><span>bunyi {selectedLetter.sound}</span></div>
         <button className="round-icon-action" type="button" onClick={() => speakLetter(selectedLetter)} title="Dengar bunyi huruf"><Volume2 size={20} /></button>
       </div>
@@ -525,22 +601,26 @@ function LetterRecognitionPanel({ selectedLetter, onSelect }) {
   );
 }
 
-function LetterStrokePractice({ letter }) {
+function LetterStrokePractice({ letter, letterCase }) {
   const [strokeRun, setStrokeRun] = useState(0);
-  const strokes = LETTER_STROKES[letter.letter];
+  const lesson = MANUSCRIPT_STROKES[letterCase][letter.letter];
+  const glyph = letterCase === "capital" ? letter.letter : letter.letter.toLowerCase();
 
   return (
     <div className="letter-panel stroke-practice-panel">
       <div className="letter-panel-heading">
         <span className="section-kicker">Aktiviti 02 / Tulis</span>
         <h3>Ikut jejak huruf</h3>
-        <p>Follow the moving strokes, then try it on paper.</p>
+        <p>Follow the numbered strokes, then try it on paper.</p>
       </div>
       <div className="stroke-board">
-        <svg key={strokeRun} className="stroke-guide-svg is-playing" viewBox="0 0 200 200" role="img" aria-label={`Animasi menulis huruf ${letter.letter}`}>
-          {strokes.map((path, index) => <path key={path} d={path} style={{ "--stroke-delay": `${index * .28}s` }} />)}
+        <svg key={strokeRun} className="stroke-guide-svg is-playing" viewBox="0 0 200 200" role="img" aria-label={`Animasi menulis huruf ${glyph}`}>
+          {lesson.paths.map((path, index) => <path key={path} d={path} style={{ "--stroke-delay": `${index * .28}s` }} />)}
         </svg>
-        <span className="stroke-board-letter">{letter.letter}</span>
+        <span className="stroke-board-letter">{glyph}</span>
+      </div>
+      <div className="stroke-step-list" aria-label={`Langkah menulis huruf ${glyph}`}>
+        {lesson.steps.map((step, index) => <div className="stroke-step" key={step}><span>{index + 1}</span><strong>{step}</strong></div>)}
       </div>
       <button className="secondary-action" type="button" onClick={() => setStrokeRun((current) => current + 1)}><Play size={16} /> Lihat langkah lagi</button>
     </div>
@@ -733,9 +813,10 @@ function LetterMatchTest() {
   );
 }
 
-function LetterSoundTest({ letter }) {
+function LetterSoundTest({ letter, letterCase }) {
   const [status, setStatus] = useState({ type: "idle", text: "Tekan mula untuk gunakan mikrofon." });
   const recognitionRef = useRef(null);
+  const glyph = letterCase === "capital" ? letter.letter : letter.letter.toLowerCase();
 
   useEffect(() => () => recognitionRef.current?.abort(), []);
 
@@ -788,18 +869,19 @@ function LetterSoundTest({ letter }) {
     <div className="letter-test-card sound-test-card">
       <div className="letter-test-heading"><span className="test-number">02</span><div><span className="section-kicker">Uji diri</span><h3>Dengar dan baca</h3></div></div>
       <p className="letter-test-prompt">Baca huruf ini dengan kuat</p>
-      <div className="sound-target"><strong>{letter.letter}</strong><span>{letter.sound}</span></div>
+      <div className="sound-target"><strong>{glyph}</strong><span>{letter.sound}</span></div>
       <button className="mic-action" type="button" onClick={startListening} disabled={status.type === "requesting" || status.type === "listening"}><Mic size={18} /> {status.type === "listening" ? "Sedang dengar..." : "Mula baca"}</button>
       <p className={`letter-feedback ${status.type}`} role="status"><AudioLines size={15} /> {status.text}</p>
     </div>
   );
 }
 
-function LetterWritingTest({ letter }) {
+function LetterWritingTest({ letter, letterCase }) {
   const canvasRef = useRef(null);
   const drawingRef = useRef(false);
   const [hasMarks, setHasMarks] = useState(false);
   const [result, setResult] = useState("");
+  const glyph = letterCase === "capital" ? letter.letter : letter.letter.toLowerCase();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -862,14 +944,14 @@ function LetterWritingTest({ letter }) {
   return (
     <div className="letter-test-card writing-test-card">
       <div className="letter-test-heading"><span className="test-number">03</span><div><span className="section-kicker">Uji diri</span><h3>Tulis huruf</h3></div></div>
-      <p className="letter-test-prompt">Tulis huruf <strong>{letter.letter}</strong> di dalam kotak</p>
+      <p className="letter-test-prompt">Tulis huruf <strong>{glyph}</strong> di dalam kotak</p>
       <div className="writing-canvas-wrap">
-        <span className="writing-target-letter" aria-hidden="true">{letter.letter}</span>
-        <canvas ref={canvasRef} aria-label={`Ruang menulis huruf ${letter.letter}`} onPointerDown={beginStroke} onPointerMove={drawStroke} onPointerUp={endStroke} onPointerCancel={endStroke} />
+        <span className="writing-target-letter" aria-hidden="true">{glyph}</span>
+        <canvas ref={canvasRef} aria-label={`Ruang menulis huruf ${glyph}`} onPointerDown={beginStroke} onPointerMove={drawStroke} onPointerUp={endStroke} onPointerCancel={endStroke} />
       </div>
       <div className="writing-actions">
         <button className="secondary-action" type="button" onClick={clearWriting}><Eraser size={16} /> Bersih</button>
-        <button className="primary-mini-action" type="button" onClick={() => setResult(hasMarks ? `Ada jejak tulisan. Cuba ikut bentuk ${letter.letter} sekali lagi.` : "Cuba tulis dahulu.")}><CheckCircle2 size={16} /> Semak</button>
+        <button className="primary-mini-action" type="button" onClick={() => setResult(hasMarks ? `Ada jejak tulisan. Cuba ikut bentuk ${glyph} sekali lagi.` : "Cuba tulis dahulu.")}><CheckCircle2 size={16} /> Semak</button>
       </div>
       {result && <p className="letter-feedback" role="status">{result}</p>}
     </div>
@@ -878,6 +960,7 @@ function LetterWritingTest({ letter }) {
 
 function HurufModule({ onBack }) {
   const [selectedLetter, setSelectedLetter] = useState(HURUF[0]);
+  const [letterCase, setLetterCase] = useState("capital");
 
   return (
     <div className="home-content hub-content letter-learning-content">
@@ -890,7 +973,7 @@ function HurufModule({ onBack }) {
           <h1>Kenal, bunyi, tulis!</h1>
           <p>Look, listen and make each letter with your own hand.</p>
         </div>
-        <div className="letter-hero-badge"><span>A</span><span>a</span><strong>4 huruf</strong></div>
+        <div className="letter-hero-badge"><span>A</span><span>a</span><strong>26 huruf</strong></div>
       </div>
 
       <section className="letter-learning-section" aria-labelledby="letter-learning-title">
@@ -898,9 +981,13 @@ function HurufModule({ onBack }) {
           <div><span className="section-kicker">Aktiviti belajar / Learn</span><h2 id="letter-learning-title">Huruf hari ini</h2><p>Pilih huruf, lihat jejaknya dan dengar bunyinya.</p></div>
           <span className="skill-count"><Volume2 size={15} /> Comic handwriting</span>
         </div>
+        <div className="case-switcher" role="tablist" aria-label="Pilih jenis huruf">
+          <button className={letterCase === "capital" ? "is-selected" : ""} type="button" role="tab" aria-selected={letterCase === "capital"} onClick={() => setLetterCase("capital")}><strong>Huruf besar</strong><span>Capital letters</span></button>
+          <button className={letterCase === "small" ? "is-selected" : ""} type="button" role="tab" aria-selected={letterCase === "small"} onClick={() => setLetterCase("small")}><strong>Huruf kecil</strong><span>Small letters</span></button>
+        </div>
         <div className="letter-learning-grid">
-          <LetterRecognitionPanel selectedLetter={selectedLetter} onSelect={setSelectedLetter} />
-          <LetterStrokePractice letter={selectedLetter} />
+          <LetterRecognitionPanel selectedLetter={selectedLetter} onSelect={setSelectedLetter} letterCase={letterCase} />
+          <LetterStrokePractice letter={selectedLetter} letterCase={letterCase} />
         </div>
       </section>
 
@@ -911,8 +998,8 @@ function HurufModule({ onBack }) {
         </div>
         <div className="letter-test-grid">
           <LetterMatchTest />
-          <LetterSoundTest letter={selectedLetter} />
-          <LetterWritingTest letter={selectedLetter} />
+          <LetterSoundTest letter={selectedLetter} letterCase={letterCase} />
+          <LetterWritingTest key={`${selectedLetter.letter}-${letterCase}`} letter={selectedLetter} letterCase={letterCase} />
         </div>
       </section>
     </div>

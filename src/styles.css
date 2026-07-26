@@ -656,6 +656,11 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .bm-module-section,
 .letter-learning-section,
 .letter-test-section { margin-top: 4.2rem; padding-top: 1.2rem; border-top: 2px solid var(--home-line); }
+.case-switcher { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; width: min(100%, 560px); margin-top: 1.15rem; }
+.case-switcher button { display: flex; min-height: 58px; flex-direction: column; align-items: flex-start; justify-content: center; border: 2px solid var(--home-line); border-radius: 8px; padding: .55rem .75rem; color: var(--home-muted); background: rgba(255,255,255,.66); text-align: left; transition: transform .16s ease, border-color .16s ease, background .16s ease; }
+.case-switcher button strong { color: var(--home-ink); font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.05rem; line-height: 1; }
+.case-switcher button span { margin-top: .18rem; font-size: .7rem; font-weight: 800; }
+.case-switcher button.is-selected { border-color: var(--home-ink); background: var(--home-lemon); box-shadow: 4px 4px 0 rgba(25,56,74,.1); transform: translateY(-2px); }
 .bm-module-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .7rem; margin-top: 1.25rem; }
 .bm-module-card { position: relative; display: flex; min-height: 330px; flex-direction: column; align-items: flex-start; overflow: hidden; border: 2px solid var(--home-ink); border-radius: 8px; padding: 1rem; color: var(--home-ink); text-align: left; box-shadow: 5px 6px 0 rgba(25,56,74,.1); transition: transform .18s ease, box-shadow .18s ease; }
 .bm-module-card::after { position: absolute; right: -52px; bottom: -58px; width: 170px; height: 170px; border: 2px solid rgba(25,56,74,.14); border-radius: 50%; content: ""; }
@@ -689,7 +694,7 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .stroke-practice-panel { background: #f4f1ff; }
 .letter-panel-heading h3 { margin: .35rem 0 0; color: var(--home-ink); font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.55rem; line-height: 1; }
 .letter-panel-heading p { max-width: 370px; margin: .4rem 0 0; color: var(--home-muted); font-family: "Nunito", "Trebuchet MS", sans-serif; font-size: .78rem; font-weight: 700; line-height: 1.4; }
-.letter-choice-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .55rem; margin-top: 1.25rem; }
+.letter-choice-row { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .45rem; margin-top: 1.25rem; }
 .letter-choice { display: grid; min-height: 70px; place-items: center; border: 2px solid var(--home-ink); border-radius: 7px; color: var(--home-ink); background: rgba(255,255,255,.66); transition: transform .15s ease, background .15s ease; }
 .letter-choice strong { font-family: "Comic Sans MS", "Comic Neue", "Chalkboard SE", cursive; font-size: 1.65rem; line-height: .9; }
 .letter-choice span { color: var(--home-muted); font-family: "Comic Sans MS", "Comic Neue", cursive; font-size: .9rem; }
@@ -698,6 +703,8 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .letter-focus-pair { display: flex; align-items: baseline; gap: .2rem; color: var(--home-coral-dark); font-family: "Comic Sans MS", "Comic Neue", "Chalkboard SE", cursive; font-weight: 700; line-height: 1; }
 .letter-focus-pair span:first-child { font-size: 4.6rem; }
 .letter-focus-pair span:last-child { color: var(--home-blue); font-size: 2.9rem; }
+.letter-focus-pair span:not(.is-current) { opacity: .38; }
+.letter-focus-pair span.is-current { text-decoration: underline; text-decoration-color: var(--home-lemon); text-decoration-thickness: .14em; text-underline-offset: .08em; }
 .letter-focus-word { display: flex; flex-direction: column; gap: .12rem; }
 .letter-picture { font-family: sans-serif; font-size: 2rem; line-height: 1; }
 .letter-focus-word strong { color: var(--home-ink); font-family: "Comic Sans MS", "Comic Neue", cursive; font-size: 1.3rem; line-height: 1; }
@@ -710,6 +717,10 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .stroke-guide-svg.is-playing path { animation: write-stroke 1.15s var(--stroke-delay) cubic-bezier(.35,.1,.25,1) forwards; }
 .stroke-board-letter { position: relative; color: rgba(25,56,74,.11); font-family: "Comic Sans MS", "Comic Neue", cursive; font-size: 8rem; font-weight: 700; line-height: 1; }
 .stroke-practice-panel .secondary-action { margin-top: .85rem; }
+.stroke-step-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .35rem; margin-top: .7rem; }
+.stroke-step { display: flex; align-items: center; gap: .35rem; min-width: 0; border: 1px solid rgba(25,56,74,.15); border-radius: 6px; padding: .3rem .4rem; color: var(--home-muted); background: rgba(255,255,255,.58); font-family: "Nunito", "Trebuchet MS", sans-serif; font-size: .64rem; font-weight: 800; line-height: 1.2; }
+.stroke-step span { display: grid; width: 20px; height: 20px; flex: none; place-items: center; border-radius: 50%; color: var(--home-ink); background: var(--home-lemon); font-size: .66rem; font-weight: 900; }
+.stroke-step strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .secondary-action, .primary-mini-action, .mic-action { display: inline-flex; align-items: center; justify-content: center; gap: .35rem; min-height: 38px; border-radius: 7px; padding: .45rem .65rem; font-family: "Nunito", "Trebuchet MS", sans-serif; font-size: .74rem; font-weight: 900; transition: transform .15s ease, filter .15s ease; }
 .secondary-action { border: 2px solid var(--home-ink); color: var(--home-ink); background: rgba(255,255,255,.72); }
 .primary-mini-action { border: 0; color: white; background: var(--home-coral-dark); box-shadow: 0 3px 0 #8f3e36; }
@@ -765,6 +776,10 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
   .letter-hero-badge { grid-column: 2; grid-row: 1; justify-self: end; }
   .letter-hero-badge strong { display: none; }
   .letter-panel { min-height: 0; }
+  .letter-choice-row { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .3rem; }
+  .letter-choice { min-height: 54px; }
+  .letter-choice strong { font-size: 1.25rem; }
+  .letter-choice span { font-size: .68rem; }
   .letter-focus-card { gap: .55rem; }
   .letter-focus-pair span:first-child { font-size: 3.6rem; }
   .letter-focus-pair span:last-child { font-size: 2.4rem; }
