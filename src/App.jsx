@@ -17,7 +17,6 @@ import {
   Minus,
   PenLine,
   Pencil,
-  Play,
   Plus,
   RefreshCcw,
   RotateCcw,
@@ -527,11 +526,29 @@ const BM_MODULES = [
   { id: "perkataan", title: "Perkataan", english: "Words", description: "Padan perkataan dengan gambar ikut level.", sample: "epal · rumah", color: "blue", Icon: Image }
 ];
 
+function preferredFemaleVoice() {
+  if (!window.speechSynthesis) return null;
+  const voices = window.speechSynthesis.getVoices();
+  const femaleHints = /female|woman|zira|samantha|karen|susan|hazel|aria|jenny|google us english|google uk english/i;
+  return voices.find((voice) => femaleHints.test(voice.name))
+    || voices.find((voice) => /^ms[-_]/i.test(voice.lang))
+    || voices.find((voice) => /^en[-_]/i.test(voice.lang))
+    || voices[0]
+    || null;
+}
+
 function speakLetter(letter) {
-  if (!window.speechSynthesis) return;
-  const voiceLine = new window.SpeechSynthesisUtterance(`${letter.sound}. ${letter.word}`);
-  voiceLine.lang = "ms-MY";
-  voiceLine.rate = 0.82;
+  if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
+  const voiceLine = new window.SpeechSynthesisUtterance(letter.letter);
+  const voice = preferredFemaleVoice();
+  if (voice) {
+    voiceLine.voice = voice;
+    voiceLine.lang = voice.lang;
+  } else {
+    voiceLine.lang = "en-US";
+  }
+  voiceLine.rate = 0.58;
+  voiceLine.pitch = 1.08;
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(voiceLine);
 }
@@ -541,9 +558,14 @@ function warmSpeechEngine() {
   window.speechSynthesis.getVoices();
   const refreshVoices = () => window.speechSynthesis.getVoices();
   window.speechSynthesis.addEventListener("voiceschanged", refreshVoices);
-  const primer = new window.SpeechSynthesisUtterance("a");
+  const primer = new window.SpeechSynthesisUtterance("A");
+  const voice = preferredFemaleVoice();
+  if (voice) {
+    primer.voice = voice;
+    primer.lang = voice.lang;
+  }
   primer.volume = 0;
-  primer.rate = 10;
+  primer.rate = 0.58;
   window.speechSynthesis.speak(primer);
   window.speechSynthesis.cancel();
   return () => window.speechSynthesis.removeEventListener("voiceschanged", refreshVoices);
@@ -633,43 +655,6 @@ function LetterRecognitionPanel({ selectedLetter, onSelect }) {
         <strong>{selectedGlyph}</strong>
         <em>{speakingLetter ? "Sedang sebut..." : "Tekan huruf untuk dengar"}</em>
       </div>
-    </div>
-  );
-}
-
-function LetterStrokePractice({ letter }) {
-  const [strokeRun, setStrokeRun] = useState(0);
-  const lesson = MANUSCRIPT_STROKES.capital[letter.letter];
-  const glyph = letter.letter;
-  const markerId = `stroke-arrow-capital-${letter.letter}`;
-
-  return (
-    <div className="letter-panel stroke-practice-panel">
-      <div className="letter-panel-heading">
-        <span className="section-kicker">Aktiviti 02 / Tulis</span>
-        <h3>Ikut jejak huruf</h3>
-        <p>Follow the numbered strokes, then try it on paper.</p>
-      </div>
-      <div className="stroke-board">
-        <svg key={strokeRun} className="stroke-guide-svg is-playing" viewBox="0 0 200 200" role="img" aria-label={`Animasi menulis huruf ${glyph}`}>
-          <defs>
-            <marker id={markerId} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 0 L 10 5 L 0 10 z" />
-            </marker>
-          </defs>
-          {lesson.paths.map((path, index) => (
-            <g key={path}>
-              <path className="stroke-track" d={path} />
-              <path className="stroke-animated" d={path} markerEnd={`url(#${markerId})`} style={{ "--stroke-delay": `${index * .28}s` }} />
-            </g>
-          ))}
-        </svg>
-        <span className="stroke-board-letter">{glyph}</span>
-      </div>
-      <div className="stroke-step-list" aria-label={`Langkah menulis huruf ${glyph}`}>
-        {lesson.steps.map((step, index) => <div className="stroke-step" key={step}><span>{index + 1}</span><strong>{step}</strong></div>)}
-      </div>
-      <button className="secondary-action" type="button" onClick={() => setStrokeRun((current) => current + 1)}><Play size={16} /> Lihat langkah lagi</button>
     </div>
   );
 }
@@ -916,7 +901,7 @@ function LetterSoundTest({ letter }) {
     <div className="letter-test-card sound-test-card">
       <div className="letter-test-heading"><span className="test-number">02</span><div><span className="section-kicker">Uji diri</span><h3>Dengar dan baca</h3></div></div>
       <p className="letter-test-prompt">Baca huruf ini dengan kuat</p>
-      <div className="sound-target"><strong>{glyph}</strong><span>{letter.sound}</span></div>
+      <div className="sound-target"><strong>{glyph}</strong></div>
       <button className="mic-action" type="button" onClick={startListening} disabled={status.type === "requesting" || status.type === "listening"}><Mic size={18} /> {status.type === "listening" ? "Sedang dengar..." : "Mula baca"}</button>
       <p className={`letter-feedback ${status.type}`} role="status">{status.text}</p>
     </div>
@@ -945,9 +930,8 @@ function HurufModule({ onBack }) {
           <div><span className="section-kicker">Aktiviti belajar / Learn</span><h2 id="letter-learning-title">Huruf hari ini</h2><p>Pilih huruf, lihat jejaknya dan dengar bunyinya.</p></div>
           <span className="skill-count">Comic handwriting</span>
         </div>
-        <div className="letter-learning-grid">
+        <div className="letter-learning-grid letter-learning-grid-single">
           <LetterRecognitionPanel selectedLetter={selectedLetter} onSelect={setSelectedLetter} />
-          <LetterStrokePractice letter={selectedLetter} />
         </div>
       </section>
 

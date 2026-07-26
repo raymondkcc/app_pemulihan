@@ -684,6 +684,7 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .letter-hero-badge span:nth-child(2) { background: var(--home-lemon); transform: rotate(7deg); }
 .letter-hero-badge strong { margin-left: .5rem; font-family: "Nunito", "Trebuchet MS", sans-serif; font-size: .75rem; white-space: nowrap; }
 .letter-learning-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .9fr); gap: .8rem; margin-top: 1.25rem; }
+.letter-learning-grid-single { grid-template-columns: minmax(0, 1fr); }
 .letter-panel { min-height: 340px; border: 2px solid var(--home-ink); border-radius: 8px; padding: 1rem; box-shadow: 5px 6px 0 rgba(25,56,74,.1); }
 .letter-recognition-panel { background: #fff3ef; }
 .stroke-practice-panel { background: #f4f1ff; }
