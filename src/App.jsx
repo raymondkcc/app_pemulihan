@@ -524,7 +524,8 @@ const MANUSCRIPT_STROKES = {
 const BM_MODULES = [
   { id: "huruf", title: "Huruf", english: "Letters", description: "Kenal bentuk, bunyi dan cara menulis huruf.", sample: "A a", color: "coral", Icon: PenLine },
   { id: "vokal", title: "Vokal", english: "Vowels", description: "Dengar bunyi a, e, i, o dan u dalam Bahasa Melayu.", sample: "a e i o u", color: "lemon", Icon: Volume2 },
-  { id: "suku-kata", title: "Suku Kata", english: "Syllables", description: "Buka bunyi KV, KVK dan pintu bacaan seterusnya.", sample: "ba · bas", color: "mint", Icon: BookOpen },
+  { id: "kv", title: "KV", english: "Open syllables", description: "Dengar vokal dan baca ba, be, bi, bo dan bu.", sample: "ba be bi", color: "blue", Icon: BookOpen },
+  { id: "suku-kata", title: "Suku Kata", english: "Syllables", description: "Bina bacaan dengan KVK dan bunyi bergabung.", sample: "bas jam", color: "mint", Icon: BookOpen },
   { id: "perkataan", title: "Perkataan", english: "Words", description: "Padan perkataan dengan gambar ikut level.", sample: "epal · rumah", color: "blue", Icon: Image }
 ];
 
@@ -665,7 +666,7 @@ function BMLearningPicker({ onBack, onChoose }) {
           <h1>Apa mahu belajar?</h1>
           <p>Choose a learning path before we start the game.</p>
         </div>
-        <div className="hub-hero-badge"><Star size={18} fill="currentColor" /><span><strong>4</strong> pilihan belajar</span></div>
+        <div className="hub-hero-badge"><Star size={18} fill="currentColor" /><span><strong>5</strong> pilihan belajar</span></div>
       </div>
 
       <section className="bm-module-section" aria-labelledby="bm-module-title">
@@ -784,7 +785,7 @@ function SubjectCard({ title, english, description, type, color, onClick }) {
   );
 }
 
-function SyllableCard({ family, onComingSoon, onOpenKV }) {
+function SyllableCard({ family, onComingSoon }) {
   const content = (
     <>
       <span className="syllable-card-topline">
@@ -800,9 +801,6 @@ function SyllableCard({ family, onComingSoon, onOpenKV }) {
   );
 
   if (family.live) {
-    if (family.id === "kv") {
-      return <button className={`syllable-card syllable-card-${family.color}`} type="button" onClick={onOpenKV}>{content}</button>;
-    }
     return <a className={`syllable-card syllable-card-${family.color} is-live`} href="/kvk">{content}</a>;
   }
 
@@ -843,7 +841,7 @@ function MatchPreview({ level, onChooseLevel }) {
   );
 }
 
-function BMPracticeModule({ view, onBack, onComingSoon, notice, onOpenKV }) {
+function BMPracticeModule({ view, onBack, onComingSoon, notice }) {
   const [selectedLevel, setSelectedLevel] = useState(WORD_LEVELS[0]);
 
   const showSyllables = view === "suku-kata";
@@ -870,10 +868,10 @@ function BMPracticeModule({ view, onBack, onComingSoon, notice, onOpenKV }) {
             <h2 id="syllable-title">Membaca suku kata</h2>
             <p>Pilih bunyi yang mahu kita buka hari ini.</p>
           </div>
-          <span className="progress-stamp"><CheckCircle2 size={16} /> 2 / 5 sedia</span>
+          <span className="progress-stamp"><CheckCircle2 size={16} /> 1 / 4 sedia</span>
         </div>
         <div className="syllable-grid">
-          {SYLLABLE_FAMILIES.map((family) => <SyllableCard key={family.id} family={family} onComingSoon={onComingSoon} onOpenKV={onOpenKV} />)}
+          {SYLLABLE_FAMILIES.filter((family) => family.id !== "kv").map((family) => <SyllableCard key={family.id} family={family} onComingSoon={onComingSoon} />)}
         </div>
       </section>}
 
@@ -1064,8 +1062,8 @@ function KVModule({ onBack }) {
   return (
     <div className="home-content hub-content sound-module-content">
       <div className="hub-hero sound-hero">
-        <button className="back-button" type="button" onClick={onBack} title="Kembali ke suku kata">
-          <ArrowLeft size={18} /> <span>Suku Kata</span>
+        <button className="back-button" type="button" onClick={onBack} title="Kembali ke ruang Bahasa Melayu">
+          <ArrowLeft size={18} /> <span>Ruang</span>
         </button>
         <div className="hub-title-block">
           <span className="hub-eyebrow"><BookOpen size={15} /> KV <span>/ Suku kata</span></span>
@@ -1205,8 +1203,8 @@ function BahasaMelayuHub({ onBack, onComingSoon, notice }) {
 
   if (module === "huruf") return <HurufModule onBack={() => changeModule(null)} />;
   if (module === "vokal") return <VokalModule onBack={() => changeModule(null)} />;
-  if (module === "kv") return <KVModule onBack={() => changeModule("suku-kata")} />;
-  if (module === "suku-kata") return <BMPracticeModule view="suku-kata" onBack={() => changeModule(null)} onComingSoon={onComingSoon} notice={notice} onOpenKV={() => changeModule("kv")} />;
+  if (module === "kv") return <KVModule onBack={() => changeModule(null)} />;
+  if (module === "suku-kata") return <BMPracticeModule view="suku-kata" onBack={() => changeModule(null)} onComingSoon={onComingSoon} notice={notice} />;
   if (module === "perkataan") return <BMPracticeModule view="perkataan" onBack={() => changeModule(null)} onComingSoon={onComingSoon} notice={notice} />;
 
   return <BMLearningPicker onBack={onBack} onChoose={changeModule} />;
