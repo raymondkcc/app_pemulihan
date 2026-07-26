@@ -526,6 +526,8 @@ const BM_MODULES = [
   { id: "perkataan", title: "Perkataan", english: "Words", description: "Padan perkataan dengan gambar ikut level.", sample: "epal · rumah", color: "blue", Icon: Image }
 ];
 
+let speechVoiceCache = null;
+
 function preferredFemaleVoice() {
   if (!window.speechSynthesis) return null;
   const voices = window.speechSynthesis.getVoices();
@@ -540,8 +542,9 @@ function preferredFemaleVoice() {
 function speakLetter(letter) {
   if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
   const voiceLine = new window.SpeechSynthesisUtterance(letter.letter);
-  const voice = preferredFemaleVoice();
-  const playfulPitch = 1.34 + ((letter.letter.charCodeAt(0) % 3) * 0.04);
+  const voice = speechVoiceCache || preferredFemaleVoice();
+  speechVoiceCache = voice;
+  const playfulPitch = 1.55 + ((letter.letter.charCodeAt(0) % 3) * 0.06);
   if (voice) {
     voiceLine.voice = voice;
     voiceLine.lang = voice.lang;
@@ -557,17 +560,20 @@ function speakLetter(letter) {
 function warmSpeechEngine() {
   if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return () => {};
   window.speechSynthesis.getVoices();
-  const refreshVoices = () => window.speechSynthesis.getVoices();
+  speechVoiceCache = preferredFemaleVoice();
+  const refreshVoices = () => {
+    speechVoiceCache = preferredFemaleVoice();
+  };
   window.speechSynthesis.addEventListener("voiceschanged", refreshVoices);
   const primer = new window.SpeechSynthesisUtterance("A");
-  const voice = preferredFemaleVoice();
+  const voice = speechVoiceCache || preferredFemaleVoice();
   if (voice) {
     primer.voice = voice;
     primer.lang = voice.lang;
   }
   primer.volume = 0;
   primer.rate = 0.63;
-  primer.pitch = 1.38;
+  primer.pitch = 1.62;
   window.speechSynthesis.speak(primer);
   window.speechSynthesis.cancel();
   return () => window.speechSynthesis.removeEventListener("voiceschanged", refreshVoices);
@@ -612,7 +618,7 @@ function BMLearningPicker({ onBack, onChoose }) {
   );
 }
 
-function LetterRecognitionPanel({ selectedLetter, onSelect }) {
+function LetterRecognitionPanel({ selectedLetter, onSelect, letterCase }) {
   const [speakingLetter, setSpeakingLetter] = useState(null);
   const soundTimer = useRef(null);
 
@@ -626,13 +632,13 @@ function LetterRecognitionPanel({ selectedLetter, onSelect }) {
 
   function chooseLetter(item) {
     onSelect(item);
-    speakLetter(item);
     setSpeakingLetter(item.letter);
     window.clearTimeout(soundTimer.current);
     soundTimer.current = window.setTimeout(() => setSpeakingLetter(null), 900);
+    window.setTimeout(() => speakLetter(item), 0);
   }
 
-  const selectedGlyph = selectedLetter.letter;
+  const selectedGlyph = letterCase === "capital" ? selectedLetter.letter : selectedLetter.letter.toLowerCase();
 
   return (
     <div className="letter-panel letter-recognition-panel">
@@ -643,7 +649,7 @@ function LetterRecognitionPanel({ selectedLetter, onSelect }) {
       </div>
       <div className="letter-choice-row" aria-label="Pilih huruf untuk belajar">
         {HURUF.map((item, index) => {
-          const glyph = item.letter;
+          const glyph = letterCase === "capital" ? item.letter : item.letter.toLowerCase();
           return (
             <button className={`letter-choice ${selectedLetter.letter === item.letter ? "is-selected" : ""} ${speakingLetter === item.letter ? "is-speaking" : ""}`} style={{ "--letter-index": index }} type="button" key={item.letter} onClick={() => chooseLetter(item)} aria-pressed={selectedLetter.letter === item.letter} aria-label={`Dengar bunyi huruf ${glyph}`} title={`Dengar ${glyph}`}>
               <strong>{glyph}</strong>
@@ -847,10 +853,10 @@ function LetterMatchTest() {
   );
 }
 
-function LetterSoundTest({ letter }) {
+function LetterSoundTest({ letter, letterCase }) {
   const [status, setStatus] = useState({ type: "idle", text: "Tekan mula untuk gunakan mikrofon." });
   const recognitionRef = useRef(null);
-  const glyph = letter.letter;
+  const glyph = letterCase === "capital" ? letter.letter : letter.letter.toLowerCase();
 
   useEffect(() => () => recognitionRef.current?.abort(), []);
 
@@ -912,6 +918,7 @@ function LetterSoundTest({ letter }) {
 
 function HurufModule({ onBack }) {
   const [selectedLetter, setSelectedLetter] = useState(HURUF[0]);
+  const [letterCase, setLetterCase] = useState("capital");
 
   return (
     <div className="home-content hub-content letter-learning-content">
@@ -921,19 +928,23 @@ function HurufModule({ onBack }) {
         </button>
         <div className="hub-title-block">
           <span className="hub-eyebrow"><PenLine size={15} /> Huruf <span>/ Letters</span></span>
-          <h1>Kenal, bunyi, tulis!</h1>
-          <p>Look, listen and make each letter with your own hand.</p>
+          <h1>Kenal dan bunyi!</h1>
+          <p>Choose a letter and press it to hear the sound.</p>
         </div>
         <div className="letter-hero-badge"><span>A</span><strong>26 huruf</strong></div>
       </div>
 
       <section className="letter-learning-section" aria-labelledby="letter-learning-title">
         <div className="section-heading-row">
-          <div><span className="section-kicker">Aktiviti belajar / Learn</span><h2 id="letter-learning-title">Huruf hari ini</h2><p>Pilih huruf, lihat jejaknya dan dengar bunyinya.</p></div>
+          <div><span className="section-kicker">Aktiviti belajar / Learn</span><h2 id="letter-learning-title">Huruf hari ini</h2><p>Pilih huruf besar atau huruf kecil, kemudian tekan untuk dengar.</p></div>
           <span className="skill-count">Comic handwriting</span>
         </div>
+        <div className="case-toggle" role="tablist" aria-label="Tukar huruf besar atau kecil">
+          <button className={letterCase === "capital" ? "is-selected" : ""} type="button" role="tab" aria-selected={letterCase === "capital"} onClick={() => setLetterCase("capital")}><strong>A</strong><span>Huruf besar</span></button>
+          <button className={letterCase === "small" ? "is-selected" : ""} type="button" role="tab" aria-selected={letterCase === "small"} onClick={() => setLetterCase("small")}><strong>a</strong><span>Huruf kecil</span></button>
+        </div>
         <div className="letter-learning-grid letter-learning-grid-single">
-          <LetterRecognitionPanel selectedLetter={selectedLetter} onSelect={setSelectedLetter} />
+          <LetterRecognitionPanel selectedLetter={selectedLetter} onSelect={setSelectedLetter} letterCase={letterCase} />
         </div>
       </section>
 
@@ -944,7 +955,7 @@ function HurufModule({ onBack }) {
         </div>
         <div className="letter-test-grid">
           <LetterMatchTest />
-          <LetterSoundTest letter={selectedLetter} />
+          <LetterSoundTest letter={selectedLetter} letterCase={letterCase} />
         </div>
       </section>
     </div>
