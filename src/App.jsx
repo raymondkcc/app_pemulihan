@@ -527,6 +527,41 @@ const BM_MODULES = [
 ];
 
 let speechVoiceCache = null;
+const letterAudioCache = new Map();
+let activeLetterAudio = null;
+
+function preloadLetterAudio() {
+  if (!window.Audio) return;
+  HURUF.forEach(({ letter }) => {
+    const key = letter.toLowerCase();
+    const audio = letterAudioCache.get(key) || new window.Audio(`/audio/letters/${key}.mp3`);
+    audio.preload = "auto";
+    audio.load();
+    letterAudioCache.set(key, audio);
+  });
+}
+
+function playLetterAudio(letter) {
+  if (!window.Audio) {
+    speakLetter(letter);
+    return;
+  }
+  const key = letter.letter.toLowerCase();
+  const audio = letterAudioCache.get(key) || new window.Audio(`/audio/letters/${key}.mp3`);
+  letterAudioCache.set(key, audio);
+  if (activeLetterAudio && activeLetterAudio !== audio) {
+    activeLetterAudio.pause();
+    activeLetterAudio.currentTime = 0;
+  }
+  activeLetterAudio = audio;
+  audio.pause();
+  audio.currentTime = 0;
+  const playback = audio.play();
+  playback?.catch(() => {
+    if (activeLetterAudio === audio) activeLetterAudio = null;
+    speakLetter(letter);
+  });
+}
 
 function preferredFemaleVoice() {
   if (!window.speechSynthesis) return null;
@@ -624,6 +659,7 @@ function LetterRecognitionPanel({ selectedLetter, onSelect, letterCase }) {
 
   useEffect(() => {
     const removeVoiceListener = warmSpeechEngine();
+    preloadLetterAudio();
     return () => {
       removeVoiceListener();
       window.clearTimeout(soundTimer.current);
@@ -635,7 +671,7 @@ function LetterRecognitionPanel({ selectedLetter, onSelect, letterCase }) {
     setSpeakingLetter(item.letter);
     window.clearTimeout(soundTimer.current);
     soundTimer.current = window.setTimeout(() => setSpeakingLetter(null), 900);
-    window.setTimeout(() => speakLetter(item), 0);
+    playLetterAudio(item);
   }
 
   const selectedGlyph = letterCase === "capital" ? selectedLetter.letter : selectedLetter.letter.toLowerCase();
