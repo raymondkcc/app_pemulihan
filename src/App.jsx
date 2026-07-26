@@ -541,14 +541,15 @@ function speakLetter(letter) {
   if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
   const voiceLine = new window.SpeechSynthesisUtterance(letter.letter);
   const voice = preferredFemaleVoice();
+  const playfulPitch = 1.34 + ((letter.letter.charCodeAt(0) % 3) * 0.04);
   if (voice) {
     voiceLine.voice = voice;
     voiceLine.lang = voice.lang;
   } else {
     voiceLine.lang = "en-US";
   }
-  voiceLine.rate = 0.58;
-  voiceLine.pitch = 1.08;
+  voiceLine.rate = 0.63;
+  voiceLine.pitch = playfulPitch;
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(voiceLine);
 }
@@ -565,7 +566,8 @@ function warmSpeechEngine() {
     primer.lang = voice.lang;
   }
   primer.volume = 0;
-  primer.rate = 0.58;
+  primer.rate = 0.63;
+  primer.pitch = 1.38;
   window.speechSynthesis.speak(primer);
   window.speechSynthesis.cancel();
   return () => window.speechSynthesis.removeEventListener("voiceschanged", refreshVoices);
