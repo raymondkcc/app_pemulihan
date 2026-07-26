@@ -605,6 +605,7 @@ function LetterStrokePractice({ letter, letterCase }) {
   const [strokeRun, setStrokeRun] = useState(0);
   const lesson = MANUSCRIPT_STROKES[letterCase][letter.letter];
   const glyph = letterCase === "capital" ? letter.letter : letter.letter.toLowerCase();
+  const markerId = `stroke-arrow-${letterCase}-${letter.letter}`;
 
   return (
     <div className="letter-panel stroke-practice-panel">
@@ -615,7 +616,17 @@ function LetterStrokePractice({ letter, letterCase }) {
       </div>
       <div className="stroke-board">
         <svg key={strokeRun} className="stroke-guide-svg is-playing" viewBox="0 0 200 200" role="img" aria-label={`Animasi menulis huruf ${glyph}`}>
-          {lesson.paths.map((path, index) => <path key={path} d={path} style={{ "--stroke-delay": `${index * .28}s` }} />)}
+          <defs>
+            <marker id={markerId} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" />
+            </marker>
+          </defs>
+          {lesson.paths.map((path, index) => (
+            <g key={path}>
+              <path className="stroke-track" d={path} />
+              <path className="stroke-animated" d={path} markerEnd={`url(#${markerId})`} style={{ "--stroke-delay": `${index * .28}s` }} />
+            </g>
+          ))}
         </svg>
         <span className="stroke-board-letter">{glyph}</span>
       </div>

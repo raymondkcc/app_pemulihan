@@ -713,8 +713,11 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .round-icon-action:hover { transform: rotate(8deg) scale(1.05); }
 .stroke-board { position: relative; display: grid; min-height: 215px; place-items: center; margin-top: .85rem; overflow: hidden; border: 2px dashed rgba(25,56,74,.25); border-radius: 7px; background: repeating-linear-gradient(to bottom, transparent 0 41px, rgba(88,121,232,.14) 42px 43px); }
 .stroke-guide-svg { position: absolute; width: 200px; height: 200px; overflow: visible; }
-.stroke-guide-svg path { fill: none; stroke: var(--home-blue); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 500; stroke-dashoffset: 500; }
-.stroke-guide-svg.is-playing path { animation: write-stroke 1.15s var(--stroke-delay) cubic-bezier(.35,.1,.25,1) forwards; }
+.stroke-guide-svg path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.stroke-guide-svg marker path { fill: var(--home-blue); stroke: none; }
+.stroke-guide-svg .stroke-track { stroke: rgba(88,121,232,.18); stroke-width: 12; }
+.stroke-guide-svg .stroke-animated { stroke: var(--home-blue); stroke-width: 8; stroke-dasharray: 500; stroke-dashoffset: 500; }
+.stroke-guide-svg.is-playing .stroke-animated { animation: write-stroke 1.15s var(--stroke-delay) cubic-bezier(.35,.1,.25,1) forwards; }
 .stroke-board-letter { position: relative; color: rgba(25,56,74,.11); font-family: "Comic Sans MS", "Comic Neue", cursive; font-size: 8rem; font-weight: 700; line-height: 1; }
 .stroke-practice-panel .secondary-action { margin-top: .85rem; }
 .stroke-step-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .35rem; margin-top: .7rem; }
@@ -788,5 +791,5 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .stroke-guide-svg.is-playing path { animation: none; stroke-dashoffset: 0; }
+  .stroke-guide-svg.is-playing .stroke-animated { animation: none; stroke-dashoffset: 0; }
 }
