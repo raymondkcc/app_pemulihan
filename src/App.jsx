@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -26,11 +26,40 @@ import {
   Volume2,
   X
 } from "lucide-react";
-import { ENDINGS, pickAdaptiveEnding, pickSyllable } from "./data/kvk.js";
+import { ENDINGS, pickAdaptiveEnding } from "./data/kvk.js";
+import {
+  createKvItem,
+  createKvRows,
+  E_SOUND_OPTIONS,
+  loadKvkPack,
+  PACK_ONSETS,
+  PACK_VOWELS,
+  pickPackSyllable,
+  syllableAudioPath
+} from "./data/syllablePack.js";
 import "./styles.css";
 
 const OPEN_DURATION = 1280;
 const NEXT_ROUND_DELAY = 900;
+
+const syllableAudioCache = new Map();
+let activeSyllableAudio = null;
+
+function playSyllableAudio(item) {
+  const source = syllableAudioPath(item);
+  if (!source || !window.Audio) return;
+
+  const audio = syllableAudioCache.get(source) || new window.Audio(source);
+  syllableAudioCache.set(source, audio);
+  if (activeSyllableAudio && activeSyllableAudio !== audio) {
+    activeSyllableAudio.pause();
+    activeSyllableAudio.currentTime = 0;
+  }
+  activeSyllableAudio = audio;
+  audio.pause();
+  audio.currentTime = 0;
+  audio.play().catch(() => {});
+}
 
 function createExitChallenge() {
   const operator = Math.random() > 0.5 ? "+" : "−";
@@ -132,6 +161,9 @@ function KVKGame() {
   const [currentEnding, setCurrentEnding] = useState(null);
   const [phase, setPhase] = useState("ready");
   const [syllable, setSyllable] = useState("???");
+  const [currentItem, setCurrentItem] = useState(null);
+  const [packItems, setPackItems] = useState([]);
+  const [packError, setPackError] = useState("");
   const [scores, setScores] = useState({ correct: 0, retry: 0 });
   const [categoryStats, setCategoryStats] = useState(emptyCategoryStats);
   const [roundId, setRoundId] = useState(0);
@@ -148,6 +180,24 @@ function KVKGame() {
   const challengeRef = useRef(null);
 
   useEffect(() => () => timers.current.forEach(window.clearTimeout), []);
+
+  useEffect(() => {
+    let active = true;
+    loadKvkPack()
+      .then((items) => {
+        if (active) setPackItems(items);
+      })
+      .catch((error) => {
+        if (active) setPackError(error.message || "Audio KVK tidak dapat dimuatkan.");
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (phase === "answering" && currentItem) playSyllableAudio(currentItem);
+  }, [currentItem, phase]);
 
   useEffect(() => {
     const updateFullscreenState = () => {
@@ -187,13 +237,15 @@ function KVKGame() {
   }
 
   function beginRound(nextEnding) {
-    if (phase === "opening") return;
+    if (phase === "opening" || !packItems.length) return;
 
     clearTimers();
-    const nextSyllable = pickSyllable(nextEnding, previousSyllable.current);
-    previousSyllable.current = nextSyllable;
+    const nextItem = pickPackSyllable(packItems, nextEnding, previousSyllable.current);
+    if (!nextItem) return;
+    previousSyllable.current = `${nextItem.syllable}-${nextItem.sound}`;
     setCurrentEnding(nextEnding);
-    setSyllable(nextSyllable);
+    setCurrentItem(nextItem);
+    setSyllable(nextItem.syllable);
     setRoundId((current) => current + 1);
     setPhase("opening");
 
@@ -248,6 +300,7 @@ function KVKGame() {
     setCurrentEnding(null);
     setPhase("ready");
     setSyllable("???");
+    setCurrentItem(null);
     setScores({ correct: 0, retry: 0 });
     setCategoryStats(emptyCategoryStats());
   }
@@ -327,8 +380,14 @@ function KVKGame() {
 
           <div className="action-stack">
             {phase === "ready" && (
-              <button className="primary-action" type="button" onClick={startAdaptiveRound}>
-                <DoorOpen size={20} /> Mula!
+              <button className="primary-action" type="button" onClick={startAdaptiveRound} disabled={!packItems.length}>
+                <DoorOpen size={20} /> {packItems.length ? "Mula!" : "Menyedia bunyi..."}
+              </button>
+            )}
+            {currentItem && (
+              <button className="sound-replay-button" type="button" onClick={() => playSyllableAudio(currentItem)} disabled={phase === "opening"}>
+                <Volume2 size={18} /> Dengar {currentItem.syllable}
+                <span>{currentItem.sound === "e-pepet" ? "e pepet" : currentItem.sound === "e-taling" ? "e taling" : "bunyi Melayu"}</span>
               </button>
             )}
             <div className="answer-actions">
@@ -366,6 +425,8 @@ function KVKGame() {
               ))}
             </div>
           </div>
+
+          {packError && <p className="pack-error" role="alert">{packError}</p>}
 
           <CategoryStats stats={categoryStats} />
 
@@ -536,13 +597,6 @@ const VOKAL = [
   { id: "o", label: "o", sound: "o" },
   { id: "u", label: "u", sound: "u" }
 ];
-
-const KV_SYLLABLES = VOKAL.map((vowel) => ({
-  ...vowel,
-  id: `b${vowel.id}`,
-  label: `b${vowel.label}`,
-  sound: `b${vowel.sound}`
-}));
 
 let speechVoiceCache = null;
 const letterAudioCache = new Map();
@@ -1017,9 +1071,10 @@ function VokalModule({ onBack }) {
   );
 }
 
-function KVSoundTable({ selectedItem, onSelect }) {
+function KVSoundTable({ selectedItem, onSelect, eSound }) {
   const [speakingItem, setSpeakingItem] = useState(null);
   const soundTimer = useRef(null);
+  const kvRows = createKvRows(eSound);
 
   useEffect(() => {
     const removeVoiceListener = warmSpeechEngine();
@@ -1034,18 +1089,23 @@ function KVSoundTable({ selectedItem, onSelect }) {
     setSpeakingItem(item.id);
     window.clearTimeout(soundTimer.current);
     soundTimer.current = window.setTimeout(() => setSpeakingItem(null), 1000);
-    speakMalayText(item.sound);
+    if (item.audioPath) playSyllableAudio(item);
+    else speakMalayText(item.sound);
   }
 
   return (
     <div className="kv-table-wrap">
-      <div className="kv-table" role="table" aria-label="Jadual bunyi vokal dan suku kata ba be bi bo bu">
+      <div className="kv-table" role="table" aria-label="Jadual bunyi vokal dan suku kata KV">
         <div className="kv-table-corner" role="columnheader">Bunyi</div>
-        {VOKAL.map((item) => <div className="kv-table-vowel" role="columnheader" key={`head-${item.id}`}>{item.label}</div>)}
+        {PACK_VOWELS.map((vowel) => <div className="kv-table-vowel" role="columnheader" key={`head-${vowel}`}>{vowel}</div>)}
         <div className="kv-table-label" role="rowheader">Vokal</div>
         {VOKAL.map((item, index) => <SoundChoice key={`vowel-${item.id}`} item={item} index={index} kind="table-vowel" isSelected={selectedItem.id === item.id} isSpeaking={speakingItem === item.id} onChoose={chooseItem} />)}
-        <div className="kv-table-label kv-table-label-kv" role="rowheader">KV</div>
-        {KV_SYLLABLES.map((item, index) => <SoundChoice key={item.id} item={item} index={index} kind="table-syllable" isSelected={selectedItem.id === item.id} isSpeaking={speakingItem === item.id} onChoose={chooseItem} />)}
+        {PACK_ONSETS.map((onset, rowIndex) => (
+          <Fragment key={`row-${onset}`}>
+            <div className="kv-table-label kv-table-label-kv" role="rowheader">{onset}</div>
+            {kvRows[rowIndex].map((item, index) => <SoundChoice key={item.id} item={item} index={index} kind="table-syllable" isSelected={selectedItem.id === item.id} isSpeaking={speakingItem === item.id} onChoose={chooseItem} />)}
+          </Fragment>
+        ))}
       </div>
       <div className="letter-selected-card sound-selected-card" role="status" aria-live="polite">
         <span>Bunyi dipilih</span>
@@ -1057,7 +1117,15 @@ function KVSoundTable({ selectedItem, onSelect }) {
 }
 
 function KVModule({ onBack }) {
-  const [selectedItem, setSelectedItem] = useState(KV_SYLLABLES[0]);
+  const [eSound, setESound] = useState("e-pepet");
+  const [selectedItem, setSelectedItem] = useState(() => createKvItem("b", "a", "e-pepet"));
+
+  function changeESound(nextSound) {
+    setESound(nextSound);
+    setSelectedItem((current) => current.syllable.endsWith("e")
+      ? createKvItem(current.syllable[0], "e", nextSound)
+      : current);
+  }
 
   return (
     <div className="home-content hub-content sound-module-content">
@@ -1070,15 +1138,23 @@ function KVModule({ onBack }) {
           <h1>Buka bunyi KV</h1>
           <p>Tekan mana-mana petak untuk dengar bunyi vokal atau suku kata.</p>
         </div>
-        <div className="sound-hero-badge"><BookOpen size={18} /><span><strong>10</strong> bunyi sedia</span></div>
+        <div className="sound-hero-badge"><BookOpen size={18} /><span><strong>{PACK_ONSETS.length * PACK_VOWELS.length}</strong> bunyi sedia</span></div>
       </div>
 
       <section className="letter-learning-section kv-learning-section" aria-labelledby="kv-learning-title">
         <div className="section-heading-row">
-          <div><span className="section-kicker">Aktiviti belajar / Learn</span><h2 id="kv-learning-title">Vokal dan suku kata</h2><p>Mulakan dengan vokal, kemudian baca bunyi ba, be, bi, bo dan bu.</p></div>
+          <div><span className="section-kicker">Aktiviti belajar / Learn</span><h2 id="kv-learning-title">Vokal dan suku kata</h2><p>Pilih mana-mana petak untuk dengar bunyi KV.</p></div>
           <span className="skill-count"><Volume2 size={15} /> Tekan untuk dengar</span>
         </div>
-        <KVSoundTable selectedItem={selectedItem} onSelect={setSelectedItem} />
+        <div className="e-sound-picker" role="radiogroup" aria-label="Pilih jenis bunyi e">
+          <span className="e-sound-picker-label">Pilih bunyi e</span>
+          {E_SOUND_OPTIONS.map((option) => (
+            <button className={`e-sound-option ${eSound === option.id ? "is-selected" : ""}`} type="button" role="radio" aria-checked={eSound === option.id} key={option.id} onClick={() => changeESound(option.id)}>
+              <strong>{option.label}</strong><span>{option.hint}</span>
+            </button>
+          ))}
+        </div>
+        <KVSoundTable selectedItem={selectedItem} onSelect={setSelectedItem} eSound={eSound} />
       </section>
     </div>
   );
