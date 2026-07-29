@@ -584,19 +584,29 @@ const MANUSCRIPT_STROKES = {
 
 const BM_MODULES = [
   { id: "huruf", title: "Huruf", english: "Letters", description: "Kenal bentuk, bunyi dan cara menulis huruf.", sample: "A a", color: "coral", Icon: PenLine },
-  { id: "vokal", title: "Vokal", english: "Vowels", description: "Dengar bunyi a, e, i, o dan u dalam Bahasa Melayu.", sample: "a e i o u", color: "lemon", Icon: Volume2 },
+  { id: "vokal", title: "Vokal", english: "Vowels", description: "Dengar bunyi a, e pepet, e taling, i, o dan u dalam Bahasa Melayu.", sample: "a e-pepet e-taling", color: "lemon", Icon: Volume2 },
   { id: "kv", title: "KV", english: "Open syllables", description: "Dengar vokal dan baca ba, be, bi, bo dan bu.", sample: "ba be bi", color: "blue", Icon: BookOpen },
   { id: "suku-kata", title: "Suku Kata", english: "Syllables", description: "Bina bacaan dengan KVK dan bunyi bergabung.", sample: "bas jam", color: "mint", Icon: BookOpen },
   { id: "perkataan", title: "Perkataan", english: "Words", description: "Padan perkataan dengan gambar ikut level.", sample: "epal · rumah", color: "blue", Icon: Image }
 ];
 
 const VOKAL = [
-  { id: "a", label: "a", sound: "a" },
-  { id: "e", label: "e", sound: "e" },
-  { id: "i", label: "i", sound: "i" },
-  { id: "o", label: "o", sound: "o" },
-  { id: "u", label: "u", sound: "u" }
+  { id: "a", label: "a", sound: "a", audioPath: "/audio/vowels/a.mp3" },
+  { id: "e-pepet", label: "e", variant: "pepet", sound: "e", audioPath: "/audio/vowels/e-pepet.mp3" },
+  { id: "e-taling", label: "e", variant: "taling", sound: "e", audioPath: "/audio/vowels/e-taling.mp3" },
+  { id: "i", label: "i", sound: "i", audioPath: "/audio/vowels/i.mp3" },
+  { id: "o", label: "o", sound: "o", audioPath: "/audio/vowels/o.mp3" },
+  { id: "u", label: "u", sound: "u", audioPath: "/audio/vowels/u.mp3" }
 ];
+
+function vowelDisplayLabel(item) {
+  return item.variant ? `${item.label} ${item.variant}` : item.label;
+}
+
+function getKvVowelItems(eSound) {
+  const eVowel = VOKAL.find((item) => item.id === `e-${eSound}`) || VOKAL.find((item) => item.id === "e-pepet");
+  return [VOKAL[0], eVowel, VOKAL[3], VOKAL[4], VOKAL[5]];
+}
 
 let speechVoiceCache = null;
 const letterAudioCache = new Map();
@@ -984,6 +994,8 @@ function LetterMatchTest() {
 }
 
 function SoundChoice({ item, isSelected, isSpeaking, index, onChoose, kind = "vowel" }) {
+  const displayLabel = vowelDisplayLabel(item);
+
   return (
     <button
       className={`sound-choice sound-choice-${kind} ${isSelected ? "is-selected" : ""} ${isSpeaking ? "is-speaking" : ""}`}
@@ -991,10 +1003,11 @@ function SoundChoice({ item, isSelected, isSpeaking, index, onChoose, kind = "vo
       type="button"
       onClick={() => onChoose(item)}
       aria-pressed={isSelected}
-      aria-label={`Dengar bunyi ${item.label}`}
-      title={`Dengar ${item.label}`}
+      aria-label={`Dengar bunyi ${displayLabel}`}
+      title={`Dengar ${displayLabel}`}
     >
       <strong>{item.label}</strong>
+      {item.variant && <span className="sound-choice-variant">{item.variant}</span>}
       <span className="letter-button-ripple" aria-hidden="true"><i /><i /><i /></span>
     </button>
   );
@@ -1017,7 +1030,8 @@ function MalaySoundPanel({ items, selectedItem, onSelect, title, description, ki
     setSpeakingItem(item.id);
     window.clearTimeout(soundTimer.current);
     soundTimer.current = window.setTimeout(() => setSpeakingItem(null), 900);
-    speakMalayText(item.sound);
+    if (item.audioPath) playSyllableAudio(item);
+    else speakMalayText(item.sound);
   }
 
   return (
@@ -1034,7 +1048,7 @@ function MalaySoundPanel({ items, selectedItem, onSelect, title, description, ki
       </div>
       <div className="letter-selected-card sound-selected-card" role="status" aria-live="polite">
         <span>Bunyi dipilih</span>
-        <strong>{selectedItem.label}</strong>
+        <strong>{vowelDisplayLabel(selectedItem)}</strong>
         <em>{speakingItem ? "Sedang bunyi..." : "Tekan petak untuk dengar"}</em>
       </div>
     </div>
@@ -1053,9 +1067,9 @@ function VokalModule({ onBack }) {
         <div className="hub-title-block">
           <span className="hub-eyebrow"><Volume2 size={15} /> Vokal <span>/ Vowels</span></span>
           <h1>Dengar bunyi vokal</h1>
-          <p>Tekan a, e, i, o atau u untuk dengar bunyi Bahasa Melayu.</p>
+          <p>Tekan a, e pepet, e taling, i, o atau u untuk dengar bunyi Bahasa Melayu.</p>
         </div>
-        <div className="sound-hero-badge"><Volume2 size={18} /><span><strong>5</strong> bunyi sedia</span></div>
+        <div className="sound-hero-badge"><Volume2 size={18} /><span><strong>6</strong> bunyi sedia</span></div>
       </div>
 
       <section className="letter-learning-section" aria-labelledby="vowel-learning-title">
@@ -1075,6 +1089,7 @@ function KVSoundTable({ selectedItem, onSelect, eSound }) {
   const [speakingItem, setSpeakingItem] = useState(null);
   const soundTimer = useRef(null);
   const kvRows = createKvRows(eSound);
+  const vowelItems = getKvVowelItems(eSound);
 
   useEffect(() => {
     const removeVoiceListener = warmSpeechEngine();
@@ -1099,7 +1114,7 @@ function KVSoundTable({ selectedItem, onSelect, eSound }) {
         <div className="kv-table-corner" role="columnheader">Bunyi</div>
         {PACK_VOWELS.map((vowel) => <div className="kv-table-vowel" role="columnheader" key={`head-${vowel}`}>{vowel}</div>)}
         <div className="kv-table-label" role="rowheader">Vokal</div>
-        {VOKAL.map((item, index) => <SoundChoice key={`vowel-${item.id}`} item={item} index={index} kind="table-vowel" isSelected={selectedItem.id === item.id} isSpeaking={speakingItem === item.id} onChoose={chooseItem} />)}
+        {vowelItems.map((item, index) => <SoundChoice key={`vowel-${item.id}`} item={item} index={index} kind="table-vowel" isSelected={selectedItem.id === item.id} isSpeaking={speakingItem === item.id} onChoose={chooseItem} />)}
         {PACK_ONSETS.map((onset, rowIndex) => (
           <Fragment key={`row-${onset}`}>
             <div className="kv-table-label kv-table-label-kv" role="rowheader">{onset}</div>
