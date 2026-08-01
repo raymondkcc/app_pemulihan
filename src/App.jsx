@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -38,6 +38,8 @@ import {
   syllableAudioPath
 } from "./data/syllablePack.js";
 import "./styles.css";
+
+const LetterCaseGame = lazy(() => import("./games/letterCase/LetterCaseGame.jsx"));
 
 const OPEN_DURATION = 1280;
 const NEXT_ROUND_DELAY = 900;
@@ -1269,6 +1271,10 @@ function HurufModule({ onBack }) {
           <LetterRecognitionPanel selectedLetter={selectedLetter} onSelect={setSelectedLetter} letterCase={letterCase} />
         </div>
       </section>
+
+      <Suspense fallback={<div className="letter-case-game-loading" role="status">Menyediakan permainan huruf...</div>}>
+        <LetterCaseGame letters={HURUF} onPlayLetter={playLetterAudio} />
+      </Suspense>
 
       <section className="letter-test-section" aria-labelledby="letter-test-title">
         <div className="section-heading-row">
