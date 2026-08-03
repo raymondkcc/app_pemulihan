@@ -2,6 +2,8 @@
 
 The first module is available at `/kvk` as **Bijak KVK: Pintu Bacaan Interaktif**.
 
+The learning-space home page is available at `/`. Its Mathematics section includes the addition regrouping activity at `/addition-regroup` and the subtraction regrouping activity at `/minus-regroup`, where learners build numbers with place-value blocks, regroup when needed, solve from Ones to Hundreds, and enter answers with the keypad.
+
 The interface uses Comic Sans MS with Comic Neue and Arial fallbacks so the lowercase `a` keeps the familiar single-storey shape even when the local font is unavailable. The game also has a native fullscreen button; its in-app exit button asks a two-digit addition or subtraction question before leaving fullscreen. Browser-level Escape remains controlled by the browser itself.
 
 If a tablet gesture exits native fullscreen, the app detects that unexpected exit and shows the same maths gate before the game can continue. This cannot prevent the operating system from switching apps or leaving the browser; kiosk mode, Android screen pinning, iPad Guided Access, or a managed single-app device is required for that level of lockdown.
@@ -15,7 +17,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173/kvk`.
+Open `http://localhost:5173/` for the learning-space picker, `http://localhost:5173/kvk` for the KVK module, `http://localhost:5173/addition-regroup` for addition, or `http://localhost:5173/minus-regroup` for subtraction.
 
 ## Build for Vercel
 
@@ -23,4 +25,4 @@ Open `http://localhost:5173/kvk`.
 npm run build
 ```
 
-The Vercel rewrite keeps the `/kvk` route working on a direct visit. This module is fully client-side and does not require Firebase: scores are session-only and there is no login, database, file upload, or shared progress yet.
+The Vercel rewrite keeps the `/`, `/kvk`, `/addition-regroup`, and `/minus-regroup` routes working on direct visits. These modules are fully client-side and do not require Firebase: scores are session-only and there is no login, database, file upload, or shared progress yet.
