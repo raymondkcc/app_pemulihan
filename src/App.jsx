@@ -27,6 +27,8 @@ import {
   X
 } from "lucide-react";
 import { ENDINGS, pickAdaptiveEnding, pickSyllable } from "./data/kvk.js";
+import AdditionRegroupGame from "./games/additionRegroup/AdditionRegroupGame.jsx";
+import MinusRegroupGame from "./games/minusRegroup/MinusRegroupGame.jsx";
 import "./styles.css";
 
 const OPEN_DURATION = 1280;
@@ -425,8 +427,8 @@ const WORD_LEVELS = [
 ];
 
 const MATH_OPERATIONS = [
-  { id: "tambah", title: "Operasi tambah", english: "Addition", symbol: "+", helper: "Gabung nombor", color: "coral", Icon: Plus },
-  { id: "tolak", title: "Operasi tolak", english: "Subtraction", symbol: "-", helper: "Ambil dan kira", color: "mint", Icon: Minus },
+  { id: "tambah", title: "Operasi tambah", english: "Addition", symbol: "+", helper: "Gabung nombor", color: "coral", Icon: Plus, href: "/addition-regroup" },
+  { id: "tolak", title: "Operasi tolak", english: "Subtraction", symbol: "-", helper: "Ambil dan kira", color: "mint", Icon: Minus, href: "/minus-regroup" },
   { id: "darab", title: "Operasi darab", english: "Multiplication", symbol: "x", helper: "Kumpulan sama banyak", color: "lemon", Icon: Star },
   { id: "bahagi", title: "Operasi bahagi", english: "Division", symbol: "÷", helper: "Kongsi sama rata", color: "blue", Icon: Calculator }
 ];
@@ -1235,14 +1237,20 @@ function MathematicsHub({ onBack, onComingSoon, notice }) {
           <span className="skill-count"><Calculator size={15} /> 4 ruang latihan</span>
         </div>
         <div className="operation-grid">
-          {MATH_OPERATIONS.map(({ id, title, english, symbol, helper, color, Icon }) => (
-            <button className={`operation-card operation-card-${color}`} type="button" key={id} onClick={() => onComingSoon(title)}>
-              <span className="operation-card-icon"><Icon size={23} strokeWidth={2.8} /></span>
-              <span className="operation-symbol" aria-hidden="true">{symbol}</span>
-              <span className="operation-copy"><strong>{title}</strong><span>{english}</span><em>{helper}</em></span>
-              <span className="operation-status">Akan datang <LockKeyhole size={14} /></span>
-            </button>
-          ))}
+          {MATH_OPERATIONS.map(({ id, title, english, symbol, helper, color, Icon, href }) => {
+            const content = (
+              <>
+                <span className="operation-card-icon"><Icon size={23} strokeWidth={2.8} /></span>
+                <span className="operation-symbol" aria-hidden="true">{symbol}</span>
+                <span className="operation-copy"><strong>{title}</strong><span>{english}</span><em>{helper}</em></span>
+                <span className="operation-status">{href ? <>Buka latihan <ArrowRight size={14} /></> : <>Akan datang <LockKeyhole size={14} /></>}</span>
+              </>
+            );
+
+            return href
+              ? <a className={`operation-card operation-card-${color} is-live`} href={href} key={id} aria-label={`Buka ${title}`}>{content}</a>
+              : <button className={`operation-card operation-card-${color}`} type="button" key={id} onClick={() => onComingSoon(title)}>{content}</button>;
+          })}
         </div>
       </section>
 
@@ -1322,7 +1330,10 @@ function HomePlaceholder() {
 
 export default function App() {
   const path = window.location.pathname.replace(/\/+$/, "") || "/";
-  return path === "/kvk" ? <KVKGame /> : <HomeLanding />;
+  if (path === "/kvk") return <KVKGame />;
+  if (path === "/addition-regroup") return <AdditionRegroupGame />;
+  if (path === "/minus-regroup") return <MinusRegroupGame />;
+  return <HomeLanding />;
 }
 /*
   return (
