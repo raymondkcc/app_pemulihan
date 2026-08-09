@@ -637,6 +637,43 @@ function PetShowcase({ petIds, twoPlayer }) {
   );
 }
 
+function PetCardCamera() {
+  const { camera } = useThree();
+
+  useEffect(() => {
+    camera.lookAt(0, 1.2, 0);
+  }, [camera]);
+
+  return null;
+}
+
+function PetCardPreview({ petId }) {
+  return (
+    <div className="pet-choice-preview" aria-hidden="true">
+      <Canvas
+        shadows={false}
+        dpr={[1, 1]}
+        camera={{ position: [0, 1.55, 5.8], fov: 29 }}
+        gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+      >
+        <color attach="background" args={["#fff4dc"]} />
+        <ambientLight intensity={1.65} color="#fff6e3" />
+        <hemisphereLight intensity={1.1} color="#fffdf1" groundColor="#c8a98b" />
+        <directionalLight position={[-2.5, 4, 3]} intensity={2.7} color="#fff0c8" />
+        <pointLight position={[2, 2, 3]} intensity={0.8} color="#ffd2b6" />
+        <PetCardCamera />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.08, 0]} receiveShadow>
+          <circleGeometry args={[1.15, 48]} />
+          <meshStandardMaterial color="#f5d9b1" roughness={0.88} />
+        </mesh>
+        <Suspense fallback={null}>
+          <AssetPet petId={petId} mood="idle" />
+        </Suspense>
+      </Canvas>
+    </div>
+  );
+}
+
 function PetWorld({ players, twoPlayer }) {
   const positions = twoPlayer ? [[-1.45, 0.24, 0.2], [1.45, 0.24, 0.2]] : [[0, 0.24, 0.2]];
   const scales = twoPlayer ? [0.86, 0.86] : [PET_SCALE];
@@ -694,8 +731,12 @@ function HealthBar({ player, twoPlayer }) {
 function PetChoice({ pet, selected, onClick, label }) {
   return (
     <button className={`pet-choice ${selected ? "is-selected" : ""}`} type="button" onClick={onClick} aria-pressed={selected}>
-      <span className="pet-choice-mark" style={{ background: pet.color }}><PawPrint size={20} strokeWidth={2.2} /></span>
-      <span className="pet-choice-copy"><strong>{pet.name}</strong><small>{pet.species} / {pet.note}</small></span>
+      <PetCardPreview petId={pet.id} />
+      <span className="pet-choice-info">
+        <span className="pet-choice-copy"><strong>{pet.name}</strong><small>{pet.species}</small></span>
+        <span className="pet-choice-meta"><span className="pet-card-level">Lv. 1</span><span>{pet.note}</span></span>
+        <span className="pet-card-xp"><i /><i /><i /></span>
+      </span>
       {selected && <Check className="pet-choice-check" size={18} strokeWidth={3} />}
       {label && <span className="pet-choice-owner">{label}</span>}
     </button>

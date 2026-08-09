@@ -83,15 +83,23 @@
 .pet-choice-groups.is-dual { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .pet-choice-group { min-width: 0; }
 .pet-player-label { display: inline-flex; align-items: center; gap: .3rem; margin: 0 0 .45rem; color: var(--pet-ink-soft); font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; }
-.pet-choice-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .55rem; }
-.pet-choice { position: relative; display: flex; min-width: 0; min-height: 70px; align-items: center; gap: .55rem; border: 2px solid var(--pet-line); border-radius: 6px; padding: .55rem; color: var(--pet-ink); background: rgba(255,255,255,.68); text-align: left; cursor: pointer; transition: border-color .16s ease, background .16s ease, transform .16s ease; }
-.pet-choice:hover { border-color: var(--pet-ink); background: var(--pet-paper-strong); transform: translateY(-2px); }
-.pet-choice.is-selected { border-color: var(--pet-ink); background: var(--pet-mint); box-shadow: 3px 3px 0 rgba(18,54,59,.15); }
-.pet-choice-mark { display: grid; width: 35px; height: 35px; flex: none; place-items: center; border: 2px solid rgba(18,54,59,.2); border-radius: 50%; color: var(--pet-ink); }
-.pet-choice-copy { display: flex; min-width: 0; flex-direction: column; gap: .1rem; }
-.pet-choice-copy strong { overflow: hidden; font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: .98rem; line-height: 1; text-overflow: ellipsis; white-space: nowrap; }
-.pet-choice-copy small { overflow: hidden; color: var(--pet-ink-soft); font-size: .61rem; font-weight: 700; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
-.pet-choice-check { position: absolute; top: .45rem; right: .45rem; color: var(--pet-mint-dark); }
+.pet-choice-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .65rem; }
+.pet-choice { position: relative; display: grid; min-width: 0; overflow: hidden; border: 2px solid var(--pet-line); border-radius: 7px; padding: 0; color: var(--pet-ink); background: #fffdf8; text-align: left; cursor: pointer; transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease; }
+.pet-choice:hover { border-color: #e38a2d; box-shadow: 0 9px 18px rgba(96,64,30,.13); transform: translateY(-3px); }
+.pet-choice.is-selected { border-color: #e38a2d; box-shadow: 0 0 0 2px rgba(255,177,65,.24), 0 10px 22px rgba(96,64,30,.16); }
+.pet-choice-preview { height: 124px; overflow: hidden; border-bottom: 1px solid #eadfcd; background: #fff4dc; pointer-events: none; }
+.pet-choice-preview canvas { display: block; width: 100% !important; height: 100% !important; }
+.pet-choice-info { display: grid; gap: .42rem; padding: .6rem .62rem .65rem; }
+.pet-choice-copy { display: flex; min-width: 0; align-items: baseline; justify-content: space-between; gap: .45rem; }
+.pet-choice-copy strong { overflow: hidden; font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.02rem; line-height: 1; text-overflow: ellipsis; white-space: nowrap; }
+.pet-choice-copy small { flex: none; color: var(--pet-ink-soft); font-size: .59rem; font-weight: 800; text-transform: uppercase; }
+.pet-choice-meta { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: .35rem; color: var(--pet-ink-soft); font-size: .57rem; font-weight: 800; }
+.pet-choice-meta > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pet-card-level { flex: none; border-radius: 999px; padding: .15rem .35rem; color: white; background: #ef922b; font-size: .54rem; font-weight: 900; }
+.pet-card-xp { display: grid; height: 6px; grid-template-columns: repeat(3, 1fr); gap: 3px; overflow: hidden; border-radius: 999px; }
+.pet-card-xp i { display: block; border-radius: 999px; background: #eee4d4; }
+.pet-card-xp i:first-child { background: #f1a13c; }
+.pet-choice-check { position: absolute; z-index: 2; top: .45rem; right: .45rem; display: grid; width: 25px; height: 25px; place-items: center; border-radius: 50%; color: white; background: #e38a2d; box-shadow: 0 2px 7px rgba(77,46,23,.2); }
 
 .pet-difficulty-list,
 .pet-mode-list { display: grid; gap: .5rem; }
@@ -255,13 +263,15 @@
   .pet-setup-showcase { height: 174px; }
   .pet-choice-groups.is-dual { grid-template-columns: 1fr; }
   .pet-choice-list { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .35rem; }
-  .pet-choice { min-height: 62px; flex-direction: column; justify-content: center; gap: .25rem; padding: .4rem .25rem; text-align: center; }
-  .pet-choice-mark { width: 30px; height: 30px; }
-  .pet-choice-mark svg { width: 17px; height: 17px; }
-  .pet-choice-copy { align-items: center; }
-  .pet-choice-copy strong { font-size: .87rem; }
-  .pet-choice-copy small { max-width: 90px; font-size: .55rem; white-space: normal; }
-  .pet-choice-check { top: .25rem; right: .25rem; width: 14px; }
+  .pet-choice-preview { height: 92px; }
+  .pet-choice-info { gap: .28rem; padding: .45rem .38rem .5rem; }
+  .pet-choice-copy { align-items: baseline; }
+  .pet-choice-copy strong { font-size: .82rem; }
+  .pet-choice-copy small { max-width: 90px; font-size: .5rem; }
+  .pet-choice-meta { display: block; font-size: .5rem; }
+  .pet-choice-meta > span:last-child { display: block; margin-top: .18rem; }
+  .pet-card-level { font-size: .48rem; }
+  .pet-choice-check { top: .25rem; right: .25rem; width: 21px; height: 21px; }
   .pet-player-label { margin-top: .1rem; }
   .pet-play-status { align-items: stretch; flex-direction: column; }
   .pet-health-stack { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -284,7 +294,8 @@
   .pet-setup-section { padding-right: .75rem; padding-left: .75rem; }
   .pet-setup-heading { padding: 1.15rem; }
   .pet-setup-footer { padding-right: 1.15rem; padding-left: 1.15rem; }
-  .pet-choice-copy small { display: none; }
+  .pet-choice-copy small,
+  .pet-choice-meta > span:last-child { display: none; }
   .pet-health-label { font-size: .6rem; }
   .pet-health-value { font-size: .62rem; }
   .pet-option { min-height: 42px; }
