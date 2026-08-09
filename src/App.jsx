@@ -23,6 +23,7 @@ import {
   Sparkles,
   Star,
   Trophy,
+  Users,
   Volume2,
   X
 } from "lucide-react";
@@ -39,6 +40,8 @@ import {
 } from "./data/syllablePack.js";
 import AdditionRegroupGame from "./games/additionRegroup/AdditionRegroupGame.jsx";
 import MinusRegroupGame from "./games/minusRegroup/MinusRegroupGame.jsx";
+import PetFeedingGame from "./games/petFeeding/PetFeedingGame.jsx";
+import TeacherNamelist from "./teacher/TeacherNamelist.jsx";
 import "./styles.css";
 
 const LetterCaseGame = lazy(() => import("./games/letterCase/LetterCaseGame.jsx"));
@@ -490,8 +493,8 @@ const WORD_LEVELS = [
 ];
 
 const MATH_OPERATIONS = [
-  { id: "tambah", title: "Operasi tambah", english: "Addition", symbol: "+", helper: "Gabung nombor", color: "coral", Icon: Plus, href: "/addition-regroup" },
-  { id: "tolak", title: "Operasi tolak", english: "Subtraction", symbol: "-", helper: "Ambil dan kira", color: "mint", Icon: Minus, href: "/minus-regroup" },
+  { id: "tambah", title: "Operasi tambah", english: "Addition", symbol: "+", helper: "Feed a pet", color: "coral", Icon: Plus, href: "/pet-feeding-addition" },
+  { id: "tolak", title: "Operasi tolak", english: "Subtraction", symbol: "-", helper: "Feed a pet", color: "mint", Icon: Minus, href: "/pet-feeding-subtraction" },
   { id: "darab", title: "Operasi darab", english: "Multiplication", symbol: "x", helper: "Kumpulan sama banyak", color: "lemon", Icon: Star },
   { id: "bahagi", title: "Operasi bahagi", english: "Division", symbol: "÷", helper: "Kongsi sama rata", color: "blue", Icon: Calculator }
 ];
@@ -1409,7 +1412,10 @@ function HomeLanding() {
           <span className="brand-tile brand-tile-a">A</span><span className="brand-tile brand-tile-one">1</span><span className="brand-tile brand-tile-star"><Star size={13} fill="currentColor" /></span>
           <span className="brand-name">Bijak <em>belajar</em></span>
         </button>
-        <div className="home-topbar-note"><span className="status-dot" /> Jom mula!</div>
+        <div className="home-topbar-actions">
+          <a className="teacher-entry" href="/teacher/namelist" aria-label="Open teacher namelist"><Users size={15} /> <span>Teacher space</span><ArrowRight size={13} /></a>
+          <div className="home-topbar-note"><span className="status-dot" /> Jom mula!</div>
+        </div>
       </header>
 
       {subject === "bm" && <BahasaMelayuHub onBack={() => chooseSubject(null)} onComingSoon={showComingSoon} notice={notice} />}
@@ -1427,7 +1433,10 @@ function HomePlaceholder() {
 
 export default function App() {
   const path = window.location.pathname.replace(/\/+$/, "") || "/";
+  if (path === "/teacher" || path === "/teacher/namelist") return <TeacherNamelist />;
   if (path === "/kvk") return <KVKGame />;
+  if (path === "/pet-feeding-addition") return <PetFeedingGame operation="addition" />;
+  if (path === "/pet-feeding-subtraction") return <PetFeedingGame operation="subtraction" />;
   if (path === "/addition-regroup") return <AdditionRegroupGame />;
   if (path === "/minus-regroup") return <MinusRegroupGame />;
   return <HomeLanding />;
