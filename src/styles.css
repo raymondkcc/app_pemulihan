@@ -387,7 +387,7 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .home-topbar-note { display: inline-flex; align-items: center; gap: .45rem; color: var(--home-muted); font-size: .78rem; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; }
 .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--home-mint-dark); box-shadow: 0 0 0 4px rgba(93, 202, 176, .23); }
 
-.picker-content { padding: 9rem 0 4rem; }
+.picker-content { padding: clamp(2.5rem, 6vh, 4.5rem) 0 clamp(1rem, 2vh, 1.6rem); }
 .picker-copy { max-width: 760px; }
 .home-eyebrow,
 .hub-eyebrow {
@@ -409,15 +409,15 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
   letter-spacing: -.035em;
 }
 
-.picker-copy h1 { max-width: 680px; margin-top: .7rem; color: var(--home-ink); font-size: 4.4rem; font-weight: 800; line-height: .92; }
+.picker-copy h1 { max-width: 680px; margin-top: .55rem; color: var(--home-ink); font-size: clamp(3rem, 5.6vh, 4rem); font-weight: 800; line-height: .92; }
 .picker-copy h1 span { display: block; color: var(--home-blue); font-size: .47em; letter-spacing: .01em; line-height: 1.25; }
-.picker-copy p { max-width: 510px; margin: 1.25rem 0 0; color: var(--home-muted); font-size: 1.08rem; font-weight: 700; }
+.picker-copy p { max-width: 510px; margin: .75rem 0 0; color: var(--home-muted); font-size: 1rem; font-weight: 700; }
 
-.subject-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 3.3rem; }
+.subject-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: clamp(1.25rem, 3vh, 2rem); }
 .subject-card {
   position: relative;
   display: flex;
-  min-height: 460px;
+  min-height: clamp(280px, 38vh, 350px);
   flex-direction: column;
   overflow: hidden;
   border: 2px solid var(--home-ink);
@@ -441,9 +441,9 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .subject-card-copy span { max-width: 300px; color: rgba(255,255,255,.9); font-size: .94rem; font-weight: 700; line-height: 1.45; }
 .subject-card-action { display: inline-flex; align-items: center; gap: .25rem; margin-top: 1.35rem; font-size: .82rem; font-weight: 900; }
 
-.learning-visual { position: relative; min-height: 238px; flex: 1; margin: .9rem 0 1rem; }
+.learning-visual { position: relative; min-height: clamp(135px, 19vh, 180px); flex: 1; margin: .5rem 0 .65rem; }
 .learning-visual-book, .learning-visual-math { display: grid; place-items: center; }
-.book-shape { display: grid; width: 168px; height: 125px; place-items: center; border: 3px solid var(--home-ink); border-radius: 16px 16px 10px 10px; color: var(--home-coral-dark); background: var(--home-paper); box-shadow: 8px 9px 0 rgba(25,56,74,.18); transform: rotate(-6deg); animation: book-bob 4s ease-in-out infinite; }
+.book-shape { display: grid; width: 142px; height: 104px; place-items: center; border: 3px solid var(--home-ink); border-radius: 16px 16px 10px 10px; color: var(--home-coral-dark); background: var(--home-paper); box-shadow: 7px 8px 0 rgba(25,56,74,.18); transform: rotate(-6deg); animation: book-bob 4s ease-in-out infinite; }
 .book-shape::before { position: absolute; top: 14px; bottom: 14px; left: 50%; border-left: 2px dashed rgba(25,56,74,.22); content: ""; }
 .letter-tile { position: absolute; display: grid; place-items: center; border: 2px solid var(--home-ink); border-radius: 8px; color: var(--home-ink); font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-weight: 800; line-height: 1; box-shadow: 4px 5px 0 rgba(25,56,74,.18); }
 .tile-a { top: 17%; left: 18%; width: 58px; height: 58px; color: var(--home-ink); background: var(--home-lemon); font-size: 1.7rem; transform: rotate(-12deg); animation: tile-float 3.2s ease-in-out infinite; }
@@ -461,7 +461,7 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .learning-visual-math .star-one { bottom: 14%; left: 21%; color: var(--home-lemon); animation: star-twinkle 2.6s ease-in-out infinite; }
 .learning-visual-math .star-two { bottom: 17%; right: 22%; color: var(--home-paper); animation: star-twinkle 2.4s .8s ease-in-out infinite; }
 
-.picker-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1.15rem; color: var(--home-muted); font-size: .78rem; font-weight: 900; }
+.picker-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: .75rem; color: var(--home-muted); font-size: .72rem; font-weight: 900; }
 .picker-footer span { display: inline-flex; align-items: center; gap: .4rem; }
 .picker-footer span:first-child { color: var(--home-coral-dark); }
 
@@ -602,9 +602,9 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 
 @media (max-width: 900px) {
   .home-topbar, .home-content, .home-footer { width: min(100% - 2rem, 720px); }
-  .picker-content { padding-top: 6rem; }
+  .picker-content { padding-top: 3.5rem; }
   .picker-copy h1 { font-size: 3.8rem; }
-  .subject-card { min-height: 430px; }
+  .subject-card { min-height: 350px; }
   .syllable-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .operation-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -612,12 +612,12 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 @media (max-width: 620px) {
   .home-topbar { padding-top: 1rem; }
   .home-topbar-note { font-size: .68rem; }
-  .picker-content { padding-top: 4.5rem; }
+  .picker-content { padding-top: 2.75rem; }
   .picker-copy h1 { font-size: 2.9rem; }
   .picker-copy h1 span { font-size: .5em; }
   .picker-copy p { margin-top: 1rem; font-size: .95rem; }
-  .subject-grid { grid-template-columns: 1fr; gap: .8rem; margin-top: 2.35rem; }
-  .subject-card { min-height: 365px; }
+  .subject-grid { grid-template-columns: 1fr; gap: .8rem; margin-top: 1.5rem; }
+  .subject-card { min-height: 330px; }
   .learning-visual { min-height: 175px; }
   .book-shape { width: 136px; height: 100px; }
   .book-shape svg { width: 52px; }
