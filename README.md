@@ -2,7 +2,7 @@
 
 The first module is available at `/kvk` as **Bijak KVK: Pintu Bacaan Interaktif**.
 
-The learning-space home page is available at `/`. Its Mathematics section includes the addition regrouping activity at `/addition-regroup` and the subtraction regrouping activity at `/minus-regroup`, where learners build numbers with place-value blocks, regroup when needed, solve from Ones to Hundreds, and enter answers with the keypad.
+The learning-space home page is available at `/`. Its Mathematics section includes the pet-feeding addition game at `/pet-feeding-addition` and the pet-feeding subtraction game at `/pet-feeding-subtraction`. The original addition regrouping activity remains at `/addition-regroup` and subtraction regrouping activity at `/minus-regroup`.
 
 The interface uses Comic Sans MS with Comic Neue and Arial fallbacks so the lowercase `a` keeps the familiar single-storey shape even when the local font is unavailable. The game also has a native fullscreen button; its in-app exit button asks a two-digit addition or subtraction question before leaving fullscreen. Browser-level Escape remains controlled by the browser itself.
 
@@ -17,7 +17,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173/` for the learning-space picker, `http://localhost:5173/kvk` for the KVK module, `http://localhost:5173/addition-regroup` for addition, or `http://localhost:5173/minus-regroup` for subtraction.
+Open `http://localhost:5173/` for the learning-space picker, `http://localhost:5173/kvk` for the KVK module, `http://localhost:5173/pet-feeding-addition` for addition feeding, or `http://localhost:5173/pet-feeding-subtraction` for subtraction feeding. The existing regrouping labs remain available at `/addition-regroup` and `/minus-regroup`.
 
 ## Build for Vercel
 
