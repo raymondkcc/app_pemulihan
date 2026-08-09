@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -23,16 +23,50 @@ import {
   Sparkles,
   Star,
   Trophy,
+  Users,
   Volume2,
   X
 } from "lucide-react";
-import { ENDINGS, pickAdaptiveEnding, pickSyllable } from "./data/kvk.js";
+import { ENDINGS, pickAdaptiveEnding } from "./data/kvk.js";
+import {
+  createKvItem,
+  createKvRows,
+  E_SOUND_OPTIONS,
+  loadKvkPack,
+  PACK_ONSETS,
+  PACK_VOWELS,
+  pickPackSyllable,
+  syllableAudioPath
+} from "./data/syllablePack.js";
 import AdditionRegroupGame from "./games/additionRegroup/AdditionRegroupGame.jsx";
 import MinusRegroupGame from "./games/minusRegroup/MinusRegroupGame.jsx";
+import PetFeedingGame from "./games/petFeeding/PetFeedingGame.jsx";
+import TeacherNamelist from "./teacher/TeacherNamelist.jsx";
 import "./styles.css";
+
+const LetterCaseGame = lazy(() => import("./games/letterCase/LetterCaseGame.jsx"));
 
 const OPEN_DURATION = 1280;
 const NEXT_ROUND_DELAY = 900;
+
+const syllableAudioCache = new Map();
+let activeSyllableAudio = null;
+
+function playSyllableAudio(item) {
+  const source = syllableAudioPath(item);
+  if (!source || !window.Audio) return;
+
+  const audio = syllableAudioCache.get(source) || new window.Audio(source);
+  syllableAudioCache.set(source, audio);
+  if (activeSyllableAudio && activeSyllableAudio !== audio) {
+    activeSyllableAudio.pause();
+    activeSyllableAudio.currentTime = 0;
+  }
+  activeSyllableAudio = audio;
+  audio.pause();
+  audio.currentTime = 0;
+  audio.play().catch(() => {});
+}
 
 function createExitChallenge() {
   const operator = Math.random() > 0.5 ? "+" : "−";
@@ -134,6 +168,9 @@ function KVKGame() {
   const [currentEnding, setCurrentEnding] = useState(null);
   const [phase, setPhase] = useState("ready");
   const [syllable, setSyllable] = useState("???");
+  const [currentItem, setCurrentItem] = useState(null);
+  const [packItems, setPackItems] = useState([]);
+  const [packError, setPackError] = useState("");
   const [scores, setScores] = useState({ correct: 0, retry: 0 });
   const [categoryStats, setCategoryStats] = useState(emptyCategoryStats);
   const [roundId, setRoundId] = useState(0);
@@ -150,6 +187,24 @@ function KVKGame() {
   const challengeRef = useRef(null);
 
   useEffect(() => () => timers.current.forEach(window.clearTimeout), []);
+
+  useEffect(() => {
+    let active = true;
+    loadKvkPack()
+      .then((items) => {
+        if (active) setPackItems(items);
+      })
+      .catch((error) => {
+        if (active) setPackError(error.message || "Audio KVK tidak dapat dimuatkan.");
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (phase === "answering" && currentItem) playSyllableAudio(currentItem);
+  }, [currentItem, phase]);
 
   useEffect(() => {
     const updateFullscreenState = () => {
@@ -189,13 +244,15 @@ function KVKGame() {
   }
 
   function beginRound(nextEnding) {
-    if (phase === "opening") return;
+    if (phase === "opening" || !packItems.length) return;
 
     clearTimers();
-    const nextSyllable = pickSyllable(nextEnding, previousSyllable.current);
-    previousSyllable.current = nextSyllable;
+    const nextItem = pickPackSyllable(packItems, nextEnding, previousSyllable.current);
+    if (!nextItem) return;
+    previousSyllable.current = `${nextItem.syllable}-${nextItem.sound}`;
     setCurrentEnding(nextEnding);
-    setSyllable(nextSyllable);
+    setCurrentItem(nextItem);
+    setSyllable(nextItem.syllable);
     setRoundId((current) => current + 1);
     setPhase("opening");
 
@@ -250,6 +307,7 @@ function KVKGame() {
     setCurrentEnding(null);
     setPhase("ready");
     setSyllable("???");
+    setCurrentItem(null);
     setScores({ correct: 0, retry: 0 });
     setCategoryStats(emptyCategoryStats());
   }
@@ -329,8 +387,14 @@ function KVKGame() {
 
           <div className="action-stack">
             {phase === "ready" && (
-              <button className="primary-action" type="button" onClick={startAdaptiveRound}>
-                <DoorOpen size={20} /> Mula!
+              <button className="primary-action" type="button" onClick={startAdaptiveRound} disabled={!packItems.length}>
+                <DoorOpen size={20} /> {packItems.length ? "Mula!" : "Menyedia bunyi..."}
+              </button>
+            )}
+            {currentItem && (
+              <button className="sound-replay-button" type="button" onClick={() => playSyllableAudio(currentItem)} disabled={phase === "opening"}>
+                <Volume2 size={18} /> Dengar {currentItem.syllable}
+                <span>{currentItem.sound === "e-pepet" ? "e pepet" : currentItem.sound === "e-taling" ? "e taling" : "bunyi Melayu"}</span>
               </button>
             )}
             <div className="answer-actions">
@@ -368,6 +432,8 @@ function KVKGame() {
               ))}
             </div>
           </div>
+
+          {packError && <p className="pack-error" role="alert">{packError}</p>}
 
           <CategoryStats stats={categoryStats} />
 
@@ -427,8 +493,8 @@ const WORD_LEVELS = [
 ];
 
 const MATH_OPERATIONS = [
-  { id: "tambah", title: "Operasi tambah", english: "Addition", symbol: "+", helper: "Gabung nombor", color: "coral", Icon: Plus, href: "/addition-regroup" },
-  { id: "tolak", title: "Operasi tolak", english: "Subtraction", symbol: "-", helper: "Ambil dan kira", color: "mint", Icon: Minus, href: "/minus-regroup" },
+  { id: "tambah", title: "Operasi tambah", english: "Addition", symbol: "+", helper: "Feed a pet", color: "coral", Icon: Plus, href: "/pet-feeding-addition" },
+  { id: "tolak", title: "Operasi tolak", english: "Subtraction", symbol: "-", helper: "Feed a pet", color: "mint", Icon: Minus, href: "/pet-feeding-subtraction" },
   { id: "darab", title: "Operasi darab", english: "Multiplication", symbol: "x", helper: "Kumpulan sama banyak", color: "lemon", Icon: Star },
   { id: "bahagi", title: "Operasi bahagi", english: "Division", symbol: "÷", helper: "Kongsi sama rata", color: "blue", Icon: Calculator }
 ];
@@ -525,26 +591,29 @@ const MANUSCRIPT_STROKES = {
 
 const BM_MODULES = [
   { id: "huruf", title: "Huruf", english: "Letters", description: "Kenal bentuk, bunyi dan cara menulis huruf.", sample: "A a", color: "coral", Icon: PenLine },
-  { id: "vokal", title: "Vokal", english: "Vowels", description: "Dengar bunyi a, e, i, o dan u dalam Bahasa Melayu.", sample: "a e i o u", color: "lemon", Icon: Volume2 },
+  { id: "vokal", title: "Vokal", english: "Vowels", description: "Dengar bunyi a, e pepet, e taling, i, o dan u dalam Bahasa Melayu.", sample: "a e-pepet e-taling", color: "lemon", Icon: Volume2 },
   { id: "kv", title: "KV", english: "Open syllables", description: "Dengar vokal dan baca ba, be, bi, bo dan bu.", sample: "ba be bi", color: "blue", Icon: BookOpen },
   { id: "suku-kata", title: "Suku Kata", english: "Syllables", description: "Bina bacaan dengan KVK dan bunyi bergabung.", sample: "bas jam", color: "mint", Icon: BookOpen },
   { id: "perkataan", title: "Perkataan", english: "Words", description: "Padan perkataan dengan gambar ikut level.", sample: "epal · rumah", color: "blue", Icon: Image }
 ];
 
 const VOKAL = [
-  { id: "a", label: "a", sound: "a" },
-  { id: "e", label: "e", sound: "e" },
-  { id: "i", label: "i", sound: "i" },
-  { id: "o", label: "o", sound: "o" },
-  { id: "u", label: "u", sound: "u" }
+  { id: "a", label: "a", sound: "a", audioPath: "/audio/vowels/a.mp3" },
+  { id: "e-pepet", label: "e", variant: "pepet", sound: "e", audioPath: "/audio/vowels/e-pepet.mp3" },
+  { id: "e-taling", label: "e", variant: "taling", sound: "e", audioPath: "/audio/vowels/e-taling.mp3" },
+  { id: "i", label: "i", sound: "i", audioPath: "/audio/vowels/i.mp3" },
+  { id: "o", label: "o", sound: "o", audioPath: "/audio/vowels/o.mp3" },
+  { id: "u", label: "u", sound: "u", audioPath: "/audio/vowels/u.mp3" }
 ];
 
-const KV_SYLLABLES = VOKAL.map((vowel) => ({
-  ...vowel,
-  id: `b${vowel.id}`,
-  label: `b${vowel.label}`,
-  sound: `b${vowel.sound}`
-}));
+function vowelDisplayLabel(item) {
+  return item.variant ? `${item.label} ${item.variant}` : item.label;
+}
+
+function getKvVowelItems(eSound) {
+  const eVowel = VOKAL.find((item) => item.id === `e-${eSound}`) || VOKAL.find((item) => item.id === "e-pepet");
+  return [VOKAL[0], eVowel, VOKAL[3], VOKAL[4], VOKAL[5]];
+}
 
 let speechVoiceCache = null;
 const letterAudioCache = new Map();
@@ -932,6 +1001,8 @@ function LetterMatchTest() {
 }
 
 function SoundChoice({ item, isSelected, isSpeaking, index, onChoose, kind = "vowel" }) {
+  const displayLabel = vowelDisplayLabel(item);
+
   return (
     <button
       className={`sound-choice sound-choice-${kind} ${isSelected ? "is-selected" : ""} ${isSpeaking ? "is-speaking" : ""}`}
@@ -939,10 +1010,11 @@ function SoundChoice({ item, isSelected, isSpeaking, index, onChoose, kind = "vo
       type="button"
       onClick={() => onChoose(item)}
       aria-pressed={isSelected}
-      aria-label={`Dengar bunyi ${item.label}`}
-      title={`Dengar ${item.label}`}
+      aria-label={`Dengar bunyi ${displayLabel}`}
+      title={`Dengar ${displayLabel}`}
     >
       <strong>{item.label}</strong>
+      {item.variant && <span className="sound-choice-variant">{item.variant}</span>}
       <span className="letter-button-ripple" aria-hidden="true"><i /><i /><i /></span>
     </button>
   );
@@ -965,7 +1037,8 @@ function MalaySoundPanel({ items, selectedItem, onSelect, title, description, ki
     setSpeakingItem(item.id);
     window.clearTimeout(soundTimer.current);
     soundTimer.current = window.setTimeout(() => setSpeakingItem(null), 900);
-    speakMalayText(item.sound);
+    if (item.audioPath) playSyllableAudio(item);
+    else speakMalayText(item.sound);
   }
 
   return (
@@ -982,7 +1055,7 @@ function MalaySoundPanel({ items, selectedItem, onSelect, title, description, ki
       </div>
       <div className="letter-selected-card sound-selected-card" role="status" aria-live="polite">
         <span>Bunyi dipilih</span>
-        <strong>{selectedItem.label}</strong>
+        <strong>{vowelDisplayLabel(selectedItem)}</strong>
         <em>{speakingItem ? "Sedang bunyi..." : "Tekan petak untuk dengar"}</em>
       </div>
     </div>
@@ -1001,9 +1074,9 @@ function VokalModule({ onBack }) {
         <div className="hub-title-block">
           <span className="hub-eyebrow"><Volume2 size={15} /> Vokal <span>/ Vowels</span></span>
           <h1>Dengar bunyi vokal</h1>
-          <p>Tekan a, e, i, o atau u untuk dengar bunyi Bahasa Melayu.</p>
+          <p>Tekan a, e pepet, e taling, i, o atau u untuk dengar bunyi Bahasa Melayu.</p>
         </div>
-        <div className="sound-hero-badge"><Volume2 size={18} /><span><strong>5</strong> bunyi sedia</span></div>
+        <div className="sound-hero-badge"><Volume2 size={18} /><span><strong>6</strong> bunyi sedia</span></div>
       </div>
 
       <section className="letter-learning-section" aria-labelledby="vowel-learning-title">
@@ -1019,9 +1092,11 @@ function VokalModule({ onBack }) {
   );
 }
 
-function KVSoundTable({ selectedItem, onSelect }) {
+function KVSoundTable({ selectedItem, onSelect, eSound }) {
   const [speakingItem, setSpeakingItem] = useState(null);
   const soundTimer = useRef(null);
+  const kvRows = createKvRows(eSound);
+  const vowelItems = getKvVowelItems(eSound);
 
   useEffect(() => {
     const removeVoiceListener = warmSpeechEngine();
@@ -1036,18 +1111,23 @@ function KVSoundTable({ selectedItem, onSelect }) {
     setSpeakingItem(item.id);
     window.clearTimeout(soundTimer.current);
     soundTimer.current = window.setTimeout(() => setSpeakingItem(null), 1000);
-    speakMalayText(item.sound);
+    if (item.audioPath) playSyllableAudio(item);
+    else speakMalayText(item.sound);
   }
 
   return (
     <div className="kv-table-wrap">
-      <div className="kv-table" role="table" aria-label="Jadual bunyi vokal dan suku kata ba be bi bo bu">
+      <div className="kv-table" role="table" aria-label="Jadual bunyi vokal dan suku kata KV">
         <div className="kv-table-corner" role="columnheader">Bunyi</div>
-        {VOKAL.map((item) => <div className="kv-table-vowel" role="columnheader" key={`head-${item.id}`}>{item.label}</div>)}
+        {PACK_VOWELS.map((vowel) => <div className="kv-table-vowel" role="columnheader" key={`head-${vowel}`}>{vowel}</div>)}
         <div className="kv-table-label" role="rowheader">Vokal</div>
-        {VOKAL.map((item, index) => <SoundChoice key={`vowel-${item.id}`} item={item} index={index} kind="table-vowel" isSelected={selectedItem.id === item.id} isSpeaking={speakingItem === item.id} onChoose={chooseItem} />)}
-        <div className="kv-table-label kv-table-label-kv" role="rowheader">KV</div>
-        {KV_SYLLABLES.map((item, index) => <SoundChoice key={item.id} item={item} index={index} kind="table-syllable" isSelected={selectedItem.id === item.id} isSpeaking={speakingItem === item.id} onChoose={chooseItem} />)}
+        {vowelItems.map((item, index) => <SoundChoice key={`vowel-${item.id}`} item={item} index={index} kind="table-vowel" isSelected={selectedItem.id === item.id} isSpeaking={speakingItem === item.id} onChoose={chooseItem} />)}
+        {PACK_ONSETS.map((onset, rowIndex) => (
+          <Fragment key={`row-${onset}`}>
+            <div className="kv-table-label kv-table-label-kv" role="rowheader">{onset}</div>
+            {kvRows[rowIndex].map((item, index) => <SoundChoice key={item.id} item={item} index={index} kind="table-syllable" isSelected={selectedItem.id === item.id} isSpeaking={speakingItem === item.id} onChoose={chooseItem} />)}
+          </Fragment>
+        ))}
       </div>
       <div className="letter-selected-card sound-selected-card" role="status" aria-live="polite">
         <span>Bunyi dipilih</span>
@@ -1059,7 +1139,15 @@ function KVSoundTable({ selectedItem, onSelect }) {
 }
 
 function KVModule({ onBack }) {
-  const [selectedItem, setSelectedItem] = useState(KV_SYLLABLES[0]);
+  const [eSound, setESound] = useState("e-pepet");
+  const [selectedItem, setSelectedItem] = useState(() => createKvItem("b", "a", "e-pepet"));
+
+  function changeESound(nextSound) {
+    setESound(nextSound);
+    setSelectedItem((current) => current.syllable.endsWith("e")
+      ? createKvItem(current.syllable[0], "e", nextSound)
+      : current);
+  }
 
   return (
     <div className="home-content hub-content sound-module-content">
@@ -1072,15 +1160,23 @@ function KVModule({ onBack }) {
           <h1>Buka bunyi KV</h1>
           <p>Tekan mana-mana petak untuk dengar bunyi vokal atau suku kata.</p>
         </div>
-        <div className="sound-hero-badge"><BookOpen size={18} /><span><strong>10</strong> bunyi sedia</span></div>
+        <div className="sound-hero-badge"><BookOpen size={18} /><span><strong>{PACK_ONSETS.length * PACK_VOWELS.length}</strong> bunyi sedia</span></div>
       </div>
 
       <section className="letter-learning-section kv-learning-section" aria-labelledby="kv-learning-title">
         <div className="section-heading-row">
-          <div><span className="section-kicker">Aktiviti belajar / Learn</span><h2 id="kv-learning-title">Vokal dan suku kata</h2><p>Mulakan dengan vokal, kemudian baca bunyi ba, be, bi, bo dan bu.</p></div>
+          <div><span className="section-kicker">Aktiviti belajar / Learn</span><h2 id="kv-learning-title">Vokal dan suku kata</h2><p>Pilih mana-mana petak untuk dengar bunyi KV.</p></div>
           <span className="skill-count"><Volume2 size={15} /> Tekan untuk dengar</span>
         </div>
-        <KVSoundTable selectedItem={selectedItem} onSelect={setSelectedItem} />
+        <div className="e-sound-picker" role="radiogroup" aria-label="Pilih jenis bunyi e">
+          <span className="e-sound-picker-label">Pilih bunyi e</span>
+          {E_SOUND_OPTIONS.map((option) => (
+            <button className={`e-sound-option ${eSound === option.id ? "is-selected" : ""}`} type="button" role="radio" aria-checked={eSound === option.id} key={option.id} onClick={() => changeESound(option.id)}>
+              <strong>{option.label}</strong><span>{option.hint}</span>
+            </button>
+          ))}
+        </div>
+        <KVSoundTable selectedItem={selectedItem} onSelect={setSelectedItem} eSound={eSound} />
       </section>
     </div>
   );
@@ -1180,6 +1276,10 @@ function HurufModule({ onBack }) {
           <LetterRecognitionPanel selectedLetter={selectedLetter} onSelect={setSelectedLetter} letterCase={letterCase} />
         </div>
       </section>
+
+      <Suspense fallback={<div className="letter-case-game-loading" role="status">Menyediakan permainan huruf...</div>}>
+        <LetterCaseGame letters={HURUF} onPlayLetter={playLetterAudio} />
+      </Suspense>
 
       <section className="letter-test-section" aria-labelledby="letter-test-title">
         <div className="section-heading-row">
@@ -1312,7 +1412,10 @@ function HomeLanding() {
           <span className="brand-tile brand-tile-a">A</span><span className="brand-tile brand-tile-one">1</span><span className="brand-tile brand-tile-star"><Star size={13} fill="currentColor" /></span>
           <span className="brand-name">Bijak <em>belajar</em></span>
         </button>
-        <div className="home-topbar-note"><span className="status-dot" /> Jom mula!</div>
+        <div className="home-topbar-actions">
+          <a className="teacher-entry" href="/teacher/namelist" aria-label="Open teacher namelist"><Users size={15} /> <span>Teacher space</span><ArrowRight size={13} /></a>
+          <div className="home-topbar-note"><span className="status-dot" /> Jom mula!</div>
+        </div>
       </header>
 
       {subject === "bm" && <BahasaMelayuHub onBack={() => chooseSubject(null)} onComingSoon={showComingSoon} notice={notice} />}
@@ -1330,7 +1433,10 @@ function HomePlaceholder() {
 
 export default function App() {
   const path = window.location.pathname.replace(/\/+$/, "") || "/";
+  if (path === "/teacher" || path === "/teacher/namelist") return <TeacherNamelist />;
   if (path === "/kvk") return <KVKGame />;
+  if (path === "/pet-feeding-addition") return <PetFeedingGame operation="addition" />;
+  if (path === "/pet-feeding-subtraction") return <PetFeedingGame operation="subtraction" />;
   if (path === "/addition-regroup") return <AdditionRegroupGame />;
   if (path === "/minus-regroup") return <MinusRegroupGame />;
   return <HomeLanding />;
