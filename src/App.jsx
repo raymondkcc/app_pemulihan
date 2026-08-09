@@ -1059,6 +1059,54 @@ function MalaySoundPanel({ items, selectedItem, onSelect, title, description, ki
   );
 }
 
+function ScreamAnimalCard() {
+  const [playing, setPlaying] = useState(false);
+  const [playCount, setPlayCount] = useState(0);
+
+  function handleClick() {
+    setPlaying(true);
+    setPlayCount((count) => count + 1);
+    playSyllableAudio({ audioPath: "/audio/vowels/scream-a.mp3" });
+  }
+
+  return (
+    <section className="scream-section" aria-labelledby="scream-title">
+      <div className="section-heading-row">
+        <div>
+          <span className="section-kicker">Aktiviti seronok / Fun</span>
+          <h2 id="scream-title">A untuk Ayam!</h2>
+          <p>Tekan ayam untuk dengar bunyi "a" — aaaaahh!</p>
+        </div>
+        <span className="skill-count"><Volume2 size={15} /> Jerit aaaaahh</span>
+      </div>
+      <button
+        className={`scream-animal-card ${playing ? "is-playing" : ""}`}
+        type="button"
+        onClick={handleClick}
+        aria-label="Tekan gambar ayam untuk mainkan bunyi aaaaahh"
+      >
+        <span className="scream-animal-frame">
+          <img
+            key={playCount}
+            className="scream-animal-image"
+            src={playing ? "/images/vowels/ayam-scream.gif" : "/images/vowels/ayam-scream-poster.png"}
+            alt=""
+            draggable="false"
+          />
+          {!playing && (
+            <span className="scream-play-badge" aria-hidden="true">
+              <Volume2 size={22} fill="currentColor" />
+            </span>
+          )}
+        </span>
+        <span className="scream-caption">
+          {playing ? "Aaaaahh! Tekan lagi untuk ulang" : "Tekan untuk jerit aaaaahh!"}
+        </span>
+      </button>
+    </section>
+  );
+}
+
 function VokalModule({ onBack }) {
   const [selectedVowel, setSelectedVowel] = useState(VOKAL[0]);
 
@@ -1085,6 +1133,8 @@ function VokalModule({ onBack }) {
           <MalaySoundPanel items={VOKAL} selectedItem={selectedVowel} onSelect={setSelectedVowel} title="Kenal bunyi vokal" description="Tekan satu vokal untuk dengar bunyinya." />
         </div>
       </section>
+
+      <ScreamAnimalCard />
     </div>
   );
 }

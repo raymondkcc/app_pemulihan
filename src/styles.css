@@ -748,6 +748,39 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .sound-selected-card { margin-top: 1.25rem; }
 .sound-learning-panel-vowel { background: #fff8d9; }
 .sound-learning-panel-vowel .sound-choice strong { color: var(--home-coral-dark); }
+.scream-section { margin-top: 4.2rem; padding-top: 1.2rem; border-top: 2px solid var(--home-line); }
+.scream-section .section-heading-row,
+.scream-section .scream-caption { font-family: "Nunito", "Trebuchet MS", sans-serif; }
+.scream-animal-card {
+  position: relative;
+  display: flex;
+  width: min(100%, 460px);
+  flex-direction: column;
+  align-items: center;
+  gap: .8rem;
+  margin: 1.25rem auto 0;
+  border: 2px solid var(--home-ink);
+  border-radius: 14px;
+  padding: 1.1rem 1.1rem 1rem;
+  color: var(--home-ink);
+  background: #fff0b1;
+  box-shadow: 6px 7px 0 rgba(25,56,74,.12);
+  cursor: pointer;
+  transition: transform .16s ease, box-shadow .16s ease;
+}
+.scream-animal-card:hover { box-shadow: 8px 9px 0 rgba(25,56,74,.16); transform: translateY(-3px); }
+.scream-animal-card:active { transform: translateY(1px); }
+.scream-animal-frame { position: relative; display: block; width: min(100%, 300px); aspect-ratio: 1; overflow: hidden; border: 2px solid var(--home-ink); border-radius: 10px; background: white; }
+.scream-animal-image { display: block; width: 100%; height: 100%; object-fit: cover; }
+.scream-animal-card.is-playing .scream-animal-image { animation: scream-wiggle .5s ease-in-out 2; }
+.scream-play-badge { position: absolute; right: 10px; bottom: 10px; display: grid; width: 46px; height: 46px; place-items: center; border: 2px solid var(--home-ink); border-radius: 50%; color: white; background: var(--home-coral-dark); box-shadow: 3px 4px 0 rgba(25,56,74,.18); animation: play-pulse 1.6s ease-in-out infinite; }
+.scream-caption { color: var(--home-ink); font-size: .82rem; font-weight: 900; }
+@keyframes scream-wiggle { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-3deg); } 75% { transform: rotate(3deg); } }
+@keyframes play-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+@media (prefers-reduced-motion: reduce) {
+  .scream-animal-card.is-playing .scream-animal-image,
+  .scream-play-badge { animation: none; }
+}
 .kv-learning-section { padding-bottom: 1rem; }
 .e-sound-picker { display: grid; grid-template-columns: auto repeat(2, minmax(0, 1fr)); gap: .55rem; align-items: stretch; margin-top: 1.15rem; }
 .e-sound-picker-label { display: flex; align-items: center; color: var(--home-muted); font-family: "Nunito", "Trebuchet MS", sans-serif; font-size: .72rem; font-weight: 900; }
