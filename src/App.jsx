@@ -39,6 +39,7 @@ import {
 } from "./data/syllablePack.js";
 import AdditionRegroupGame from "./games/additionRegroup/AdditionRegroupGame.jsx";
 import MinusRegroupGame from "./games/minusRegroup/MinusRegroupGame.jsx";
+import MosquitoSplatGame from "./games/mosquitoSplat/MosquitoSplatGame.jsx";
 import "./styles.css";
 
 const LetterCaseGame = lazy(() => import("./games/letterCase/LetterCaseGame.jsx"));
@@ -492,7 +493,7 @@ const WORD_LEVELS = [
 const MATH_OPERATIONS = [
   { id: "tambah", title: "Operasi tambah", english: "Addition", symbol: "+", helper: "Gabung nombor", color: "coral", Icon: Plus, href: "/addition-regroup" },
   { id: "tolak", title: "Operasi tolak", english: "Subtraction", symbol: "-", helper: "Ambil dan kira", color: "mint", Icon: Minus, href: "/minus-regroup" },
-  { id: "darab", title: "Operasi darab", english: "Multiplication", symbol: "x", helper: "Kumpulan sama banyak", color: "lemon", Icon: Star },
+  { id: "darab", title: "Operasi darab", english: "Multiplication", symbol: "x", helper: "Kumpulan sama banyak", color: "lemon", Icon: Star, href: "/mosquito-splat?op=darab" },
   { id: "bahagi", title: "Operasi bahagi", english: "Division", symbol: "÷", helper: "Kongsi sama rata", color: "blue", Icon: Calculator }
 ];
 
@@ -962,6 +963,7 @@ function BMPracticeModule({ view, onBack, onComingSoon, notice }) {
         </div>
       </section>}
 
+
       {notice && <div className="home-notice" role="status"><Sparkles size={17} /> <span>{notice}</span></div>}
     </div>
   );
@@ -1407,6 +1409,15 @@ function MathematicsHub({ onBack, onComingSoon, notice }) {
         <div className="star-row" aria-hidden="true"><Star size={22} fill="currentColor" /><Star size={22} fill="currentColor" /><Star size={22} fill="currentColor" /><Star size={22} /></div>
       </section>
 
+      <section className="math-game-strip" aria-label="Permainan matematik">
+        <span className="math-game-icon"><Sparkles size={26} /></span>
+        <div className="math-game-copy">
+          <span className="section-kicker">Permainan laju</span>
+          <strong>Hempaplah Nyamuk!</strong>
+          <em>Tambah, tolak dan darab dalam 60 saat.</em>
+        </div>
+        <a className="math-game-link" href="/mosquito-splat">Main <ArrowRight size={15} /></a>
+      </section>
       {notice && <div className="home-notice" role="status"><Sparkles size={17} /> <span>{notice}</span></div>}
     </div>
   );
@@ -1480,6 +1491,7 @@ export default function App() {
   if (path === "/kvk") return <KVKGame />;
   if (path === "/addition-regroup") return <AdditionRegroupGame />;
   if (path === "/minus-regroup") return <MinusRegroupGame />;
+  if (path === "/mosquito-splat") return <MosquitoSplatGame initialOp={new URLSearchParams(window.location.search).get("op")} />;
   return <HomeLanding />;
 }
 /*

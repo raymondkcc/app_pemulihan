@@ -610,7 +610,7 @@ function MinusRegroupGame() {
         />
       </div>
 
-      <footer className="mrg-footer"><span><Volume2 size={15} /> Build the top number, then subtract from Ones to Hundreds.</span><a href="/" aria-label="Return to maths selection"><ArrowRight size={15} /> Maths</a></footer>
+      <footer className="mrg-footer"><span><Volume2 size={15} /> Build the top number, then subtract from Ones to Hundreds.</span><a className="mrg-footer-game" href="/mosquito-splat?op=tolak">Permainan Nyamuk</a><a href="/" aria-label="Return to maths selection"><ArrowRight size={15} /> Maths</a></footer>
 
       {errorMsg && <div className="mrg-error-toast" role="alert"><X size={22} /> <span>{errorMsg}</span></div>}
 
