@@ -155,8 +155,11 @@ function FlyingMosquito({ item, disabled, onHit }) {
 
       el.style.transform =
         `translate3d(${state.x}px, ${state.y}px, 0) ` +
-        `rotate(${Math.sin(state.wobble) * 10}deg) ` +
-        `scaleX(${state.vx < 0 ? -1 : 1})`;
+        `rotate(${Math.sin(state.wobble) * 10}deg)`;
+      const sprite = el.querySelector("img");
+      if (sprite) {
+        sprite.style.transform = `scaleX(${state.vx < 0 ? -1 : 1})`;
+      }
       raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
@@ -427,16 +430,13 @@ export default function MosquitoSplatGame({ initialOp = null }) {
       )));
 
       window.setTimeout(() => {
-        setMosquitoes((current) => {
-          const rest = current.filter((m) => m.id !== item.id);
-          const size = { width: fieldRef.current?.clientWidth || 900, height: fieldRef.current?.clientHeight || 560 };
-          const maxBugs = level === "mudah" ? 5 : level === "sederhana" ? 6 : 7;
-          const alive = rest.filter((m) => m.phase === "flying");
-          if (alive.length >= maxBugs) return rest;
-          const aliveValues = alive.map((m) => m.value);
-          const nextQuestion = questionRef.current || makeQuestion(opRef.current, level);
-          return [...rest, createSingleMosquito(nextQuestion, opRef.current, size, aliveValues)];
-        });
+        const nextQuestion = makeQuestion(opRef.current, level);
+        questionRef.current = nextQuestion;
+        setQuestion(nextQuestion);
+        const size = { width: fieldRef.current?.clientWidth || 900, height: fieldRef.current?.clientHeight || 560 };
+        const count = level === "mudah" ? 4 : level === "sederhana" ? 5 : 6;
+        const fresh = createMosquitoes(nextQuestion, opRef.current, count, size);
+        setMosquitoes((current) => [...current.filter((m) => m.phase !== "flying"), ...fresh]);
       }, 680);
 
       if (modeRef.current === "relaxed" && nextCorrect >= 15) {
@@ -646,7 +646,7 @@ export default function MosquitoSplatGame({ initialOp = null }) {
       )}
 
       {phase === "playing" && (
-        <section className={`mos-field mos-field-${opInfo.color} ${shaking ? "is-shaking" : ""}`} ref={fieldRef} aria-label="Kawasan nyamuk">
+        <section className={`mos-field mos-field-${opInfo.color} mos-field-${tool} ${shaking ? "is-shaking" : ""}`} ref={fieldRef} aria-label="Kawasan nyamuk">
           <div className="mos-question" aria-live="polite">
             <span className="mos-question-op">{opInfo.symbol}</span>
             <strong>{question ? `${question.a} ${opInfo.symbol} ${question.b} = ?` : "..."}</strong>
