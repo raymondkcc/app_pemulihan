@@ -183,7 +183,7 @@ function FlyingMosquito({ item, disabled, onHit }) {
       ) : (
         <img src={IMAGES.fly} alt="" draggable={false} />
       )}
-      <span className="mos-answer">{item.value}</span>
+      {!dying && <span className="mos-answer">{item.value}</span>}
     </button>
   );
 }
@@ -257,12 +257,12 @@ export default function MosquitoSplatGame({ initialOp = null }) {
     const bgm = audioRef.current.bgm;
     const buzz = audioRef.current.buzzLoop;
     if (bgm && soundOn) {
-      bgm.volume = 0.28;
+      bgm.volume = 0.08;
       bgm.loop = true;
       bgm.play().catch(() => {});
     }
     if (buzz && soundOn) {
-      buzz.volume = 0.08;
+      buzz.volume = 0.14;
       buzz.loop = true;
       buzz.play().catch(() => {});
     }
