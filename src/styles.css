@@ -3009,14 +3009,14 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 }
 
 .mos-field-swatter {
-  cursor: url("/images/mosquito/swatter-cursor.png") 15 20, crosshair;
+  cursor: url("/images/mosquito/swatter-cursor.png") 30 40, crosshair;
 }
 .mos-field-zapper {
-  cursor: url("/images/mosquito/zapper-cursor.png") 15 20, crosshair;
+  cursor: url("/images/mosquito/zapper-cursor.png") 30 40, crosshair;
 }
 .mos-field-swatter .mos-bug, .mos-field-zapper .mos-bug {
-  cursor: url("/images/mosquito/swatter-cursor.png") 15 20, pointer;
+  cursor: url("/images/mosquito/swatter-cursor.png") 30 40, pointer;
 }
 .mos-field-zapper .mos-bug {
-  cursor: url("/images/mosquito/zapper-cursor.png") 15 20, pointer;
+  cursor: url("/images/mosquito/zapper-cursor.png") 30 40, pointer;
 }
