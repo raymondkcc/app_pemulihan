@@ -11,6 +11,7 @@ const IMAGES = {
 
 const SOUNDS = {
   bgm: "/audio/mosquito/bgm.mp3",
+  zapBgm: "/audio/mosquito/zap-bgm.mp3",
   slap: "/audio/mosquito/slap.mp3",
   zap: "/audio/mosquito/zap.mp3",
   buzzFly: "/audio/mosquito/buzz-fly.mp3",
@@ -255,11 +256,16 @@ export default function MosquitoSplatGame({ initialOp = null }) {
 
   const startAmbient = useCallback(() => {
     const bgm = audioRef.current.bgm;
+    const zapBgm = audioRef.current.zapBgm;
     const buzz = audioRef.current.buzzLoop;
-    if (bgm && soundOn) {
-      bgm.volume = 0.08;
-      bgm.loop = true;
-      bgm.play().catch(() => {});
+    const useZap = toolRef.current === "zapper";
+    const active = useZap ? zapBgm : bgm;
+    const inactive = useZap ? bgm : zapBgm;
+    if (inactive) { inactive.pause(); inactive.currentTime = 0; }
+    if (active && soundOn) {
+      active.volume = useZap ? 0.07 : 0.08;
+      active.loop = true;
+      active.play().catch(() => {});
     }
     if (buzz && soundOn) {
       buzz.volume = 0.14;
@@ -269,7 +275,7 @@ export default function MosquitoSplatGame({ initialOp = null }) {
   }, [soundOn]);
 
   const stopAmbient = useCallback(() => {
-    ["bgm", "buzzLoop"].forEach((name) => {
+    ["bgm", "zapBgm", "buzzLoop"].forEach((name) => {
       const audio = audioRef.current[name];
       if (audio) {
         audio.pause();
@@ -295,7 +301,7 @@ export default function MosquitoSplatGame({ initialOp = null }) {
     const audioJobs = Object.entries(SOUNDS).map(([key, src]) => new Promise((resolve) => {
       const audio = new Audio();
       audio.preload = "auto";
-      audio.loop = key === "bgm" || key === "buzzLoop";
+      audio.loop = key === "bgm" || key === "buzzLoop" || key === "zapBgm";
       let done = false;
       const finish = () => {
         if (done || !mounted) return;
@@ -429,6 +435,10 @@ export default function MosquitoSplatGame({ initialOp = null }) {
         m.id === item.id ? { ...m, phase: "dying", death: currentTool } : m
       )));
 
+
+      window.setTimeout(() => {
+        setMosquitoes((current) => current.filter((m) => m.id !== item.id));
+      }, 3200);
       window.setTimeout(() => {
         const nextQuestion = makeQuestion(opRef.current, level);
         questionRef.current = nextQuestion;

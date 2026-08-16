@@ -2804,33 +2804,39 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
   45% { transform: scale(1.45) rotate(6deg); opacity: 1; }
   100% { transform: scale(1.25) rotate(2deg); opacity: 0; }
 }
-.mos-bug.mos-death-zap img { animation: mos-burn .6s forwards; }
+.mos-bug.mos-death-zap img { animation: mos-burn .7s forwards; }
 .mos-bug.mos-death-zap::before {
   content: "";
   position: absolute;
   z-index: 3;
-  inset: -18%;
+  inset: -14%;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(120, 220, 255, .95) 0 18%, rgba(80, 140, 255, .45) 42%, transparent 72%);
-  animation: mos-zapflash .35s ease-out;
+  background: radial-gradient(circle, rgba(140, 225, 255, .95) 0 16%, rgba(90, 150, 255, .45) 40%, transparent 70%);
+  animation: mos-zapflash .3s ease-out forwards;
 }
 .mos-bug.mos-death-zap::after {
   content: "";
   position: absolute;
   z-index: 2;
-  inset: 6%;
+  inset: 22%;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(90, 55, 30, .8) 0 30%, rgba(120, 80, 40, .5) 55%, transparent 75%);
-  animation: mos-burn .6s forwards;
+  background: radial-gradient(circle, rgba(24, 18, 14, .92) 0 32%, rgba(52, 38, 28, .68) 55%, transparent 76%);
+  box-shadow: 0 0 8px 2px rgba(30, 20, 14, .5), inset 0 0 6px rgba(10, 8, 6, .8);
+  animation: mos-roast-fade 3s ease-out forwards;
 }
 @keyframes mos-zapflash {
   0% { opacity: 1; transform: scale(.5); }
-  100% { opacity: 0; transform: scale(1.7); }
+  100% { opacity: 0; transform: scale(1.8); }
 }
 @keyframes mos-burn {
   0% { transform: scale(.45) rotate(10deg); filter: brightness(2.2) saturate(.2); opacity: 1; }
-  55% { transform: scale(1.35) rotate(-6deg); filter: brightness(.75) saturate(.15); opacity: 1; }
-  100% { transform: scale(1.2) rotate(-2deg); filter: brightness(.65); opacity: 0; }
+  55% { transform: scale(1.3) rotate(-6deg); filter: brightness(.7) saturate(.15); opacity: 1; }
+  100% { transform: scale(1.1) rotate(-2deg); filter: brightness(.6); opacity: 0; }
+}
+@keyframes mos-roast-fade {
+  0% { transform: scale(.55); opacity: 1; }
+  45% { transform: scale(.72); opacity: .9; }
+  100% { transform: scale(.85); opacity: 0; }
 }
 
 .mos-floater {
