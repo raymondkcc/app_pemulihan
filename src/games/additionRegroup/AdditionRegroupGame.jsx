@@ -550,7 +550,7 @@ function AdditionRegroupGame() {
         />
       </div>
 
-      <footer className="arg-footer"><span><Volume2 size={15} /> Round {round} - build, regroup, solve.</span><a href="/" aria-label="Return to maths selection"><ArrowRight size={15} /> Maths</a></footer>
+      <footer className="arg-footer"><span><Volume2 size={15} /> Round {round} - build, regroup, solve.</span><a className="arg-footer-game" href="/mosquito-splat?op=tambah">Permainan Nyamuk</a><a href="/" aria-label="Return to maths selection"><ArrowRight size={15} /> Maths</a></footer>
 
       {errorMsg && <div className="arg-error-toast" role="alert"><X size={21} /> <span>{errorMsg}</span></div>}
 
