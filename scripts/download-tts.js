@@ -50,10 +50,17 @@ async function downloadAll() {
     const filepath = path.join(WORDS_DIR, `${word}.mp3`);
     
     // Skip if already exists
-    if (fs.existsSync(filepath)) {
+    const stats = fs.statSync(filepath);
+    if (fs.existsSync(filepath) && stats.size > 0) {
       console.log(`[${i + 1}/${words.length}] Skipping ${word} (already exists)`);
       success++;
       continue;
+    }
+    
+    // Delete empty file if exists
+    if (fs.existsSync(filepath) && stats.size === 0) {
+      fs.unlinkSync(filepath);
+      console.log(`[${i + 1}/${words.length}] Re-downloading ${word} (was empty)`);
     }
     
     try {
