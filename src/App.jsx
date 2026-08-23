@@ -28,7 +28,6 @@ import {
 } from "lucide-react";
 import { ENDINGS, pickAdaptiveEnding } from "./data/kvk.js";
 import { PERKATAAN_SKILLS, perkataanItemCount } from "./data/perkataan.js";
-import { getPhonetic } from "./data/perkataan.js";
 import {
   createKvItem,
   createKvRows,
@@ -726,12 +725,12 @@ function preferredMalayVoice() {
 }
 
 function speakMalayText(text) {
-  // Use Google Translate TTS API for better Malay pronunciation
-  const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=ms&client=tw-ob`;
+  // Use local audio files for Malay words
+  const audioUrl = `/audio/perkataan/${text}.mp3`;
   
   const audio = new Audio(audioUrl);
   audio.play().catch((err) => {
-    console.warn("Google TTS failed, falling back to browser TTS:", err);
+    console.warn("Local audio not found, falling back to browser TTS:", err);
     // Fallback to browser TTS
     if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
     const voiceLine = new window.SpeechSynthesisUtterance(text);
@@ -1484,8 +1483,7 @@ function PerkataanSkillSection({ skill }) {
     setSpeakingWord(word);
     window.clearTimeout(speakingTimer.current);
     speakingTimer.current = window.setTimeout(() => setSpeakingWord(null), 1100);
-    const phonetic = getPhonetic(word);
-    speakMalayText(phonetic);
+    speakMalayText(word);
   }
 
   const practiceWords = skill.practice || [];
