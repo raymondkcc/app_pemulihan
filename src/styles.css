@@ -90,6 +90,42 @@ h1 { margin: 0; color: var(--violet-deep); font-size: clamp(2rem, 7vw, 3.3rem); 
 
 .game-body { padding: 0 clamp(1rem, 4vw, 1.75rem) clamp(1.25rem, 4vw, 2rem); }
 
+.kv-pond-launch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: 1rem 1.15rem;
+  border: 3px solid #145e46;
+  border-radius: 8px;
+  color: #145e46;
+  background: #dff8eb;
+}
+
+.kv-pond-launch strong,
+.kv-pond-launch p { display: block; }
+.kv-pond-launch strong { font-family: "Baloo 2", Arial, sans-serif; font-size: 1.45rem; }
+.kv-pond-launch p { margin: .1rem 0 0; font-weight: 700; }
+.kv-pond-launch a {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  min-height: 46px;
+  border: 3px solid #145e46;
+  border-radius: 7px;
+  padding: .5rem .75rem;
+  color: #145e46;
+  background: #ffdc6a;
+  font-weight: 900;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .kv-pond-launch { align-items: flex-start; flex-direction: column; }
+}
+
 .door-room {
   padding: 1rem clamp(.75rem, 4vw, 1.5rem) 1.2rem;
   border: 9px solid var(--wood-dark);

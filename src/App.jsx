@@ -40,6 +40,7 @@ import {
 import AdditionRegroupGame from "./games/additionRegroup/AdditionRegroupGame.jsx";
 import MinusRegroupGame from "./games/minusRegroup/MinusRegroupGame.jsx";
 import MosquitoSplatGame from "./games/mosquitoSplat/MosquitoSplatGame.jsx";
+import KvSoundPondGame from "./games/kvSoundPond/KvSoundPondGame.jsx";
 import "./styles.css";
 
 const LetterCaseGame = lazy(() => import("./games/letterCase/LetterCaseGame.jsx"));
@@ -1227,6 +1228,14 @@ function KVModule({ onBack }) {
         </div>
         <KVSoundTable selectedItem={selectedItem} onSelect={setSelectedItem} eSound={eSound} />
       </section>
+      <section className="kv-pond-launch" aria-label="Permainan Lompat Si Katak Lompat">
+        <div>
+          <span className="section-kicker">Permainan bunyi</span>
+          <strong>Lompat Si Katak Lompat</strong>
+          <p>Dengar bunyi KV, kemudian pilih gema yang sama.</p>
+        </div>
+        <a href="/kv-sound-pond">Main sekarang <ArrowRight size={17} /></a>
+      </section>
     </div>
   );
 }
@@ -1489,6 +1498,7 @@ function HomePlaceholder() {
 export default function App() {
   const path = window.location.pathname.replace(/\/+$/, "") || "/";
   if (path === "/kvk") return <KVKGame />;
+  if (path === "/kv-sound-pond") return <KvSoundPondGame />;
   if (path === "/addition-regroup") return <AdditionRegroupGame />;
   if (path === "/minus-regroup") return <MinusRegroupGame />;
   if (path === "/mosquito-splat") return <MosquitoSplatGame initialOp={new URLSearchParams(window.location.search).get("op")} />;
