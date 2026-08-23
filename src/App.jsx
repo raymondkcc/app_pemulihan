@@ -1418,6 +1418,9 @@ function HurufModule({ onBack }) {
 }
 
 function PerkataanWordCard({ word, isSpeaking, onSpeak }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const [imageSrc, setImageSrc] = useState(`/images/perkataan/${word}.png`);
+
   return (
     <button
       className={`word-card ${isSpeaking ? "is-speaking" : ""}`}
@@ -1427,7 +1430,17 @@ function PerkataanWordCard({ word, isSpeaking, onSpeak }) {
       title={`Dengar ${word}`}
     >
       <span className="word-card-picture" aria-hidden="true">
-        <Image size={28} />
+        {!imageFailed && (
+          <img
+            src={imageSrc}
+            alt=""
+            onError={() => {
+              if (imageSrc.endsWith(".png")) setImageSrc(`/images/perkataan/${word}.svg`);
+              else setImageFailed(true);
+            }}
+          />
+        )}
+        {imageFailed && <Image size={40} />}
       </span>
       <SyllableWord word={word} />
       <span className="word-card-listen" aria-hidden="true"><Volume2 size={14} /></span>
@@ -1531,6 +1544,13 @@ function PerkataanSkillSection({ skill }) {
 
 function PerkataanModule({ onBack }) {
   const totalItems = PERKATAAN_SKILLS.reduce((total, skill) => total + perkataanItemCount(skill), 0);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const activeSkill = PERKATAAN_SKILLS[activeIndex];
+
+  function goToSkill(index) {
+    setActiveIndex(Math.max(0, Math.min(PERKATAAN_SKILLS.length - 1, index)));
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
 
   return (
     <div className="home-content hub-content perkataan-module-content">
@@ -1540,13 +1560,34 @@ function PerkataanModule({ onBack }) {
         </button>
         <div className="hub-title-block">
           <span className="hub-eyebrow"><Image size={15} /> Perkataan <span>/ Words</span></span>
-          <h1>Dengar dan kenal perkataan</h1>
-          <p>Ikut kemahiran dari KVKV hingga digraf. Tekan perkataan untuk dengar sebutannya.</p>
+          <h1>{activeSkill.code} · {activeSkill.title || "Perkataan"}</h1>
+          <p>Kemahiran {activeIndex + 1} daripada {PERKATAAN_SKILLS.length}</p>
         </div>
-        <div className="hub-hero-badge"><BookOpen size={18} /><span><strong>{PERKATAAN_SKILLS.length}</strong> kemahiran · {totalItems} perkataan</span></div>
+        <div className="hub-hero-badge"><BookOpen size={18} /><span><strong>{activeIndex + 1}</strong> / {PERKATAAN_SKILLS.length}</span></div>
       </div>
 
-      {PERKATAAN_SKILLS.map((skill) => <PerkataanSkillSection key={skill.id} skill={skill} />)}
+      <div className="perkataan-nav" role="navigation" aria-label="Pilih kemahiran">
+        <button className="nav-skill-button" type="button" onClick={() => goToSkill(activeIndex - 1)} disabled={activeIndex === 0}>
+          <ArrowLeft size={16} /> Sebelum
+        </button>
+        <select
+          className="nav-skill-select"
+          value={activeSkill.id}
+          onChange={(event) => goToSkill(PERKATAAN_SKILLS.findIndex((skill) => skill.id === event.target.value))}
+          aria-label="Pilih kemahiran"
+        >
+          {PERKATAAN_SKILLS.map((skill, index) => (
+            <option key={skill.id} value={skill.id}>
+              {index + 1}. {skill.code} {skill.title ? `· ${skill.title}` : ""}
+            </option>
+          ))}
+        </select>
+        <button className="nav-skill-button" type="button" onClick={() => goToSkill(activeIndex + 1)} disabled={activeIndex === PERKATAAN_SKILLS.length - 1}>
+          Selepas <ArrowRight size={16} />
+        </button>
+      </div>
+
+      <PerkataanSkillSection key={activeSkill.id} skill={activeSkill} />
     </div>
   );
 }

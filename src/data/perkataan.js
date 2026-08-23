@@ -47,13 +47,6 @@ export const PERKATAAN_SKILLS = [
     words: ["bas", "jus", "gam", "jam", "kek", "rak", "pen", "pin", "cat"]
   },
   {
-    id: "k9",
-    code: "K9",
-    title: "KVK",
-    color: "lilac",
-    words: ["bal", "hal", "sel", "pil", "sil", "cil", "gol", "pul", "sar", "bar", "ber", "per", "sir", "kor", "lur", "tur"]
-  },
-  {
     id: "k10",
     code: "K10",
     title: "",
@@ -93,7 +86,7 @@ export const PERKATAAN_SKILLS = [
     code: "K16 dan K17",
     title: "",
     color: "mint",
-    words: ["bang", "sang", "lang", "beng", "seng", "leng", "bing", "sing", "ling", "bong", "song", "long", "bung", "sung", "lung", "tong", "wang", "bank"]
+    words: ["tong", "wang", "bank"]
   },
   {
     id: "k18-k19",
@@ -135,7 +128,6 @@ export const PERKATAAN_SKILLS = [
     code: "K29",
     title: "Diftong",
     color: "rose",
-    practice: ["bai", "cai", "dai", "gai", "hai", "bau", "jau", "lau", "pau", "sau", "boi", "koi", "loi", "moi"],
     words: ["kedai", "pantai", "ramai", "pisau", "harimau", "pulau", "kaloi", "amoi", "cakoi"]
   },
   {
