@@ -27,6 +27,8 @@ import {
   X
 } from "lucide-react";
 import { ENDINGS, pickAdaptiveEnding } from "./data/kvk.js";
+import { PERKATAAN_SKILLS, perkataanItemCount } from "./data/perkataan.js";
+import { getPhonetic } from "./data/perkataan.js";
 import {
   createKvItem,
   createKvRows,
@@ -724,19 +726,27 @@ function preferredMalayVoice() {
 }
 
 function speakMalayText(text) {
-  if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
-  const voiceLine = new window.SpeechSynthesisUtterance(text);
-  const voice = preferredMalayVoice();
-  if (voice) {
-    voiceLine.voice = voice;
-    voiceLine.lang = voice.lang;
-  } else {
-    voiceLine.lang = "ms-MY";
-  }
-  voiceLine.rate = 0.58;
-  voiceLine.pitch = 1.08;
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(voiceLine);
+  // Use Google Translate TTS API for better Malay pronunciation
+  const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=ms&client=tw-ob`;
+  
+  const audio = new Audio(audioUrl);
+  audio.play().catch((err) => {
+    console.warn("Google TTS failed, falling back to browser TTS:", err);
+    // Fallback to browser TTS
+    if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
+    const voiceLine = new window.SpeechSynthesisUtterance(text);
+    const voice = preferredMalayVoice();
+    if (voice) {
+      voiceLine.voice = voice;
+      voiceLine.lang = voice.lang;
+    } else {
+      voiceLine.lang = "ms-MY";
+    }
+    voiceLine.rate = 0.58;
+    voiceLine.pitch = 1.08;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(voiceLine);
+  });
 }
 
 function speakLetter(letter) {
@@ -1408,6 +1418,141 @@ function HurufModule({ onBack }) {
   );
 }
 
+function PerkataanWordCard({ word, isSpeaking, onSpeak }) {
+  return (
+    <button
+      className={`word-card ${isSpeaking ? "is-speaking" : ""}`}
+      type="button"
+      onClick={onSpeak}
+      aria-label={`Dengar perkataan ${word}`}
+      title={`Dengar ${word}`}
+    >
+      <span className="word-card-picture" aria-hidden="true">
+        <Image size={28} />
+      </span>
+      <SyllableWord word={word} />
+      <span className="word-card-listen" aria-hidden="true"><Volume2 size={14} /></span>
+    </button>
+  );
+}
+
+function splitMalaySyllables(word) {
+  const vowels = /[aeiou]/i;
+  const result = [];
+  let current = "";
+  let hasVowel = false;
+
+  for (let i = 0; i < word.length; i++) {
+    const char = word[i];
+    current += char;
+    if (vowels.test(char)) {
+      hasVowel = true;
+    }
+    if (hasVowel && i < word.length - 1) {
+      const nextChar = word[i + 1];
+      if (!vowels.test(nextChar) && i + 2 < word.length && vowels.test(word[i + 2])) {
+        result.push(current);
+        current = "";
+        hasVowel = false;
+      }
+    }
+  }
+  if (current) result.push(current);
+  return result.length > 0 ? result : [word];
+}
+
+function SyllableWord({ word }) {
+  const syllables = splitMalaySyllables(word);
+  return (
+    <strong className="word-syllable-text">
+      {syllables.map((syl, i) => (
+        <span key={i} className={`syllable-part syllable-${i % 2 === 0 ? "black" : "red"}`}>
+          {syl}
+        </span>
+      ))}
+    </strong>
+  );
+}
+
+function PerkataanSkillSection({ skill }) {
+  const [speakingWord, setSpeakingWord] = useState(null);
+  const speakingTimer = useRef(null);
+
+  useEffect(() => () => window.clearTimeout(speakingTimer.current), []);
+
+  function speakWord(word) {
+    setSpeakingWord(word);
+    window.clearTimeout(speakingTimer.current);
+    speakingTimer.current = window.setTimeout(() => setSpeakingWord(null), 1100);
+    const phonetic = getPhonetic(word);
+    speakMalayText(phonetic);
+  }
+
+  const practiceWords = skill.practice || [];
+  const skillWords = skill.words || [];
+
+  return (
+    <Fragment>
+      {practiceWords.length > 0 && (
+        <section className="word-skill-section" aria-labelledby={`${skill.id}-practice-title`}>
+          <div className="section-heading-row">
+            <div>
+              <span className="section-kicker">{skill.code} / Latihan bunyi</span>
+              <h2 id={`${skill.id}-practice-title`}>{skill.title || skill.code}</h2>
+              <p>Tekan setiap bunyi untuk mendengar sebutan.</p>
+            </div>
+            <span className="skill-count"><Volume2 size={15} /> {practiceWords.length} bunyi</span>
+          </div>
+          <div className="word-card-grid">
+            {practiceWords.map((word) => (
+              <PerkataanWordCard key={word} word={word} isSpeaking={speakingWord === word} onSpeak={() => speakWord(word)} />
+            ))}
+          </div>
+        </section>
+      )}
+      {skillWords.length > 0 && (
+        <section className="word-skill-section" aria-labelledby={`${skill.id}-word-title`}>
+          <div className="section-heading-row">
+            <div>
+              <span className="section-kicker">{skill.code} / Perkataan</span>
+              <h2 id={`${skill.id}-word-title`}>{skill.title || skill.code}</h2>
+              <p>Tekan perkataan untuk mendengar dan mengikut sebutan.</p>
+            </div>
+            <span className="skill-count"><Image size={15} /> {skillWords.length} perkataan</span>
+          </div>
+          <div className="word-card-grid">
+            {skillWords.map((word) => (
+              <PerkataanWordCard key={word} word={word} isSpeaking={speakingWord === word} onSpeak={() => speakWord(word)} />
+            ))}
+          </div>
+        </section>
+      )}
+    </Fragment>
+  );
+}
+
+function PerkataanModule({ onBack }) {
+  const totalItems = PERKATAAN_SKILLS.reduce((total, skill) => total + perkataanItemCount(skill), 0);
+
+  return (
+    <div className="home-content hub-content perkataan-module-content">
+      <div className="hub-hero">
+        <button className="back-button" type="button" onClick={onBack} title="Kembali pilih kategori Perkataan">
+          <ArrowLeft size={18} /> <span>Perkataan</span>
+        </button>
+        <div className="hub-title-block">
+          <span className="hub-eyebrow"><Image size={15} /> Perkataan <span>/ Words</span></span>
+          <h1>Dengar dan kenal perkataan</h1>
+          <p>Ikut kemahiran dari KVKV hingga digraf. Tekan perkataan untuk dengar sebutannya.</p>
+        </div>
+        <div className="hub-hero-badge"><BookOpen size={18} /><span><strong>{PERKATAAN_SKILLS.length}</strong> kemahiran · {totalItems} perkataan</span></div>
+      </div>
+
+      {PERKATAAN_SKILLS.map((skill) => <PerkataanSkillSection key={skill.id} skill={skill} />)}
+    </div>
+  );
+}
+
 function BahasaMelayuHub({ onBack, onComingSoon, notice }) {
   const [category, setCategory] = useState(null);
   const [subCategory, setSubCategory] = useState(null);
@@ -1504,7 +1649,7 @@ function BahasaMelayuHub({ onBack, onComingSoon, notice }) {
     }
     // PERKATAAN category
     if (category === "perkataan") {
-      if (subCategory === "belajar") return <BMPracticeModule view="perkataan" onBack={goBack} onComingSoon={onComingSoon} notice={notice} />;
+      if (subCategory === "belajar") return <PerkataanModule onBack={goBack} />;
       if (subCategory === "main") return (
         <div className="home-content hub-content">
           <div className="hub-hero">
@@ -1742,3 +1887,4 @@ export default function App() {
   return path === "/kvk" ? <KVKGame /> : <HomePlaceholder />;
 }
 */
+

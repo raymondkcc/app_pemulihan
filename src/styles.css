@@ -3224,3 +3224,146 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
     font-size: 1.25rem;
   }
 }
+
+/* Perkataan skill word cards */
+.perkataan-module-content .word-skill-section {
+  margin-top: 2.8rem;
+  padding-top: 1.4rem;
+  border-top: 2px solid var(--home-line);
+}
+
+.word-skill-section + .word-skill-section {
+  margin-top: 2.2rem;
+  padding-top: 1.6rem;
+}
+
+.word-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: .75rem;
+  margin-top: 1.25rem;
+}
+
+.word-card {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 156px;
+  grid-template-rows: 92px auto;
+  gap: .55rem;
+  border: 3px solid var(--home-ink);
+  border-radius: 8px;
+  padding: .7rem;
+  color: var(--home-ink);
+  background: white;
+  box-shadow: 4px 5px 0 rgba(25, 56, 74, .12);
+  text-align: center;
+  cursor: pointer;
+  transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+
+.word-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 5px 7px 0 rgba(25, 56, 74, .16);
+}
+
+.word-card:active {
+  transform: translateY(1px);
+}
+
+.word-card.is-speaking {
+  border-color: var(--home-coral);
+  box-shadow: 0 0 0 3px rgba(241, 120, 93, .24), 5px 6px 0 rgba(25, 56, 74, .14);
+}
+
+.word-card-picture {
+  display: grid;
+  min-width: 0;
+  place-items: center;
+  border: 2px dashed #c5d2cd;
+  border-radius: 6px;
+  color: #9aa9a3;
+  background:
+    linear-gradient(45deg, #f7faf8 25%, transparent 25%) 0 0 / 12px 12px,
+    linear-gradient(-45deg, #f7faf8 25%, transparent 25%) 0 6px / 12px 12px,
+    linear-gradient(45deg, transparent 75%, #f7faf8 75%) 6px -6px / 12px 12px,
+    linear-gradient(-45deg, transparent 75%, #f7faf8 75%) -6px 0 / 12px 12px,
+    #f1f5f2;
+}
+
+.word-card strong {
+  align-self: center;
+  overflow-wrap: anywhere;
+  font-family: "Comic Sans MS", "Comic Sans", "Comic Neue", "Chalkboard SE", cursive;
+  font-size: 1.15rem;
+  line-height: 1.05;
+}
+
+.word-card-listen {
+  position: absolute;
+  top: .5rem;
+  right: .5rem;
+  display: grid;
+  width: 31px;
+  height: 31px;
+  place-items: center;
+  border: 2px solid var(--home-ink);
+  border-radius: 50%;
+  color: white;
+  background: var(--home-blue);
+  box-shadow: 0 2px 0 rgba(25, 56, 74, .28);
+}
+
+.word-card.is-speaking .word-card-listen {
+  background: var(--home-coral);
+}
+
+.word-card-sound .word-card-picture {
+  border-color: #b6c7f1;
+  color: #5879e8;
+  background: #eef3ff;
+}
+
+@media (max-width: 560px) {
+  .word-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .6rem;
+  }
+
+  .word-card {
+    min-height: 142px;
+    grid-template-rows: 78px auto;
+    padding: .55rem;
+  }
+
+  .word-card strong {
+    font-size: 1.05rem;
+  }
+}
+
+/* Syllable coloring for Malay words */
+.word-syllable-text {
+  display: flex;
+  gap: 0;
+  font-family: "Comic Sans MS", "Comic Sans", "Comic Neue", "Chalkboard SE", cursive;
+  font-size: 1.15rem;
+  line-height: 1.1;
+}
+
+.syllable-part {
+  display: inline;
+}
+
+.syllable-black {
+  color: var(--home-ink);
+}
+
+.syllable-red {
+  color: var(--home-coral-dark);
+}
+
+@media (max-width: 560px) {
+  .word-syllable-text {
+    font-size: 1.05rem;
+  }
+}
