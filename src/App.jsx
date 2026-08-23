@@ -476,6 +476,61 @@ function KVKGame() {
   );
 }
 
+const BM_CATEGORIES = [
+  {
+    id: "huruf",
+    title: "Huruf",
+    subtitle: "Letters",
+    description: "Kenal dan bunyi 26 huruf",
+    color: "coral",
+    icon: "PenLine",
+    subCategories: [
+      { id: "belajar", title: "Belajar", description: "Belajar bunyi huruf", component: "huruf-belajar" },
+      { id: "main", title: "Main", description: "Permainan huruf", component: "huruf-main" },
+      { id: "ujian", title: "Ujian", description: "Uji diri", component: "huruf-ujian" }
+    ]
+  },
+  {
+    id: "vokal",
+    title: "Vokal",
+    subtitle: "Vowels",
+    description: "Bunyi a e i o u",
+    color: "lemon",
+    icon: "Volume2",
+    subCategories: [
+      { id: "belajar", title: "Belajar", description: "Kenal bunyi vokal", component: "vokal-belajar" },
+      { id: "main", title: "Main", description: "Permainan bunyi haiwan", component: "vokal-main" },
+      { id: "ujian", title: "Ujian", description: "Uji sebutan vokal", component: "vokal-ujian" }
+    ]
+  },
+  {
+    id: "suku-kata",
+    title: "Suku Kata",
+    subtitle: "Syllables",
+    description: "KV, KVK, dan bunyi bergabung",
+    color: "mint",
+    icon: "BookOpen",
+    subCategories: [
+      { id: "belajar", title: "Belajar", description: "Jadual bunyi KV", component: "suku-belajar" },
+      { id: "main", title: "Main", description: "Lompat Si Katak Lompat", component: "suku-main" },
+      { id: "ujian", title: "Ujian", description: "Pintu KVK", component: "suku-ujian" }
+    ]
+  },
+  {
+    id: "perkataan",
+    title: "Perkataan",
+    subtitle: "Words",
+    description: "Bina dan kenal perkataan",
+    color: "blue",
+    icon: "Languages",
+    subCategories: [
+      { id: "belajar", title: "Belajar", description: "Kenal perkataan", component: "perkataan-belajar" },
+      { id: "main", title: "Main", description: "Padan gambar", component: "perkataan-main" },
+      { id: "ujian", title: "Ujian", description: "Cabaran ayat", component: "perkataan-ujian" }
+    ]
+  }
+];
+
 const SYLLABLE_FAMILIES = [
   { id: "kv", title: "KV", subtitle: "bunyi asas", example: "ba · be · bi · bo · bu", live: true, color: "mint" },
   { id: "kvk", title: "KVK", subtitle: "pintu yang sudah siap", example: "bas · jam · tin", live: true, color: "coral" },
@@ -1354,20 +1409,186 @@ function HurufModule({ onBack }) {
 }
 
 function BahasaMelayuHub({ onBack, onComingSoon, notice }) {
-  const [module, setModule] = useState(null);
+  const [category, setCategory] = useState(null);
+  const [subCategory, setSubCategory] = useState(null);
 
-  function changeModule(nextModule) {
-    setModule(nextModule);
+  function selectCategory(catId) {
+    setCategory(catId);
+    setSubCategory(null);
     window.scrollTo({ top: 0, behavior: "auto" });
   }
 
-  if (module === "huruf") return <HurufModule onBack={() => changeModule(null)} />;
-  if (module === "vokal") return <VokalModule onBack={() => changeModule(null)} />;
-  if (module === "kv") return <KVModule onBack={() => changeModule(null)} />;
-  if (module === "suku-kata") return <BMPracticeModule view="suku-kata" onBack={() => changeModule(null)} onComingSoon={onComingSoon} notice={notice} />;
-  if (module === "perkataan") return <BMPracticeModule view="perkataan" onBack={() => changeModule(null)} onComingSoon={onComingSoon} notice={notice} />;
+  function selectSubCategory(subId) {
+    setSubCategory(subId);
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
 
-  return <BMLearningPicker onBack={onBack} onChoose={changeModule} />;
+  function goBack() {
+    if (subCategory) {
+      setSubCategory(null);
+    } else if (category) {
+      setCategory(null);
+    } else {
+      onBack();
+    }
+  }
+
+  // Render sub-category content based on category + subCategory
+  if (category && subCategory) {
+    // HURUF category
+    if (category === "huruf") {
+      if (subCategory === "belajar") return <HurufModule onBack={goBack} />;
+      if (subCategory === "main") return (
+        <div className="home-content hub-content">
+          <div className="hub-hero">
+            <button className="back-button" type="button" onClick={goBack}><ArrowLeft size={18} /> <span>Huruf</span></button>
+            <div className="hub-title-block">
+              <h1>Main Huruf</h1>
+              <p>Permainan huruf besar dan kecil</p>
+            </div>
+          </div>
+          <Suspense fallback={<div>Menyediakan...</div>}>
+            <LetterCaseGame letters={HURUF} onPlayLetter={playLetterAudio} />
+          </Suspense>
+        </div>
+      );
+      if (subCategory === "ujian") return (
+        <div className="home-content hub-content">
+          <div className="hub-hero">
+            <button className="back-button" type="button" onClick={goBack}><ArrowLeft size={18} /> <span>Huruf</span></button>
+            <div className="hub-title-block">
+              <h1>Ujian Huruf</h1>
+              <p>Uji diri anda</p>
+            </div>
+          </div>
+          <p className="home-notice">Ujian huruf akan datang.</p>
+        </div>
+      );
+    }
+    // VOKAL category
+    if (category === "vokal") {
+      if (subCategory === "belajar") return <VokalModule onBack={goBack} />;
+      if (subCategory === "main") return (
+        <div className="home-content hub-content">
+          <div className="hub-hero">
+            <button className="back-button" type="button" onClick={goBack}><ArrowLeft size={18} /> <span>Vokal</span></button>
+            <div className="hub-title-block">
+              <h1>Main Vokal</h1>
+              <p>Permainan bunyi haiwan</p>
+            </div>
+          </div>
+          <ScreamAnimalCard />
+        </div>
+      );
+      if (subCategory === "ujian") return (
+        <div className="home-content hub-content">
+          <div className="hub-hero">
+            <button className="back-button" type="button" onClick={goBack}><ArrowLeft size={18} /> <span>Vokal</span></button>
+            <div className="hub-title-block">
+              <h1>Ujian Vokal</h1>
+              <p>Uji sebutan vokal</p>
+            </div>
+          </div>
+          <p className="home-notice">Ujian vokal akan datang.</p>
+        </div>
+      );
+    }
+    // SUKU KATA category (KV moved here)
+    if (category === "suku-kata") {
+      if (subCategory === "belajar") return <KVModule onBack={goBack} />;
+      if (subCategory === "main") {
+        window.location.href = "/kv-sound-pond";
+        return null;
+      }
+      if (subCategory === "ujian") return <KVKGame onBack={goBack} />;
+    }
+    // PERKATAAN category
+    if (category === "perkataan") {
+      if (subCategory === "belajar") return <BMPracticeModule view="perkataan" onBack={goBack} onComingSoon={onComingSoon} notice={notice} />;
+      if (subCategory === "main") return (
+        <div className="home-content hub-content">
+          <div className="hub-hero">
+            <button className="back-button" type="button" onClick={goBack}><ArrowLeft size={18} /> <span>Perkataan</span></button>
+            <div className="hub-title-block">
+              <h1>Main Perkataan</h1>
+              <p>Padan gambar dengan perkataan</p>
+            </div>
+          </div>
+          <p className="home-notice">Permainan perkataan akan datang.</p>
+        </div>
+      );
+      if (subCategory === "ujian") return (
+        <div className="home-content hub-content">
+          <div className="hub-hero">
+            <button className="back-button" type="button" onClick={goBack}><ArrowLeft size={18} /> <span>Perkataan</span></button>
+            <div className="hub-title-block">
+              <h1>Ujian Perkataan</h1>
+              <p>Cabaran ayat pendek</p>
+            </div>
+          </div>
+          <p className="home-notice">Ujian perkataan akan datang.</p>
+        </div>
+      );
+    }
+  }
+
+  // Render category selection (show 4 main categories)
+  if (category) {
+    const cat = BM_CATEGORIES.find(c => c.id === category);
+    if (!cat) return null;
+    return (
+      <div className="home-content hub-content">
+        <div className="hub-hero">
+          <button className="back-button" type="button" onClick={goBack}><ArrowLeft size={18} /> <span>Bahasa Melayu</span></button>
+          <div className="hub-title-block">
+            <h1>{cat.title}</h1>
+            <p>{cat.description}</p>
+          </div>
+        </div>
+        <div className="category-sub-grid">
+          {cat.subCategories.map(sub => (
+            <button
+              key={sub.id}
+              className={`category-sub-card category-sub-${sub.id}`}
+              type="button"
+              onClick={() => selectSubCategory(sub.id)}
+            >
+              <strong>{sub.title}</strong>
+              <span>{sub.description}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Render main category picker (4 categories)
+  return (
+    <div className="home-content hub-content">
+      <div className="hub-hero">
+        <button className="back-button" type="button" onClick={onBack}><ArrowLeft size={18} /> <span>Subjek</span></button>
+        <div className="hub-title-block">
+          <span className="hub-eyebrow"><BookOpen size={15} /> Bahasa Melayu</span>
+          <h1>Pilih tajuk</h1>
+          <p>Pilih satu kategori untuk mula belajar.</p>
+        </div>
+      </div>
+      <div className="bm-categories-grid">
+        {BM_CATEGORIES.map(cat => (
+          <button
+            key={cat.id}
+            className={`bm-category-card bm-category-${cat.color}`}
+            type="button"
+            onClick={() => selectCategory(cat.id)}
+          >
+            <span className="bm-category-title">{cat.title}</span>
+            <span className="bm-category-subtitle">{cat.subtitle}</span>
+            <span className="bm-category-desc">{cat.description}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function MathematicsHub({ onBack, onComingSoon, notice }) {
