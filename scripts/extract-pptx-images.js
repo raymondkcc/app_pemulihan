@@ -24,13 +24,18 @@ const sourceOverrides = new Map([
   ["beca", path.join(customAssetDir, "beca.jpg")],
   ["ini", path.join(customAssetDir, "ini.png")],
   ["itu", path.join(customAssetDir, "itu.png")],
+  ["lelaki", path.join(customAssetDir, "lelaki.png")],
   ["lima", path.join(customAssetDir, "lima.png")],
 ]);
 const framingProfiles = new Map([
   ["baju", { size: 400, offsetY: -12 }],
   ["beca", { size: 480 }],
   ["cili", { size: 400, offsetY: -12 }],
+  ["kelapa", { size: 400 }],
+  ["kereta", { size: 400 }],
+  ["kerusi", { size: 400 }],
   ["kuda", { size: 440 }],
+  ["lelaki", { size: 440 }],
   ["lima", { size: 400, offsetY: -12 }],
   ["satu", { size: 400, offsetY: -12 }],
   ["tiga", { size: 400, offsetY: -12 }],
