@@ -10,6 +10,7 @@ const slidesDir = path.join(extractRoot, "ppt", "slides");
 const relsDir = path.join(slidesDir, "_rels");
 const mediaDir = path.join(extractRoot, "ppt", "media");
 const outputDir = path.join(projectRoot, "public", "images", "perkataan");
+const customAssetDir = path.join(projectRoot, "scripts", "assets", "perkataan");
 
 if (!fs.existsSync(slidesDir) || !fs.existsSync(mediaDir)) {
   throw new Error(`Missing extracted PPTX at ${extractRoot}. Expand the PPTX first.`);
@@ -19,6 +20,11 @@ const words = new Set(PERKATAAN_SKILLS.flatMap((skill) => skill.words || []));
 const mediaOverrides = new Map([
   ["api", "image93.png"],
 ]);
+const sourceOverrides = new Map([
+  ["beca", path.join(customAssetDir, "beca.jpg")],
+  ["lima", path.join(customAssetDir, "lima.png")],
+]);
+const safelyFramedWords = new Set(["baju", "beca", "cili", "kuda", "satu", "tiga", "lima"]);
 const slideFiles = fs.readdirSync(slidesDir)
   .filter((file) => /^slide\d+\.xml$/.test(file))
   .sort((a, b) => Number(a.match(/\d+/)[0]) - Number(b.match(/\d+/)[0]));
@@ -89,13 +95,19 @@ function replaceWithRetry(source, destination) {
   throw lastError;
 }
 
-function optimizeToPng(source, destination) {
-  const scale = "scale=w='min(512,iw)':h='min(512,ih)':force_original_aspect_ratio=decrease";
+function optimizeToPng(source, destination, { framed = false, removeWhite = false } = {}) {
+  const filters = [];
+  if (removeWhite) filters.push("colorkey=0xFFFFFF:0.12:0.05");
+  filters.push(framed
+    ? "scale=440:440:force_original_aspect_ratio=decrease"
+    : "scale=w='min(512,iw)':h='min(512,ih)':force_original_aspect_ratio=decrease");
+  if (framed) filters.push("pad=512:512:(ow-iw)/2:(oh-ih)/2:color=black@0");
+  filters.push("format=rgba");
   const temporary = `${destination}.tmp.png`;
   fs.rmSync(temporary, { force: true });
   const result = spawnSync(
     "ffmpeg",
-    ["-y", "-loglevel", "error", "-i", source, "-vf", scale, "-frames:v", "1", "-compression_level", "9", temporary],
+    ["-y", "-loglevel", "error", "-i", source, "-vf", filters.join(","), "-frames:v", "1", "-compression_level", "9", temporary],
     { stdio: "inherit" },
   );
   if (result.status !== 0) {
@@ -140,14 +152,26 @@ for (const slide of slides) {
     ambiguous.push(`${word} (slide ${slide.slideFile}): ${ranked.map((item) => item.media).join(", ")} -> ${selected.media}`);
   }
 
-  const source = path.join(mediaDir, selected.media);
+  const source = sourceOverrides.get(word) || path.join(mediaDir, selected.media);
   const extension = path.extname(selected.media).toLowerCase();
-  if (extension === ".png" || extension === ".jpg" || extension === ".jpeg") {
-    optimizeToPng(source, path.join(outputDir, `${word}.png`));
+  if (sourceOverrides.has(word) || extension === ".png" || extension === ".jpg" || extension === ".jpeg") {
+    optimizeToPng(source, path.join(outputDir, `${word}.png`), {
+      framed: safelyFramedWords.has(word),
+      removeWhite: word === "beca" || word === "lima",
+    });
   } else {
     fs.copyFileSync(source, path.join(outputDir, `${word}.svg`));
   }
   mapped.push({ word, slide: slide.slideFile, media: selected.media });
+}
+
+for (const [word, source] of sourceOverrides) {
+  if (mapped.some((item) => item.word === word)) continue;
+  optimizeToPng(source, path.join(outputDir, `${word}.png`), {
+    framed: safelyFramedWords.has(word),
+    removeWhite: word === "beca" || word === "lima",
+  });
+  mapped.push({ word, slide: "custom", media: path.basename(source) });
 }
 
 console.log(`Mapped ${mapped.length} of ${words.size} words to PNG images.`);
