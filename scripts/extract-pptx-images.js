@@ -16,6 +16,9 @@ if (!fs.existsSync(slidesDir) || !fs.existsSync(mediaDir)) {
 }
 
 const words = new Set(PERKATAAN_SKILLS.flatMap((skill) => skill.words || []));
+const mediaOverrides = new Map([
+  ["api", "image93.png"],
+]);
 const slideFiles = fs.readdirSync(slidesDir)
   .filter((file) => /^slide\d+\.xml$/.test(file))
   .sort((a, b) => Number(a.match(/\d+/)[0]) - Number(b.match(/\d+/)[0]));
@@ -72,9 +75,35 @@ function candidateScore(candidate) {
   return area + centerBias * 1e12;
 }
 
-function convertToPng(source, destination) {
-  const result = spawnSync("ffmpeg", ["-y", "-loglevel", "error", "-i", source, destination], { stdio: "inherit" });
-  if (result.status !== 0) throw new Error(`Could not convert ${source} to PNG.`);
+function replaceWithRetry(source, destination) {
+  let lastError;
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    try {
+      fs.copyFileSync(source, destination);
+      return;
+    } catch (error) {
+      lastError = error;
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 200);
+    }
+  }
+  throw lastError;
+}
+
+function optimizeToPng(source, destination) {
+  const scale = "scale=w='min(512,iw)':h='min(512,ih)':force_original_aspect_ratio=decrease";
+  const temporary = `${destination}.tmp.png`;
+  fs.rmSync(temporary, { force: true });
+  const result = spawnSync(
+    "ffmpeg",
+    ["-y", "-loglevel", "error", "-i", source, "-vf", scale, "-frames:v", "1", "-compression_level", "9", temporary],
+    { stdio: "inherit" },
+  );
+  if (result.status !== 0) {
+    fs.rmSync(temporary, { force: true });
+    throw new Error(`Could not optimize ${source} as PNG.`);
+  }
+  replaceWithRetry(temporary, destination);
+  fs.rmSync(temporary);
 }
 
 fs.mkdirSync(outputDir, { recursive: true });
@@ -106,17 +135,15 @@ for (const slide of slides) {
   }
 
   const ranked = [...candidates].sort((a, b) => candidateScore(b) - candidateScore(a));
-  const selected = ranked[0];
+  const selected = ranked.find((candidate) => candidate.media === mediaOverrides.get(word)) || ranked[0];
   if (ranked.length > 1) {
     ambiguous.push(`${word} (slide ${slide.slideFile}): ${ranked.map((item) => item.media).join(", ")} -> ${selected.media}`);
   }
 
   const source = path.join(mediaDir, selected.media);
   const extension = path.extname(selected.media).toLowerCase();
-  if (extension === ".png") {
-    fs.copyFileSync(source, path.join(outputDir, `${word}.png`));
-  } else if (extension === ".jpg" || extension === ".jpeg") {
-    convertToPng(source, path.join(outputDir, `${word}.png`));
+  if (extension === ".png" || extension === ".jpg" || extension === ".jpeg") {
+    optimizeToPng(source, path.join(outputDir, `${word}.png`));
   } else {
     fs.copyFileSync(source, path.join(outputDir, `${word}.svg`));
   }
@@ -128,8 +155,13 @@ if (ambiguous.length) {
   console.log("Ambiguous slides (selected largest central PNG):");
   for (const item of ambiguous) console.log(`  ${item}`);
 }
+const mappedWords = new Set(mapped.map((item) => item.word));
+const unmappedWords = [...words].filter((word) => !mappedWords.has(word));
+if (unmappedWords.length) {
+  console.log(`Unmapped words (outside the PPTX or without a unique image): ${unmappedWords.join(", ")}`);
+}
 if (missing.length) {
-  console.log("Words without a unique PNG:");
+  console.log("Slides without a unique image:");
   for (const item of missing) console.log(`  ${item}`);
 }
 console.log(`Output: ${outputDir}`);
