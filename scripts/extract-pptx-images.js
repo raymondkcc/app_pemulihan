@@ -29,14 +29,23 @@ const sourceOverrides = new Map([
 ]);
 const framingProfiles = new Map([
   ["baju", { size: 400, offsetY: -12 }],
+  ["bas", { size: 400 }],
   ["beca", { size: 480 }],
+  ["cat", { size: 400 }],
   ["cili", { size: 400, offsetY: -12 }],
+  ["gam", { size: 350 }],
+  ["jam", { size: 400 }],
+  ["jus", { size: 400 }],
+  ["kek", { size: 400 }],
   ["kelapa", { size: 400 }],
   ["kereta", { size: 400 }],
   ["kerusi", { size: 400 }],
   ["kuda", { size: 440 }],
   ["lelaki", { size: 440 }],
   ["lima", { size: 400, offsetY: -12 }],
+  ["pen", { size: 300 }],
+  ["pin", { size: 300 }],
+  ["rak", { size: 400 }],
   ["satu", { size: 400, offsetY: -12 }],
   ["tiga", { size: 400, offsetY: -12 }],
 ]);
