@@ -22,6 +22,8 @@ const mediaOverrides = new Map([
 ]);
 const sourceOverrides = new Map([
   ["beca", path.join(customAssetDir, "beca.jpg")],
+  ["ini", path.join(customAssetDir, "ini.png")],
+  ["itu", path.join(customAssetDir, "itu.png")],
   ["lima", path.join(customAssetDir, "lima.png")],
 ]);
 const framingProfiles = new Map([
