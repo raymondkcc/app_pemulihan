@@ -24,7 +24,15 @@ const sourceOverrides = new Map([
   ["beca", path.join(customAssetDir, "beca.jpg")],
   ["lima", path.join(customAssetDir, "lima.png")],
 ]);
-const safelyFramedWords = new Set(["baju", "beca", "cili", "kuda", "satu", "tiga", "lima"]);
+const framingProfiles = new Map([
+  ["baju", { size: 400, offsetY: -12 }],
+  ["beca", { size: 480 }],
+  ["cili", { size: 400, offsetY: -12 }],
+  ["kuda", { size: 440 }],
+  ["lima", { size: 400, offsetY: -12 }],
+  ["satu", { size: 400, offsetY: -12 }],
+  ["tiga", { size: 400, offsetY: -12 }],
+]);
 const slideFiles = fs.readdirSync(slidesDir)
   .filter((file) => /^slide\d+\.xml$/.test(file))
   .sort((a, b) => Number(a.match(/\d+/)[0]) - Number(b.match(/\d+/)[0]));
@@ -95,13 +103,15 @@ function replaceWithRetry(source, destination) {
   throw lastError;
 }
 
-function optimizeToPng(source, destination, { framed = false, removeWhite = false } = {}) {
+function optimizeToPng(source, destination, { framing, removeWhite = false } = {}) {
   const filters = [];
   if (removeWhite) filters.push("colorkey=0xFFFFFF:0.12:0.05");
-  filters.push(framed
-    ? "scale=440:440:force_original_aspect_ratio=decrease"
+  filters.push(framing
+    ? `scale=${framing.size}:${framing.size}:force_original_aspect_ratio=decrease`
     : "scale=w='min(512,iw)':h='min(512,ih)':force_original_aspect_ratio=decrease");
-  if (framed) filters.push("pad=512:512:(ow-iw)/2:(oh-ih)/2:color=black@0");
+  if (framing) {
+    filters.push(`pad=512:512:(ow-iw)/2:(oh-ih)/2+${framing.offsetY || 0}:color=black@0`);
+  }
   filters.push("format=rgba");
   const temporary = `${destination}.tmp.png`;
   fs.rmSync(temporary, { force: true });
@@ -156,7 +166,7 @@ for (const slide of slides) {
   const extension = path.extname(selected.media).toLowerCase();
   if (sourceOverrides.has(word) || extension === ".png" || extension === ".jpg" || extension === ".jpeg") {
     optimizeToPng(source, path.join(outputDir, `${word}.png`), {
-      framed: safelyFramedWords.has(word),
+      framing: framingProfiles.get(word),
       removeWhite: word === "beca" || word === "lima",
     });
   } else {
@@ -168,7 +178,7 @@ for (const slide of slides) {
 for (const [word, source] of sourceOverrides) {
   if (mapped.some((item) => item.word === word)) continue;
   optimizeToPng(source, path.join(outputDir, `${word}.png`), {
-    framed: safelyFramedWords.has(word),
+    framing: framingProfiles.get(word),
     removeWhite: word === "beca" || word === "lima",
   });
   mapped.push({ word, slide: "custom", media: path.basename(source) });
