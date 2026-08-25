@@ -15,13 +15,13 @@ const KV_SETS = [
 ];
 
 const PAD_COLORS = [0x7ad1b0, 0xffc95e, 0x9cc7f0, 0xf49dac];
-const AUDIO_BOOST = 1.65;
+const AUDIO_BOOST = 2.4;
 const CORRECT_SOUND_PATH = "/audio/kv-sound-pond/correct-answer.mp3";
 const SPLASH_SOUND_PATH = "/audio/kv-sound-pond/water-splash.mp3";
 const BGM_PATH = "/audio/kv-sound-pond/background-music.mp3";
 const GAME_OVER_SOUND_PATH = "/audio/kv-sound-pond/game-over.mp3";
-const BGM_VOLUME = 0.18;
-const BGM_DUCKED_VOLUME = 0.04;
+const BGM_VOLUME = 0.07;
+const BGM_DUCKED_VOLUME = 0.015;
 const INITIAL_LIVES = 5;
 const FROG_POSES = Object.freeze({
   IDLE: "idle",
@@ -351,25 +351,24 @@ class PondScene extends Phaser.Scene {
     const activeColor = revealCorrect ? 0x8fd147 : feedbackChoice && !isCorrect ? 0xd5dfe2 : baseColor;
     const pad = this.add.graphics();
     pad.fillStyle(0x145e46, 0.24);
-    pad.fillEllipse(position.x + 4, position.y + 30, 238, 90);
+    pad.fillEllipse(position.x + 4, position.y + 30, 196, 82);
     pad.fillStyle(activeColor, 1);
-    pad.fillEllipse(position.x, position.y, 230, 92);
+    pad.fillEllipse(position.x, position.y, 188, 84);
     pad.lineStyle(4, 0x145e46, 0.6);
-    pad.strokeEllipse(position.x, position.y, 230, 92);
+    pad.strokeEllipse(position.x, position.y, 188, 84);
     this.roundLayer.add(pad);
 
-    [-66, 0, 66].forEach((offset) => {
-      const bubble = this.add.circle(position.x + offset, position.y - 12, 33, 0xfffdf2, 0.96).setStrokeStyle(3, 0x145e46, 0.47);
-      const label = this.add.text(position.x + offset, position.y - 11, choice, {
-        fontFamily: "Comic Sans MS, Comic Sans, Comic Neue, cursive",
-        fontSize: "25px",
-        fontStyle: "bold",
-        color: "#145e46"
-      }).setOrigin(0.5);
-      this.roundLayer.add([bubble, label]);
-    });
+    // One bubble per pad so the suku kata is not shown three times at once.
+    const bubble = this.add.circle(position.x, position.y - 6, 38, 0xfffdf2, 0.96).setStrokeStyle(4, 0x145e46, 0.5);
+    const label = this.add.text(position.x, position.y - 5, choice, {
+      fontFamily: "Comic Sans MS, Comic Sans, Comic Neue, cursive",
+      fontSize: "32px",
+      fontStyle: "bold",
+      color: "#145e46"
+    }).setOrigin(0.5);
+    this.roundLayer.add([bubble, label]);
 
-    const hitZone = this.add.zone(position.x, position.y, 238, 110).setInteractive({ useHandCursor: false });
+    const hitZone = this.add.zone(position.x, position.y, 196, 104).setInteractive({ useHandCursor: false });
     hitZone.on("pointerdown", () => {
       if (this.viewState.phase === "playing") this.bridge.onChoice(choice);
     });
@@ -464,9 +463,17 @@ export default function KvSoundPondGame() {
         const context = new AudioContextConstructor();
         const gain = context.createGain();
         const effectGain = context.createGain();
+        // Compressor keeps the boosted pronunciation from clipping.
+        const limiter = context.createDynamicsCompressor();
+        limiter.threshold.value = -8;
+        limiter.knee.value = 6;
+        limiter.ratio.value = 12;
+        limiter.attack.value = 0.003;
+        limiter.release.value = 0.12;
         gain.gain.value = AUDIO_BOOST;
         effectGain.gain.value = 1;
-        gain.connect(context.destination);
+        gain.connect(limiter);
+        limiter.connect(context.destination);
         effectGain.connect(context.destination);
         audioContextRef.current = context;
         audioGainRef.current = gain;
@@ -553,35 +560,38 @@ export default function KvSoundPondGame() {
     if (!roundData?.target) return;
     stopAudio();
     const context = startSoundSystem();
-    if (bgmAudioRef.current) {
-      bgmAudioRef.current.volume = BGM_DUCKED_VOLUME;
-      bgmRestoreTimer.current = window.setTimeout(() => {
-        if (bgmAudioRef.current) bgmAudioRef.current.volume = BGM_VOLUME;
-      }, 2050);
+    const bgm = bgmAudioRef.current;
+    const restoreBgm = () => {
+      window.clearTimeout(bgmRestoreTimer.current);
+      if (bgmAudioRef.current === bgm && bgm) bgm.volume = BGM_VOLUME;
+    };
+    if (bgm) {
+      bgm.volume = BGM_DUCKED_VOLUME;
+      // Fallback in case the clip never reports "ended".
+      bgmRestoreTimer.current = window.setTimeout(restoreBgm, 2600);
     }
-    [0, 700, 1400].forEach((delay) => {
-      const timer = window.setTimeout(() => {
-        const audio = new Audio(audioPath(roundData.target, roundData.eSound));
-        audio.preload = "auto";
-        audio.volume = 1;
-        let source = null;
-        try {
-          if (context && audioGainRef.current) {
-            source = context.createMediaElementSource(audio);
-            source.connect(audioGainRef.current);
-          }
-        } catch {
-          source = null;
-        }
-        activeAudio.current.push({ audio, source });
-        audio.addEventListener("ended", () => {
-          source?.disconnect();
-          activeAudio.current = activeAudio.current.filter((entry) => entry.audio !== audio);
-        }, { once: true });
-        audio.play().catch(() => {});
-      }, delay);
-      audioTimers.current.push(timer);
-    });
+
+    const audio = new Audio(audioPath(roundData.target, roundData.eSound));
+    audio.preload = "auto";
+    audio.volume = 1;
+    let source = null;
+    try {
+      if (context && audioGainRef.current) {
+        source = context.createMediaElementSource(audio);
+        source.connect(audioGainRef.current);
+      }
+    } catch {
+      source = null;
+    }
+    activeAudio.current.push({ audio, source });
+    const finish = () => {
+      source?.disconnect();
+      activeAudio.current = activeAudio.current.filter((entry) => entry.audio !== audio);
+      restoreBgm();
+    };
+    audio.addEventListener("ended", finish, { once: true });
+    audio.addEventListener("error", finish, { once: true });
+    audio.play().catch(finish);
   }, [startSoundSystem, stopAudio]);
 
   const openRound = useCallback((nextRoundNumber, nextSet = activeSet) => {
