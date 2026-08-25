@@ -5,7 +5,7 @@
  * because Malay reads a final "e" either as pepet (/ə/) or taling (/e/).
  */
 
-export const ONSETS = [..."bcdfghjklmnpqrstvwxyz"];
+export const ONSETS = [..."bcdfghjklmnpqrstvwyz"];
 export const VOWELS = ["a", "e", "i", "o", "u"];
 export const E_SOUNDS = ["e-pepet", "e-taling"];
 

@@ -1,4 +1,4 @@
-export const PACK_ONSETS = [..."bcdfghjklmnpqrstvwxyz"];
+export const PACK_ONSETS = [..."bcdfghjklmnpqrstvwyz"];
 export const PACK_VOWELS = ["a", "e", "i", "o", "u"];
 
 export const E_SOUND_OPTIONS = [
