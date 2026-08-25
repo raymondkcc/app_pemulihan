@@ -846,7 +846,7 @@ KVK,zuk,standard,id-MY,zuk,juzuk,KVK/KVK_zuk.mp3,already-present
 KVK,zul,standard,id-MY,zul,nuzul,KVK/KVK_zul.mp3,already-present
 KVK,zum,standard,id-MY,zum,zum,KVK/KVK_zum.mp3,already-present
 KVK,zur,standard,id-MY,zur,uzur,KVK/KVK_zur.mp3,already-present
-KV,ba,standard,ms,bahan,,KV/KV_ba.mp3,open-ms
+KV,ba,standard,ms,ba,,KV/KV_ba.mp3,natural-ms
 KV,be,e-pepet,ms,beh,,KV/KV_be_e-pepet.mp3,generated-ms
 KV,be,e-taling,ms,beée,,KV/KV_be_e-taling.mp3,generated-ms
 KV,bi,standard,ms,bi,,KV/KV_bi.mp3,generated-ms
@@ -870,7 +870,7 @@ KV,fe,e-taling,ms,feée,,KV/KV_fe_e-taling.mp3,generated-ms
 KV,fi,standard,ms,fi,,KV/KV_fi.mp3,generated-ms
 KV,fo,standard,ms,fo,,KV/KV_fo.mp3,generated-ms
 KV,fu,standard,ms,fu,,KV/KV_fu.mp3,generated-ms
-KV,ga,standard,ms,gaharu,,KV/KV_ga.mp3,open-ms
+KV,ga,standard,ms,ga,,KV/KV_ga.mp3,natural-ms
 KV,ge,e-pepet,ms,ge.,,KV/KV_ge_e-pepet.mp3,generated-ms
 KV,ge,e-taling,ms,geée,,KV/KV_ge_e-taling.mp3,generated-ms
 KV,gi,standard,ms,gi,,KV/KV_gi.mp3,generated-ms
@@ -894,13 +894,13 @@ KV,ke,e-taling,ms,keée,,KV/KV_ke_e-taling.mp3,generated-ms
 KV,ki,standard,ms,ki,,KV/KV_ki.mp3,generated-ms
 KV,ko,standard,ms,ko,,KV/KV_ko.mp3,generated-ms
 KV,ku,standard,ms,ku,,KV/KV_ku.mp3,generated-ms
-KV,la,standard,ms,lahar,,KV/KV_la.mp3,open-ms
+KV,la,standard,ms,la,,KV/KV_la.mp3,natural-ms
 KV,le,e-pepet,ms,le.,,KV/KV_le_e-pepet.mp3,generated-ms
 KV,le,e-taling,ms,leée,,KV/KV_le_e-taling.mp3,generated-ms
 KV,li,standard,ms,li,,KV/KV_li.mp3,generated-ms
 KV,lo,standard,ms,lo,,KV/KV_lo.mp3,generated-ms
 KV,lu,standard,ms,lu,,KV/KV_lu.mp3,generated-ms
-KV,ma,standard,ms,maha,,KV/KV_ma.mp3,open-ms
+KV,ma,standard,ms,ma,,KV/KV_ma.mp3,natural-ms
 KV,me,e-pepet,ms,metro,,KV/KV_me_e-pepet.mp3,open-ms
 KV,me,e-taling,ms,meja,,KV/KV_me_e-taling.mp3,open-ms
 KV,mi,standard,ms,mi,,KV/KV_mi.mp3,generated-ms
@@ -912,7 +912,7 @@ KV,ne,e-taling,ms,netral,,KV/KV_ne_e-taling.mp3,open-ms
 KV,ni,standard,ms,ni,,KV/KV_ni.mp3,generated-ms
 KV,no,standard,ms,nota,,KV/KV_no.mp3,open-ms
 KV,nu,standard,ms,nu,,KV/KV_nu.mp3,generated-ms
-KV,pa,standard,ms,paham,,KV/KV_pa.mp3,open-ms
+KV,pa,standard,ms,pa,,KV/KV_pa.mp3,natural-ms
 KV,pe,e-pepet,ms,pe.,,KV/KV_pe_e-pepet.mp3,generated-ms
 KV,pe,e-taling,ms,peée,,KV/KV_pe_e-taling.mp3,generated-ms
 KV,pi,standard,ms,pi,,KV/KV_pi.mp3,generated-ms
@@ -930,7 +930,7 @@ KV,re,e-taling,ms,reée,,KV/KV_re_e-taling.mp3,generated-ms
 KV,ri,standard,ms,ri,,KV/KV_ri.mp3,generated-ms
 KV,ro,standard,ms,ro,,KV/KV_ro.mp3,generated-ms
 KV,ru,standard,ms,ru,,KV/KV_ru.mp3,generated-ms
-KV,sa,standard,ms,saham,,KV/KV_sa.mp3,open-ms
+KV,sa,standard,ms,sa,,KV/KV_sa.mp3,natural-ms
 KV,se,e-pepet,ms,se.,,KV/KV_se_e-pepet.mp3,generated-ms
 KV,se,e-taling,ms,seée,,KV/KV_se_e-taling.mp3,generated-ms
 KV,si,standard,ms,si,,KV/KV_si.mp3,generated-ms
@@ -942,7 +942,7 @@ KV,te,e-taling,ms,teater,,KV/KV_te_e-taling.mp3,open-ms
 KV,ti,standard,ms,ti,,KV/KV_ti.mp3,generated-ms
 KV,to,standard,ms,toge,,KV/KV_to.mp3,open-ms
 KV,tu,standard,ms,tu,,KV/KV_tu.mp3,generated-ms
-KV,va,standard,ms,vakum,,KV/KV_va.mp3,open-ms
+KV,va,standard,ms,va,,KV/KV_va.mp3,natural-ms
 KV,ve,e-pepet,ms,ve.,,KV/KV_ve_e-pepet.mp3,generated-ms
 KV,ve,e-taling,ms,veée,,KV/KV_ve_e-taling.mp3,generated-ms
 KV,vi,standard,ms,vi,,KV/KV_vi.mp3,generated-ms

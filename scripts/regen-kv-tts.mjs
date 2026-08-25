@@ -1,13 +1,15 @@
 /**
- * Regenerate the flagged KV suku kata from real Malay carrier words.
+ * Regenerate the flagged KV suku kata with natural pronunciation.
  *
- * Bare CV strings ("ba", "he", "no") are unreliable with Google Translate TTS:
- * the Malay voice reads them as English words ("he", "me", "no") or draws the
- * vowel into a two-syllable "be-a". Instead we ask for a real word that starts
- * with the target syllable ("bahan" for "ba"), trim the audio to that first
- * syllable, then slow it and fade the tail so the open vowel hangs cleanly.
+ * Two paths, both keeping the TTS at natural pace:
  *
- *   carrier word -> trim_first_syllable.py --relaxed -> atempo=0.5 -> afade
+ *  - Some CV strings read straight through as a clean syllable ("ba", "ga",
+ *    "la", "ma", "pa", "sa", "va"). Google reads those naturally, so we keep
+ *    the bare render exactly like the app's "ca"/"fa"/"ha".
+ *  - Others the Malay voice either reads as an English word ("he", "me", "no",
+ *    "to") or draws the a-row into "be-a". Those come from a real Malay carrier
+ *    word, trimmed to its first syllable, then slowed only as much as needed
+ *    (never below 0.6x) to stay clear without sounding robotic.
  *
  * Usage:
  *   node scripts/regen-kv-tts.mjs            # regenerate the 29 flagged KV files
@@ -27,28 +29,18 @@ const kvDir = path.join(root, 'public', 'audio', 'syllables', 'KV');
 const manifestPath = path.join(root, 'public', 'audio', 'syllables', 'manifest.csv');
 const trimScript = path.join(root, 'scripts', 'lib', 'trim_first_syllable.py');
 
-// Normalise the final clip length so nothing ships as short as a clipped "pa".
-// Slow each short trim atempo until it clears a ~0.60s floor; already-long
-// clips keep the 0.5x recipe. PAD accounts for the mp3 frame tail plus fade.
-const TARGET = 0.60;
-const PAD = 0.043;
+// A stable single-vowel render; the bare CV string is already the natural sound.
+const BARE = new Set(['ba', 'ga', 'la', 'ma', 'pa', 'sa', 'va']);
 
-// A real Malay word whose first syllable is the target CV. The second onset is
-// /h/ or a voiceless stop where possible so the trim cuts before a clean pocket.
+// A real Malay word whose first syllable is the target CV. Chosen so the cut
+// lands before a clean /h/ or voiceless-stop pocket.
 const CARRIERS = {
-  'ba:standard': 'bahan',
   'co:standard': 'cotok',
   'da:standard': 'dahan',
   'do:standard': 'dokar',
-  'ga:standard': 'gaharu',
   'hi:standard': 'hitung',
-  'la:standard': 'lahar',
-  'ma:standard': 'maha',
   'no:standard': 'nota',
-  'pa:standard': 'paham',
-  'sa:standard': 'saham',
   'to:standard': 'toge',
-  'va:standard': 'vakum',
   'ya:standard': 'yakin',
   'za:standard': 'zahir',
   'he:e-pepet': 'hepatitis',
@@ -67,25 +59,21 @@ const CARRIERS = {
   'ze:e-taling': 'zebra'
 };
 
+// Keep the carrier syllables clear but not robotic: floor 0.6x, target ~0.36s.
+const TARGET = 0.36;
+const PAD = 0.066;
+const MIN_RATE = 0.6;
+
 function argValue(name, fallback) {
   const match = process.argv.find((arg) => arg.startsWith(`--${name}=`));
   return match ? match.split('=').slice(1).join('=') : fallback;
-}
-
-function carrierFor(entry) {
-  return CARRIERS[`${entry.syllable}:${entry.eSound || 'standard'}`] || '';
 }
 
 function run(cmd, args) {
   return execFileSync(cmd, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
 }
 
-function trimCarrier(carrierMp3, trimMp3) {
-  return run('python', [trimScript, '--relaxed', carrierMp3, trimMp3]);
-}
-
 function atempoChain(rate) {
-  // ffmpeg's atempo accepts 0.5-2.0 per instance; chain stages to go lower.
   const parts = [];
   let remaining = rate;
   while (remaining < 0.5) {
@@ -96,13 +84,24 @@ function atempoChain(rate) {
   return parts.join(',');
 }
 
+function trimCarrier(carrierMp3, trimMp3) {
+  return run('python', [trimScript, '--relaxed', carrierMp3, trimMp3]);
+}
+
 function shapeClip(trimMp3, finalMp3, trimDuration) {
-  const rate = Math.min(0.5, trimDuration / (TARGET - PAD));
-  run('ffmpeg', ['-y', '-v', 'error', '-i', trimMp3, '-filter:a', `${atempoChain(rate)},afade=t=out:st=0.46:d=0.22`, finalMp3]);
+  const rate = Math.max(MIN_RATE, Math.min(1.0, trimDuration / (TARGET - PAD)));
+  const st = Math.max(0, trimDuration / rate - 0.08).toFixed(4);
+  const filter = `${atempoChain(rate)},afade=t=out:st=${st}:d=0.08`;
+  run('ffmpeg', ['-y', '-v', 'error', '-i', trimMp3, '-filter:a', filter, finalMp3]);
+  return rate;
 }
 
 function manifestKey(row) {
   return `${row.syllable}:${row.vowel_sound || 'standard'}`;
+}
+
+function isBare(entry) {
+  return !entry.eSound && BARE.has(entry.syllable);
 }
 
 async function main() {
@@ -112,34 +111,41 @@ async function main() {
   const delay = Number(argValue('delay', '260')) || 260;
 
   const entries = kvEntries().filter((entry) => {
-    if (!carrierFor(entry)) return false;
+    const carrier = CARRIERS[`${entry.syllable}:${entry.eSound || 'standard'}`];
+    if (!isBare(entry) && !carrier) return false;
     return !only.length || only.includes(entry.syllable) || only.includes(entry.key);
   });
 
-  console.log(`Regenerating ${entries.length} KV files from carrier words → ${kvDir} (tl=${TTS_LOCALE})`);
+  console.log(`Regenerating ${entries.length} KV files (tl=${TTS_LOCALE})`);
 
   let ok = 0;
   const failed = [];
   for (const entry of entries) {
-    const carrier = carrierFor(entry);
     const target = path.join(kvDir, entry.file.replace(/^KV\//, ''));
     if (dryRun) {
-      console.log(`${entry.key.padEnd(12)} → "${carrier}"`);
+      console.log(`${entry.key.padEnd(12)} → ${isBare(entry) ? `bare "${entry.syllable}"` : `carrier "${CARRIERS[`${entry.syllable}:${entry.eSound || 'standard'}`]}"`}`);
       continue;
     }
 
     const work = fs.mkdtempSync(path.join(root, 'scripts', '.kv-regen-'));
-    const carrierMp3 = path.join(work, 'carrier.mp3');
-    const trimMp3 = path.join(work, 'trim.mp3');
     try {
+      if (isBare(entry)) {
+        const { bytes } = await fetchTtsAudio(entry.syllable, { tl: TTS_LOCALE, attempts: 5 });
+        writeFileAtomic(target, bytes);
+        ok += 1;
+        console.log(`[${ok}/${entries.length}] ${entry.key.padEnd(12)} bare "${entry.syllable}"`);
+        continue;
+      }
+      const carrier = CARRIERS[`${entry.syllable}:${entry.eSound || 'standard'}`];
+      const carrierMp3 = path.join(work, 'carrier.mp3');
+      const trimMp3 = path.join(work, 'trim.mp3');
       const { bytes } = await fetchTtsAudio(carrier, { tl: TTS_LOCALE, attempts: 5 });
       writeFileAtomic(carrierMp3, bytes);
-      const result = trimCarrier(carrierMp3, trimMp3);
-      const payload = JSON.parse(result.trim());
+      const payload = JSON.parse(trimCarrier(carrierMp3, trimMp3).trim());
       if (!payload.ok) throw new Error(JSON.stringify(payload));
-      shapeClip(trimMp3, target, payload.duration);
+      const rate = shapeClip(trimMp3, target, payload.duration);
       ok += 1;
-      console.log(`[${ok}/${entries.length}] ${entry.key.padEnd(12)} "${carrier.padEnd(10)}" trim=${payload.duration.toFixed(3)}s rate=${Math.min(0.5, payload.duration / (TARGET - PAD)).toFixed(4)}`);
+      console.log(`[${ok}/${entries.length}] ${entry.key.padEnd(12)} carrier "${carrier.padEnd(10)}" trim=${payload.duration.toFixed(3)} rate=${rate.toFixed(3)}`);
     } catch (error) {
       failed.push(`${entry.key}: ${error.message}`);
       console.error(`[${ok + failed.length}/${entries.length}] FAILED ${entry.key} → ${error.message}`);
@@ -151,18 +157,24 @@ async function main() {
 
   if (!dryRun && !noManifest) {
     const rows = parseManifestCsv(fs.readFileSync(manifestPath, 'utf8'));
-    const byKey = new Map(entries.map((entry) => [`${entry.syllable}:${entry.eSound || 'standard'}`, entry]));
     let updated = 0;
     for (const row of rows) {
-      const entry = byKey.get(manifestKey(row));
-      if (entry) {
-        row.query_text = CARRIERS[`${entry.syllable}:${entry.eSound || 'standard'}`];
+      if (row.pattern !== 'KV') continue;
+      const syllable = row.syllable;
+      const sound = row.vowel_sound || 'standard';
+      if (!row.syllable) continue;
+      if (sound === 'standard' && BARE.has(syllable)) {
+        row.query_text = syllable;
+        row.status = 'natural-ms';
+        updated += 1;
+      } else if (CARRIERS[`${syllable}:${sound}`]) {
+        row.query_text = CARRIERS[`${syllable}:${sound}`];
         row.status = 'open-ms';
         updated += 1;
       }
     }
     fs.writeFileSync(manifestPath, toManifestCsv(rows), 'utf8');
-    console.log(`\nManifest: ${updated} KV rows set to open-ms.`);
+    console.log(`\nManifest: ${updated} KV rows updated.`);
   }
 
   console.log(`\nDone: ${ok} regenerated, ${failed.length} failed.`);
