@@ -27,6 +27,12 @@ const kvDir = path.join(root, 'public', 'audio', 'syllables', 'KV');
 const manifestPath = path.join(root, 'public', 'audio', 'syllables', 'manifest.csv');
 const trimScript = path.join(root, 'scripts', 'lib', 'trim_first_syllable.py');
 
+// Normalise the final clip length so nothing ships as short as a clipped "pa".
+// Slow each short trim atempo until it clears a ~0.60s floor; already-long
+// clips keep the 0.5x recipe. PAD accounts for the mp3 frame tail plus fade.
+const TARGET = 0.60;
+const PAD = 0.043;
+
 // A real Malay word whose first syllable is the target CV. The second onset is
 // /h/ or a voiceless stop where possible so the trim cuts before a clean pocket.
 const CARRIERS = {
@@ -78,8 +84,21 @@ function trimCarrier(carrierMp3, trimMp3) {
   return run('python', [trimScript, '--relaxed', carrierMp3, trimMp3]);
 }
 
-function shapeClip(trimMp3, finalMp3) {
-  run('ffmpeg', ['-y', '-v', 'error', '-i', trimMp3, '-filter:a', 'atempo=0.5,afade=t=out:st=0.46:d=0.22', finalMp3]);
+function atempoChain(rate) {
+  // ffmpeg's atempo accepts 0.5-2.0 per instance; chain stages to go lower.
+  const parts = [];
+  let remaining = rate;
+  while (remaining < 0.5) {
+    parts.push('atempo=0.5');
+    remaining /= 0.5;
+  }
+  parts.push(`atempo=${remaining.toFixed(6)}`);
+  return parts.join(',');
+}
+
+function shapeClip(trimMp3, finalMp3, trimDuration) {
+  const rate = Math.min(0.5, trimDuration / (TARGET - PAD));
+  run('ffmpeg', ['-y', '-v', 'error', '-i', trimMp3, '-filter:a', `${atempoChain(rate)},afade=t=out:st=0.46:d=0.22`, finalMp3]);
 }
 
 function manifestKey(row) {
@@ -118,9 +137,9 @@ async function main() {
       const result = trimCarrier(carrierMp3, trimMp3);
       const payload = JSON.parse(result.trim());
       if (!payload.ok) throw new Error(JSON.stringify(payload));
-      shapeClip(trimMp3, target);
+      shapeClip(trimMp3, target, payload.duration);
       ok += 1;
-      console.log(`[${ok}/${entries.length}] ${entry.key.padEnd(12)} "${carrier.padEnd(10)}" trim=${payload.duration.toFixed(3)}s`);
+      console.log(`[${ok}/${entries.length}] ${entry.key.padEnd(12)} "${carrier.padEnd(10)}" trim=${payload.duration.toFixed(3)}s rate=${Math.min(0.5, payload.duration / (TARGET - PAD)).toFixed(4)}`);
     } catch (error) {
       failed.push(`${entry.key}: ${error.message}`);
       console.error(`[${ok + failed.length}/${entries.length}] FAILED ${entry.key} → ${error.message}`);
