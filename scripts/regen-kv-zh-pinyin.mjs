@@ -29,6 +29,13 @@ const manifestPath = path.join(root, 'public', 'audio', 'syllables', 'manifest.c
 // The pinyin the learner aims for, chosen by the user for each Malay KV syllable.
 const PINYIN = ['ba', 'da', 'ga', 'ka', 'la', 'ma', 'na', 'pa', 'sa', 'ta', 'ya', 'za'];
 
+// Some syllables sound better when the Mandarin voice is fed the hanzi rather
+// than the bare pinyin string. Feeding "pa" reads it letter-by-letter ("p-ay"),
+// while 怕 gives the single /pà/ syllable the learner is aiming for.
+const QUERY_TEXT = {
+  pa: '怕'
+};
+
 const TTS_LOCALE = 'zh-CN';
 const STATUS = 'pinyin-zh';
 
@@ -98,15 +105,16 @@ async function main() {
     const raw = path.join(work, 'raw.mp3');
     const trimmed = path.join(work, 'trim.mp3');
     const shaped = path.join(work, 'final.mp3');
+    const query = QUERY_TEXT[syllable] || syllable;
     try {
-      const { bytes } = await fetchTtsAudio(syllable, { tl: TTS_LOCALE, attempts: 5 });
+      const { bytes } = await fetchTtsAudio(query, { tl: TTS_LOCALE, attempts: 5 });
       writeFileAtomic(raw, bytes);
       trimSilence(raw, trimmed);
       const { durationMs } = mp3DurationMs(fs.readFileSync(trimmed));
       shapeClip(trimmed, shaped, durationMs);
       writeFileAtomic(target, fs.readFileSync(shaped));
       ok += 1;
-      console.log(`[${ok}/${targets.length}] ${syllable.padEnd(4)} pinyin "${syllable}" trim=${(durationMs / 1000).toFixed(3)}s`);
+      console.log(`[${ok}/${targets.length}] ${syllable.padEnd(4)} query "${query}" trim=${(durationMs / 1000).toFixed(3)}s`);
     } catch (error) {
       failed.push(`${syllable}: ${error.message}`);
       console.error(`[${ok + failed.length}/${targets.length}] FAILED ${syllable} → ${error.message}`);
@@ -122,9 +130,9 @@ async function main() {
     for (const row of rows) {
       if (row.pattern !== 'KV') continue;
       if (row.vowel_sound && row.vowel_sound !== 'standard') continue;
-      if (!PINYIN.includes(row.syllable)) continue;
+      if (!targets.includes(row.syllable)) continue;
       row.tts_locale = TTS_LOCALE;
-      row.query_text = row.syllable;
+      row.query_text = QUERY_TEXT[row.syllable] || row.syllable;
       row.example_word = '';
       row.status = STATUS;
       updated += 1;
