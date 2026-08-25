@@ -135,15 +135,23 @@ class PondScene extends Phaser.Scene {
       .setStrokeStyle(4, 0x145e46, 0.72)
       .setInteractive({ useHandCursor: false });
     const speakerIcon = this.add.graphics().setPosition(480, 122);
+    // One solid speaker silhouette (box + horn), then two sound-wave arcs.
+    const speakerBody = [
+      { x: -21, y: -8 },
+      { x: -12, y: -8 },
+      { x: 1, y: -17 },
+      { x: 1, y: 17 },
+      { x: -12, y: 8 },
+      { x: -21, y: 8 }
+    ];
     speakerIcon.fillStyle(0x145e46, 1);
-    speakerIcon.fillRect(-19, -8, 10, 16);
-    speakerIcon.fillTriangle(-9, -8, 4, -18, 4, 18);
+    speakerIcon.fillPoints(speakerBody, true);
     speakerIcon.lineStyle(4, 0x145e46, 1);
     speakerIcon.beginPath();
-    speakerIcon.arc(3, 0, 13, -0.72, 0.72, false);
+    speakerIcon.arc(5, 0, 15, -0.78, 0.78, false);
     speakerIcon.strokePath();
     speakerIcon.beginPath();
-    speakerIcon.arc(3, 0, 22, -0.67, 0.67, false);
+    speakerIcon.arc(5, 0, 24, -0.64, 0.64, false);
     speakerIcon.strokePath();
     soundOrb.on("pointerdown", () => {
       if (this.viewState.phase !== "playing") return;
@@ -411,7 +419,7 @@ function PondCanvas({ round, feedback, phase, onChoice, onReplay, onCorrectLandi
       height: 540,
       backgroundColor: "#79d9df",
       scene,
-      scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_HORIZONTALLY }
+      scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }
     });
     gameRef.current = game;
     sceneRef.current = scene;
