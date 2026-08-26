@@ -4,10 +4,9 @@
  * old Malay carrier-word render.
  *
  * Most syllables feed a single Mandarin hanzi to a zh-CN voice (赫 / 么 / 特 /
- * 则).  "be" has no Chinese schwa, so it feeds the Devanagari ब to a Hindi
- * voice, whose inherent /ə/ matches the Malay pepet.  "we" (无二) and "ye"
- * (一二) are two-character compounds the user wants "pronounced fast", so the
- * script stretches the clip with atempo to collapse the two syllables.
+ * 则).  "be", "we" and "ye" have no clean Chinese schwa, so they feed the
+ * Devanagari ब / व / य to a Hindi voice, whose inherent /ə/ matches the Malay
+ * pepet exactly (ब≈be, व≈we, य≈ye).
  *
  * The bare vowel "e" is also regenerated (二 at zh-CN) into
  * public/audio/vowels/e-pepet.mp3, which the KV table's vowel row plays.
@@ -37,23 +36,22 @@ const manifestPath = path.join(root, 'public', 'audio', 'syllables', 'manifest.c
 //  neutral-tone "ne" /nə/ the learner is aiming for.
 //  ze is fed 则 rather than 着: 着 reads zhe with a retroflex zh, while 则 is
 //  the pinyin zé /tsɤ/ that stays on the closer "ze" the learner is after.
+//  we / ye are fed व / य (Hindi) rather than 无二 / 一二 (Mandarin): the two
+//  hanzi read an open /ɑɻ/ and, when sped up to collapse, sound unnatural,
+//  while the Hindi single syllable is already the /wə/ and /jə/ target.
 const KV_TARGETS = {
   be: { query: 'ब', tl: 'hi', status: 'sound-alike-hi' },
   he: { query: '赫', tl: 'zh-CN', status: 'sound-alike-zh' },
   me: { query: '么', tl: 'zh-CN', status: 'sound-alike-zh' },
   ne: { query: '呢', tl: 'zh-CN', status: 'sound-alike-zh' },
   te: { query: '特', tl: 'zh-CN', status: 'sound-alike-zh' },
-  we: { query: '无二', tl: 'zh-CN', status: 'sound-alike-zh', fast: true },
-  ye: { query: '一二', tl: 'zh-CN', status: 'sound-alike-zh', fast: true },
+  we: { query: 'व', tl: 'hi', status: 'sound-alike-hi' },
+  ye: { query: 'य', tl: 'hi', status: 'sound-alike-hi' },
   ze: { query: '则', tl: 'zh-CN', status: 'sound-alike-zh' }
 };
 
 // The bare e-pepet vowel is played by the KV table's "Vokal" row.
 const VOWEL_E = { query: '二', tl: 'zh-CN' };
-
-// "we" / "ye" are two hanzi, so we speed the clip up to collapse them into one
-// syllable-sized sound (roughly the length of the other cleaned clips).
-const FAST_TARGET_MS = 420;
 
 function argValue(name, fallback) {
   const match = process.argv.find((arg) => arg.startsWith(`--${name}=`));
@@ -79,32 +77,24 @@ function trimSilence(infile, outfile) {
   ]);
 }
 
-function atempoChain(rate) {
-  // ffmpeg's atempo is only stable within [0.5, 2.0], so split larger stretches
-  // into chained filters (we speed 无二/一二 up past 2x to collapse the two
-  // hanzi into one syllable-sized sound).
-  const parts = [];
-  let remaining = rate;
-  while (remaining > 2.0) {
-    parts.push('atempo=2.0');
-    remaining /= 2.0;
-  }
-  parts.push(`atempo=${remaining.toFixed(6)}`);
-  return parts.join(',');
-}
-
-function shapeClip(trimmedMp3, finalMp3, durationMs, rate = 1) {
+function shapeClip(trimmedMp3, finalMp3, durationMs) {
   // Small fade-in avoids a click from the silence cut; a short fade-out keeps
   // the open vowel from stopping abruptly while staying snappy.
-  const dur = durationMs / 1000 / rate;
+  const dur = durationMs / 1000;
   const outSt = Math.max(0, dur - 0.055);
-  const filter = rate === 1
-    ? `afade=t=in:st=0:d=0.012,afade=t=out:st=${outSt.toFixed(4)}:d=0.055`
-    : `${atempoChain(rate)},afade=t=in:st=0:d=0.012,afade=t=out:st=${outSt.toFixed(4)}:d=0.055`;
-  run('ffmpeg', ['-y', '-v', 'error', '-i', trimmedMp3, '-filter:a', filter, finalMp3]);
+  run('ffmpeg', [
+    '-y',
+    '-v',
+    'error',
+    '-i',
+    trimmedMp3,
+    '-filter:a',
+    `afade=t=in:st=0:d=0.012,afade=t=out:st=${outSt.toFixed(4)}:d=0.055`,
+    finalMp3
+  ]);
 }
 
-async function createClip(query, tl, fast, targetPath) {
+async function createClip(query, tl, targetPath) {
   const work = fs.mkdtempSync(path.join(root, 'scripts', '.kv-epepet-'));
   const raw = path.join(work, 'raw.mp3');
   const trimmed = path.join(work, 'trim.mp3');
@@ -114,10 +104,9 @@ async function createClip(query, tl, fast, targetPath) {
     writeFileAtomic(raw, bytes);
     trimSilence(raw, trimmed);
     const { durationMs } = mp3DurationMs(fs.readFileSync(trimmed));
-    const rate = fast ? Math.max(1, durationMs / FAST_TARGET_MS) : 1;
-    shapeClip(trimmed, shaped, durationMs, rate);
+    shapeClip(trimmed, shaped, durationMs);
     writeFileAtomic(targetPath, fs.readFileSync(shaped));
-    return { durationMs, rate };
+    return { durationMs };
   } catch (error) {
     throw error;
   } finally {
@@ -144,14 +133,14 @@ async function main() {
     }
     const target = path.join(kvDir, `KV_${syllable}_e-pepet.mp3`);
     if (dryRun) {
-      console.log(`${syllable.padEnd(4)} → query "${config.query}" @ ${config.tl}${config.fast ? ' (fast)' : ''}`);
+      console.log(`${syllable.padEnd(4)} → query "${config.query}" @ ${config.tl}`);
       continue;
     }
 
     try {
-      const { durationMs, rate } = await createClip(config.query, config.tl, config.fast, target);
+      const { durationMs } = await createClip(config.query, config.tl, target);
       ok += 1;
-      console.log(`[${ok}/${targets.length}] ${syllable.padEnd(4)} query "${config.query}" @ ${config.tl}${config.fast ? ` rate=${rate.toFixed(3)}` : ''} trim=${(durationMs / 1000).toFixed(3)}s`);
+      console.log(`[${ok}/${targets.length}] ${syllable.padEnd(4)} query "${config.query}" @ ${config.tl} trim=${(durationMs / 1000).toFixed(3)}s`);
     } catch (error) {
       failed.push(`${syllable}: ${error.message}`);
       console.error(`[${ok + failed.length}/${targets.length}] FAILED ${syllable} → ${error.message}`);
@@ -164,7 +153,7 @@ async function main() {
   if (!only.length && !dryRun) {
     const vowelTarget = path.join(vowelDir, 'e-pepet.mp3');
     try {
-      const { durationMs, rate } = await createClip(VOWEL_E.query, VOWEL_E.tl, false, vowelTarget);
+      const { durationMs } = await createClip(VOWEL_E.query, VOWEL_E.tl, vowelTarget);
       ok += 1;
       console.log(`vowel  query "${VOWEL_E.query}" @ ${VOWEL_E.tl} trim=${(durationMs / 1000).toFixed(3)}s`);
     } catch (error) {
