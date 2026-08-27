@@ -8,6 +8,8 @@
  * Devanagari ब / व / य to a Hindi voice, whose inherent /ə/ matches the Malay
  * pepet exactly (ब≈be, व≈we, य≈ye).
  *
+ * "we" and "ye" have pitch shifted +15% to sound brighter and more child-friendly.
+ *
  * The bare vowel "e" is also regenerated (二 at zh-CN) into
  * public/audio/vowels/e-pepet.mp3, which the KV table's vowel row plays.
  *
@@ -40,14 +42,14 @@ const manifestPath = path.join(root, 'public', 'audio', 'syllables', 'manifest.c
 //  hanzi read an open /ɑɻ/ and, when sped up to collapse, sound unnatural,
 //  while the Hindi single syllable is already the /wə/ and /jə/ target.
 const KV_TARGETS = {
-  be: { query: 'ब', tl: 'hi', status: 'sound-alike-hi' },
-  he: { query: '赫', tl: 'zh-CN', status: 'sound-alike-zh' },
-  me: { query: '么', tl: 'zh-CN', status: 'sound-alike-zh' },
-  ne: { query: '呢', tl: 'zh-CN', status: 'sound-alike-zh' },
-  te: { query: '特', tl: 'zh-CN', status: 'sound-alike-zh' },
-  we: { query: 'व', tl: 'hi', status: 'sound-alike-hi' },
-  ye: { query: 'य', tl: 'hi', status: 'sound-alike-hi' },
-  ze: { query: '则', tl: 'zh-CN', status: 'sound-alike-zh' }
+  be: { query: 'ब', tl: 'hi', status: 'sound-alike-hi', pitchShift: 1.0 },
+  he: { query: '赫', tl: 'zh-CN', status: 'sound-alike-zh', pitchShift: 1.0 },
+  me: { query: '么', tl: 'zh-CN', status: 'sound-alike-zh', pitchShift: 1.0 },
+  ne: { query: '呢', tl: 'zh-CN', status: 'sound-alike-zh', pitchShift: 1.0 },
+  te: { query: '特', tl: 'zh-CN', status: 'sound-alike-zh', pitchShift: 1.0 },
+  we: { query: 'व', tl: 'hi', status: 'sound-alike-hi', pitchShift: 1.15 },
+  ye: { query: 'य', tl: 'hi', status: 'sound-alike-hi', pitchShift: 1.15 },
+  ze: { query: '则', tl: 'zh-CN', status: 'sound-alike-zh', pitchShift: 1.0 }
 };
 
 // The bare e-pepet vowel is played by the KV table's "Vokal" row.
@@ -77,11 +79,23 @@ function trimSilence(infile, outfile) {
   ]);
 }
 
-function shapeClip(trimmedMp3, finalMp3, durationMs) {
+function shapeClip(trimmedMp3, finalMp3, durationMs, pitchShift = 1.0) {
   // Small fade-in avoids a click from the silence cut; a short fade-out keeps
   // the open vowel from stopping abruptly while staying snappy.
+  // Pitch shift (if > 1.0) increases pitch to make the sound brighter and more
+  // child-friendly without changing duration.
   const dur = durationMs / 1000;
   const outSt = Math.max(0, dur - 0.055);
+  
+  let audioFilter = `afade=t=in:st=0:d=0.012,afade=t=out:st=${outSt.toFixed(4)}:d=0.055`;
+  
+  if (pitchShift !== 1.0) {
+    // Pitch shift using asetrate: increase sample rate, then resample back to 44.1kHz
+    // This increases pitch without changing duration
+    const newRate = Math.round(44100 * pitchShift);
+    audioFilter = `asetrate=${newRate},aresample=44100,${audioFilter}`;
+  }
+  
   run('ffmpeg', [
     '-y',
     '-v',
@@ -89,12 +103,12 @@ function shapeClip(trimmedMp3, finalMp3, durationMs) {
     '-i',
     trimmedMp3,
     '-filter:a',
-    `afade=t=in:st=0:d=0.012,afade=t=out:st=${outSt.toFixed(4)}:d=0.055`,
+    audioFilter,
     finalMp3
   ]);
 }
 
-async function createClip(query, tl, targetPath) {
+async function createClip(query, tl, targetPath, pitchShift = 1.0) {
   const work = fs.mkdtempSync(path.join(root, 'scripts', '.kv-epepet-'));
   const raw = path.join(work, 'raw.mp3');
   const trimmed = path.join(work, 'trim.mp3');
@@ -104,7 +118,7 @@ async function createClip(query, tl, targetPath) {
     writeFileAtomic(raw, bytes);
     trimSilence(raw, trimmed);
     const { durationMs } = mp3DurationMs(fs.readFileSync(trimmed));
-    shapeClip(trimmed, shaped, durationMs);
+    shapeClip(trimmed, shaped, durationMs, pitchShift);
     writeFileAtomic(targetPath, fs.readFileSync(shaped));
     return { durationMs };
   } catch (error) {
@@ -138,9 +152,10 @@ async function main() {
     }
 
     try {
-      const { durationMs } = await createClip(config.query, config.tl, target);
+      const { durationMs } = await createClip(config.query, config.tl, target, config.pitchShift);
       ok += 1;
-      console.log(`[${ok}/${targets.length}] ${syllable.padEnd(4)} query "${config.query}" @ ${config.tl} trim=${(durationMs / 1000).toFixed(3)}s`);
+      const pitchNote = config.pitchShift !== 1.0 ? ` pitch=${config.pitchShift}x` : '';
+      console.log(`[${ok}/${targets.length}] ${syllable.padEnd(4)} query "${config.query}" @ ${config.tl} trim=${(durationMs / 1000).toFixed(3)}s${pitchNote}`);
     } catch (error) {
       failed.push(`${syllable}: ${error.message}`);
       console.error(`[${ok + failed.length}/${targets.length}] FAILED ${syllable} → ${error.message}`);
