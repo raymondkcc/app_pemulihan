@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { execFileSync } from 'child_process';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync } from 'fs';
 import path from 'path';
 import { fetchTtsAudio, writeFileAtomic } from './lib/google-tts.mjs';
 
@@ -30,38 +30,52 @@ for (const { syllable, query, locale, label } of consonants) {
   writeFileAtomic(tempFile, bytes);
 }
 
-// Step 2: Use existing e-pepet vowel as the schwa source
-console.log('\n[2/4] Using existing e-pepet vowel as schwa source...');
+// Step 2: Use existing e-pepet vowels for the schwa body and natural tail
+console.log('\n[2/4] Using existing e-pepet vowels as schwa sources...');
 const schwaSource = path.join(AUDIO_DIR, 'KV_te_e-pepet.mp3');
-console.log(`  schwa from: te (特)`);
+const tailSource = path.join(AUDIO_DIR, 'KV_le_e-pepet.mp3');
+console.log(`  schwa body from: te (特)`);
+console.log(`  schwa tail from: le (le.)`);
 
 // Step 3: Splice consonant onsets with schwa vowel
 console.log('\n[3/4] Splicing consonant + vowel...');
 
 for (const { syllable, label } of consonants) {
   const consonantFile = path.join(TEMP_DIR, `${label}-source.mp3`);
-  const consonantPart = path.join(TEMP_DIR, `${label}-part.mp3`);
-  const vowelPart = path.join(TEMP_DIR, `schwa-part.mp3`);
-  const splicedRaw = path.join(TEMP_DIR, `${syllable}-spliced-raw.mp3`);
+  const legacyPart = path.join(TEMP_DIR, `${label}-part.mp3`);
+  const legacyVowelPart = path.join(TEMP_DIR, 'schwa-part.mp3');
+  const legacySplicedRaw = path.join(TEMP_DIR, `${syllable}-spliced-raw.mp3`);
   const outputFile = path.join(AUDIO_DIR, `KV_${syllable}_e-pepet.mp3`);
-  
+
   console.log(`  ${syllable}:`);
-  
-  // Extract first 80ms of consonant (the onset)
-  console.log(`    - extract ${label} onset (0-80ms)`);
-  execFileSync('ffmpeg', ['-y', '-i', consonantFile, '-ss', '0', '-t', '0.08', '-af', 'afade=t=out:st=0.06:d=0.02', consonantPart], { stdio: 'ignore' });
-  
-  // Extract vowel portion from te (skip first 60ms to avoid the "t" consonant)
-  console.log(`    - extract schwa vowel from te (60ms onward)`);
-  execFileSync('ffmpeg', ['-y', '-i', schwaSource, '-ss', '0.06', '-af', 'afade=t=in:st=0:d=0.02', vowelPart], { stdio: 'ignore' });
-  
-  // Concatenate with crossfade at the junction
-  console.log(`    - concatenate with crossfade`);
-  execFileSync('ffmpeg', ['-y', '-i', consonantPart, '-i', vowelPart, '-filter_complex', '[0][1]concat=n=2:v=0:a=1[out]', '-map', '[out]', splicedRaw], { stdio: 'ignore' });
-  
-  // Trim silence and normalize duration to ~300-350ms
-  console.log(`    - trim silence and normalize`);
-  execFileSync('ffmpeg', ['-y', '-i', splicedRaw, '-af', 'silenceremove=start_periods=1:start_silence=0.05:start_threshold=-50dB,areverse,silenceremove=start_periods=1:start_silence=0.05:start_threshold=-50dB,areverse,afade=t=in:st=0:d=0.02,afade=t=out:st=0.28:d=0.02', '-t', '0.35', outputFile], { stdio: 'ignore' });
+
+  // Start at the measured glide onset. The 80ms window is long enough for
+  // w/y to remain audible; a 40ms crossfade avoids an audible butt joint.
+  const onsetStart = syllable === 'we' ? 0.110 : 0.100;
+  const onsetEnd = onsetStart + 0.080;
+  const onsetFadeOut = onsetEnd - 0.015;
+  const filter = [
+    `[0]atrim=start=${onsetStart.toFixed(3)}:end=${onsetEnd.toFixed(3)},asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.010,afade=t=out:st=${onsetFadeOut.toFixed(3)}:d=0.015[on]`,
+    `[1]atrim=start=0.100:end=0.376,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.012[v0]`,
+    `[2]atrim=start=0.100:end=0.380,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.012[v1]`,
+    `[v0][v1]acrossfade=d=0.060:c1=qsin:c2=qsin[vfull]`,
+    `[on][vfull]acrossfade=d=0.040:c1=qsin:c2=qsin,afade=t=out:st=0.290:d=0.055,atrim=end=0.350,alimiter=limit=0.85[out]`
+  ].join(';');
+
+  console.log(`    - splice ${label} onset + te schwa + le tail`);
+  execFileSync(
+    'ffmpeg',
+    [
+      '-y', '-i', consonantFile, '-i', schwaSource, '-i', tailSource,
+      '-filter_complex', filter, '-map', '[out]', '-ac', '1', '-ar', '24000', outputFile
+    ],
+    { stdio: 'ignore' }
+  );
+
+  // Remove scratch artifacts from the first-generation splice.
+  for (const legacy of [legacyPart, legacyVowelPart, legacySplicedRaw]) {
+    if (existsSync(legacy)) rmSync(legacy);
+  }
   
   console.log(`    ✓ ${outputFile}`);
 }
@@ -79,7 +93,7 @@ for (const { syllable, query, locale } of consonants) {
   const idx = rows.findIndex(r => r.startsWith(key));
   
   if (idx >= 0) {
-    rows[idx] = `${key},${locale},${query},sound-alike-zh,spliced`;
+    rows[idx] = `${key},mixed,我+特+le.,,KV/KV_${syllable}_e-pepet.mp3,spliced-hybrid`;
     console.log(`  updated: ${syllable}`);
   }
 }
