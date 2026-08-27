@@ -38,17 +38,18 @@ const manifestPath = path.join(root, 'public', 'audio', 'syllables', 'manifest.c
 //  neutral-tone "ne" /nə/ the learner is aiming for.
 //  ze is fed 则 rather than 着: 着 reads zhe with a retroflex zh, while 则 is
 //  the pinyin zé /tsɤ/ that stays on the closer "ze" the learner is after.
-//  we / ye are fed व / य (Hindi) rather than 无二 / 一二 (Mandarin): the two
-//  hanzi read an open /ɑɻ/ and, when sped up to collapse, sound unnatural,
-//  while the Hindi single syllable is already the /wə/ and /jə/ target.
+//  we is fed 文 (Mandarin wén) but trimmed to cut the final "n", leaving just
+//  the /wə/ onset that matches Malay "we".
+//  ye is fed 一二 (yī èr) but hard-cut to ~0.35s so the two syllables collapse
+//  into a fast "ye" glide that approximates the Malay e-pepet target.
 const KV_TARGETS = {
   be: { query: 'ब', tl: 'hi', status: 'sound-alike-hi', pitchShift: 1.0 },
   he: { query: '赫', tl: 'zh-CN', status: 'sound-alike-zh', pitchShift: 1.0 },
   me: { query: '么', tl: 'zh-CN', status: 'sound-alike-zh', pitchShift: 1.0 },
   ne: { query: '呢', tl: 'zh-CN', status: 'sound-alike-zh', pitchShift: 1.0 },
   te: { query: '特', tl: 'zh-CN', status: 'sound-alike-zh', pitchShift: 1.0 },
-  we: { query: '窝', tl: 'zh-CN', status: 'sound-alike-zh', pitchShift: 1.0 },
-  ye: { query: '也', tl: 'zh-CN', status: 'sound-alike-zh', pitchShift: 1.0 },
+  we: { query: '文', tl: 'zh-CN', status: 'sound-alike-zh', pitchShift: 1.0, cutDuration: 0.35 },
+  ye: { query: '一二', tl: 'zh-CN', status: 'sound-alike-zh', pitchShift: 1.0, cutDuration: 0.35 },
   ze: { query: '则', tl: 'zh-CN', status: 'sound-alike-zh', pitchShift: 1.0 }
 };
 
@@ -79,12 +80,15 @@ function trimSilence(infile, outfile) {
   ]);
 }
 
-function shapeClip(trimmedMp3, finalMp3, durationMs, pitchShift = 1.0) {
+function shapeClip(trimmedMp3, finalMp3, durationMs, pitchShift = 1.0, cutDuration = null) {
   // Small fade-in avoids a click from the silence cut; a short fade-out keeps
   // the open vowel from stopping abruptly while staying snappy.
   // Pitch shift (if > 1.0) increases pitch to make the sound brighter and more
   // child-friendly without changing duration.
+  // cutDuration (if set) hard-cuts the audio to that length in seconds, useful
+  // for trimming trailing consonants like the "n" in 文.
   const dur = durationMs / 1000;
+  const actualDur = cutDuration || dur;
   const outSt = Math.max(0, dur - 0.055);
   
   let audioFilter = `afade=t=in:st=0:d=0.012,afade=t=out:st=${outSt.toFixed(4)}:d=0.055`;
@@ -96,19 +100,25 @@ function shapeClip(trimmedMp3, finalMp3, durationMs, pitchShift = 1.0) {
     audioFilter = `asetrate=${newRate},aresample=44100,${audioFilter}`;
   }
   
-  run('ffmpeg', [
+  const args = [
     '-y',
     '-v',
     'error',
     '-i',
     trimmedMp3,
-    '-filter:a',
-    audioFilter,
-    finalMp3
-  ]);
+  ];
+  
+  if (cutDuration) {
+    // Hard cut to specified duration, then apply fades
+    args.push('-t', cutDuration.toFixed(4), '-filter:a', audioFilter, finalMp3);
+  } else {
+    args.push('-filter:a', audioFilter, finalMp3);
+  }
+  
+  run('ffmpeg', args);
 }
 
-async function createClip(query, tl, targetPath, pitchShift = 1.0) {
+async function createClip(query, tl, targetPath, pitchShift = 1.0, cutDuration = null) {
   const work = fs.mkdtempSync(path.join(root, 'scripts', '.kv-epepet-'));
   const raw = path.join(work, 'raw.mp3');
   const trimmed = path.join(work, 'trim.mp3');
@@ -118,9 +128,9 @@ async function createClip(query, tl, targetPath, pitchShift = 1.0) {
     writeFileAtomic(raw, bytes);
     trimSilence(raw, trimmed);
     const { durationMs } = mp3DurationMs(fs.readFileSync(trimmed));
-    shapeClip(trimmed, shaped, durationMs, pitchShift);
+    shapeClip(trimmed, shaped, durationMs, pitchShift, cutDuration);
     writeFileAtomic(targetPath, fs.readFileSync(shaped));
-    return { durationMs };
+    return { durationMs: cutDuration ? cutDuration * 1000 : durationMs };
   } catch (error) {
     throw error;
   } finally {
@@ -152,10 +162,11 @@ async function main() {
     }
 
     try {
-      const { durationMs } = await createClip(config.query, config.tl, target, config.pitchShift);
+      const { durationMs } = await createClip(config.query, config.tl, target, config.pitchShift, config.cutDuration);
       ok += 1;
       const pitchNote = config.pitchShift !== 1.0 ? ` pitch=${config.pitchShift}x` : '';
-      console.log(`[${ok}/${targets.length}] ${syllable.padEnd(4)} query "${config.query}" @ ${config.tl} trim=${(durationMs / 1000).toFixed(3)}s${pitchNote}`);
+      const cutNote = config.cutDuration ? ` cut=${config.cutDuration}s` : '';
+      console.log(`[${ok}/${targets.length}] ${syllable.padEnd(4)} query "${config.query}" @ ${config.tl} trim=${(durationMs / 1000).toFixed(3)}s${pitchNote}${cutNote}`);
     } catch (error) {
       failed.push(`${syllable}: ${error.message}`);
       console.error(`[${ok + failed.length}/${targets.length}] FAILED ${syllable} → ${error.message}`);
