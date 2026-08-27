@@ -51,6 +51,7 @@ function LetterRecognitionPanel({ selectedLetter, onSelect, letterCase }) {
   }, []);
 
   function chooseLetter(item) {
+    if (speakingLetter) return;
     onSelect(item);
     setSpeakingLetter(item.letter);
     window.clearTimeout(soundTimer.current);
@@ -283,6 +284,7 @@ function SoundChoice({ item, isSelected, isSpeaking, index, onChoose, kind = "vo
       style={{ "--sound-index": index }}
       type="button"
       onClick={() => onChoose(item)}
+      disabled={isSpeaking}
       aria-pressed={isSelected}
       aria-label={`Dengar bunyi ${displayLabel}`}
       title={`Dengar ${displayLabel}`}

@@ -45,6 +45,7 @@ function KVSoundTable({ selectedItem, onSelect, eSound }) {
   }, []);
 
   function chooseItem(item) {
+    if (speakingItem) return;
     onSelect(item);
     setSpeakingItem(item.id);
     window.clearTimeout(soundTimer.current);

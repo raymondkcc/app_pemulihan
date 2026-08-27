@@ -841,6 +841,7 @@ function LetterRecognitionPanel({ selectedLetter, onSelect, letterCase }) {
   }, []);
 
   function chooseLetter(item) {
+    if (speakingLetter) return;
     onSelect(item);
     setSpeakingLetter(item.letter);
     window.clearTimeout(soundTimer.current);
@@ -1073,6 +1074,7 @@ function SoundChoice({ item, isSelected, isSpeaking, index, onChoose, kind = "vo
       style={{ "--sound-index": index }}
       type="button"
       onClick={() => onChoose(item)}
+      disabled={isSpeaking}
       aria-pressed={isSelected}
       aria-label={`Dengar bunyi ${displayLabel}`}
       title={`Dengar ${displayLabel}`}
@@ -1097,6 +1099,7 @@ function MalaySoundPanel({ items, selectedItem, onSelect, title, description, ki
   }, []);
 
   function chooseItem(item) {
+    if (speakingItem) return;
     onSelect(item);
     setSpeakingItem(item.id);
     window.clearTimeout(soundTimer.current);
@@ -1221,6 +1224,7 @@ function KVSoundTable({ selectedItem, onSelect, eSound }) {
   }, []);
 
   function chooseItem(item) {
+    if (speakingItem) return;
     onSelect(item);
     setSpeakingItem(item.id);
     window.clearTimeout(soundTimer.current);
@@ -1426,6 +1430,7 @@ function PerkataanWordCard({ word, isSpeaking, onSpeak }) {
       className={`word-card ${isSpeaking ? "is-speaking" : ""}`}
       type="button"
       onClick={onSpeak}
+      disabled={isSpeaking}
       aria-label={`Dengar perkataan ${word}`}
       title={`Dengar ${word}`}
     >
