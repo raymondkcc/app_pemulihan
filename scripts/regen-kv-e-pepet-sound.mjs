@@ -47,8 +47,8 @@ const KV_TARGETS = {
   me: { query: '么', tl: 'zh-CN', status: 'sound-alike-zh', pitchShift: 1.0 },
   ne: { query: '呢', tl: 'zh-CN', status: 'sound-alike-zh', pitchShift: 1.0 },
   te: { query: '特', tl: 'zh-CN', status: 'sound-alike-zh', pitchShift: 1.0 },
-  we: { query: 'व', tl: 'hi', status: 'sound-alike-hi', pitchShift: 1.05 },
-  ye: { query: 'य', tl: 'hi', status: 'sound-alike-hi', pitchShift: 1.05 },
+  we: { query: '窝', tl: 'zh-CN', status: 'sound-alike-zh', pitchShift: 1.0 },
+  ye: { query: '也', tl: 'zh-CN', status: 'sound-alike-zh', pitchShift: 1.0 },
   ze: { query: '则', tl: 'zh-CN', status: 'sound-alike-zh', pitchShift: 1.0 }
 };
 
