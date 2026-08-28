@@ -49,17 +49,18 @@ for (const { syllable, label } of consonants) {
 
   console.log(`  ${syllable}:`);
 
-  // Start at the measured glide onset. The 80ms window is long enough for
-  // w/y to remain audible; a 40ms crossfade avoids an audible butt joint.
+  // Use the measured 40ms glide onset, then join directly to the vowel.
+  // Boost the glide by 12dB before limiting it, otherwise the loud e-pepet
+  // vowel masks the quieter w/y transition completely.
   const onsetStart = syllable === 'we' ? 0.110 : 0.100;
-  const onsetEnd = onsetStart + 0.080;
-  const onsetFadeOut = onsetEnd - 0.015;
+  const onsetEnd = onsetStart + 0.040;
+  const onsetFadeOut = onsetEnd - 0.005;
   const filter = [
-    `[0]atrim=start=${onsetStart.toFixed(3)}:end=${onsetEnd.toFixed(3)},asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.010,afade=t=out:st=${onsetFadeOut.toFixed(3)}:d=0.015[on]`,
-    `[1]atrim=start=0.100:end=0.376,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.012[v0]`,
+    `[0]atrim=start=${onsetStart.toFixed(3)}:end=${onsetEnd.toFixed(3)},asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.010,volume=12dB,alimiter=limit=0.500:level=false,afade=t=out:st=${onsetFadeOut.toFixed(3)}:d=0.005[on]`,
+    `[1]atrim=start=0.100:end=0.376,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.018[v0]`,
     `[2]atrim=start=0.100:end=0.380,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.012[v1]`,
     `[v0][v1]acrossfade=d=0.060:c1=qsin:c2=qsin[vfull]`,
-    `[on][vfull]acrossfade=d=0.040:c1=qsin:c2=qsin,afade=t=out:st=0.290:d=0.055,atrim=end=0.350,alimiter=limit=0.85[out]`
+    `[on][vfull]concat=n=2:v=0:a=1,afade=t=out:st=0.290:d=0.055,atrim=end=0.350[out]`
   ].join(';');
 
   console.log(`    - splice ${label} onset + te schwa + le tail`);
