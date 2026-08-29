@@ -44,8 +44,12 @@ function KVSoundTable({ selectedItem, onSelect, eSound }) {
     };
   }, []);
 
+  function isUnavailable(item) {
+    return eSound === "e-pepet" && (item.syllable === "we" || item.syllable === "ye");
+  }
+
   function chooseItem(item) {
-    if (speakingItem) return;
+    if (speakingItem || isUnavailable(item)) return;
     onSelect(item);
     setSpeakingItem(item.id);
     window.clearTimeout(soundTimer.current);
@@ -64,7 +68,7 @@ function KVSoundTable({ selectedItem, onSelect, eSound }) {
         {PACK_ONSETS.map((onset, rowIndex) => (
           <Fragment key={`row-${onset}`}>
             <div className="kv-table-label kv-table-label-kv" role="rowheader">{onset}</div>
-            {kvRows[rowIndex].map((item, index) => <SoundChoice key={item.id} item={item} index={index} kind="table-syllable" isSelected={selectedItem.id === item.id} isSpeaking={speakingItem === item.id} onChoose={chooseItem} />)}
+            {kvRows[rowIndex].map((item, index) => <SoundChoice key={item.id} item={item} index={index} kind="table-syllable" isSelected={selectedItem.id === item.id} isSpeaking={speakingItem === item.id} isUnavailable={isUnavailable(item)} onChoose={chooseItem} />)}
           </Fragment>
         ))}
       </div>

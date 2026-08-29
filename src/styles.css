@@ -842,6 +842,8 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .kv-table > .sound-choice-table-syllable:nth-child(5n) { background: #e9e3ff; }
 .kv-table > .sound-choice.is-selected { z-index: 1; border: 2px solid var(--home-ink); box-shadow: 3px 3px 0 rgba(25,56,74,.12); }
 .kv-table > .sound-choice.is-speaking { z-index: 2; }
+.kv-table > .sound-choice.sound-choice-table-syllable.is-unavailable { color: #7b8389; background: #e3e6e8; border-color: rgba(82,91,98,.28); cursor: not-allowed; filter: grayscale(1); opacity: .72; transform: none; }
+.kv-table > .sound-choice.is-unavailable .letter-button-ripple { display: none; }
 .letter-focus-pair { display: flex; align-items: baseline; gap: .2rem; color: var(--home-coral-dark); font-family: "Comic Sans MS", "Comic Neue", "Chalkboard SE", cursive; font-weight: 700; line-height: 1; }
 .letter-focus-pair span:first-child { font-size: 4.6rem; }
 .letter-focus-pair span:last-child { color: var(--home-blue); font-size: 2.9rem; }

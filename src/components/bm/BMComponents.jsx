@@ -275,19 +275,22 @@ function LetterMatchTest() {
   );
 }
 
-function SoundChoice({ item, isSelected, isSpeaking, index, onChoose, kind = "vowel" }) {
+function SoundChoice({ item, isSelected, isSpeaking, isUnavailable = false, index, onChoose, kind = "vowel" }) {
   const displayLabel = vowelDisplayLabel(item);
+  const accessibleLabel = isUnavailable
+    ? `${displayLabel} tidak digunakan untuk e pepet`
+    : `Dengar bunyi ${displayLabel}`;
 
   return (
     <button
-      className={`sound-choice sound-choice-${kind} ${isSelected ? "is-selected" : ""} ${isSpeaking ? "is-speaking" : ""}`}
+      className={`sound-choice sound-choice-${kind} ${isSelected ? "is-selected" : ""} ${isSpeaking ? "is-speaking" : ""} ${isUnavailable ? "is-unavailable" : ""}`}
       style={{ "--sound-index": index }}
       type="button"
       onClick={() => onChoose(item)}
-      disabled={isSpeaking}
+      disabled={isSpeaking || isUnavailable}
       aria-pressed={isSelected}
-      aria-label={`Dengar bunyi ${displayLabel}`}
-      title={`Dengar ${displayLabel}`}
+      aria-label={accessibleLabel}
+      title={accessibleLabel}
     >
       <strong>{item.label}</strong>
       {item.variant && <span className="sound-choice-variant">{item.variant}</span>}

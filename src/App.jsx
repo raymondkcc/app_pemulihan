@@ -1065,19 +1065,22 @@ function LetterMatchTest() {
   );
 }
 
-function SoundChoice({ item, isSelected, isSpeaking, index, onChoose, kind = "vowel" }) {
+function SoundChoice({ item, isSelected, isSpeaking, isUnavailable = false, index, onChoose, kind = "vowel" }) {
   const displayLabel = vowelDisplayLabel(item);
+  const accessibleLabel = isUnavailable
+    ? `${displayLabel} tidak digunakan untuk e pepet`
+    : `Dengar bunyi ${displayLabel}`;
 
   return (
     <button
-      className={`sound-choice sound-choice-${kind} ${isSelected ? "is-selected" : ""} ${isSpeaking ? "is-speaking" : ""}`}
+      className={`sound-choice sound-choice-${kind} ${isSelected ? "is-selected" : ""} ${isSpeaking ? "is-speaking" : ""} ${isUnavailable ? "is-unavailable" : ""}`}
       style={{ "--sound-index": index }}
       type="button"
       onClick={() => onChoose(item)}
-      disabled={isSpeaking}
+      disabled={isSpeaking || isUnavailable}
       aria-pressed={isSelected}
-      aria-label={`Dengar bunyi ${displayLabel}`}
-      title={`Dengar ${displayLabel}`}
+      aria-label={accessibleLabel}
+      title={accessibleLabel}
     >
       <strong>{item.label}</strong>
       {item.variant && <span className="sound-choice-variant">{item.variant}</span>}
@@ -1223,8 +1226,12 @@ function KVSoundTable({ selectedItem, onSelect, eSound }) {
     };
   }, []);
 
+  function isUnavailable(item) {
+    return eSound === "e-pepet" && (item.syllable === "we" || item.syllable === "ye");
+  }
+
   function chooseItem(item) {
-    if (speakingItem) return;
+    if (speakingItem || isUnavailable(item)) return;
     onSelect(item);
     setSpeakingItem(item.id);
     window.clearTimeout(soundTimer.current);
@@ -1243,7 +1250,7 @@ function KVSoundTable({ selectedItem, onSelect, eSound }) {
         {PACK_ONSETS.map((onset, rowIndex) => (
           <Fragment key={`row-${onset}`}>
             <div className="kv-table-label kv-table-label-kv" role="rowheader">{onset}</div>
-            {kvRows[rowIndex].map((item, index) => <SoundChoice key={item.id} item={item} index={index} kind="table-syllable" isSelected={selectedItem.id === item.id} isSpeaking={speakingItem === item.id} onChoose={chooseItem} />)}
+            {kvRows[rowIndex].map((item, index) => <SoundChoice key={item.id} item={item} index={index} kind="table-syllable" isSelected={selectedItem.id === item.id} isSpeaking={speakingItem === item.id} isUnavailable={isUnavailable(item)} onChoose={chooseItem} />)}
           </Fragment>
         ))}
       </div>
@@ -1262,9 +1269,14 @@ function KVModule({ onBack }) {
 
   function changeESound(nextSound) {
     setESound(nextSound);
-    setSelectedItem((current) => current.syllable.endsWith("e")
-      ? createKvItem(current.syllable[0], "e", nextSound)
-      : current);
+    setSelectedItem((current) => {
+      if (nextSound === "e-pepet" && (current.syllable === "we" || current.syllable === "ye")) {
+        return createKvItem("b", "a", nextSound);
+      }
+      return current.syllable.endsWith("e")
+        ? createKvItem(current.syllable[0], "e", nextSound)
+        : current;
+    });
   }
 
   return (

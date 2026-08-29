@@ -4,9 +4,14 @@ function KVModule({ onBack }) {
 
   function changeESound(nextSound) {
     setESound(nextSound);
-    setSelectedItem((current) => current.syllable.endsWith("e")
-      ? createKvItem(current.syllable[0], "e", nextSound)
-      : current);
+    setSelectedItem((current) => {
+      if (nextSound === "e-pepet" && (current.syllable === "we" || current.syllable === "ye")) {
+        return createKvItem("b", "a", nextSound);
+      }
+      return current.syllable.endsWith("e")
+        ? createKvItem(current.syllable[0], "e", nextSound)
+        : current;
+    });
   }
 
   return (
