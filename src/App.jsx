@@ -38,19 +38,37 @@ import {
   pickPackSyllable,
   syllableAudioPath
 } from "./data/syllablePack.js";
+import { splitMalaySyllables } from "./utils/malaySyllables.js";
 import AdditionRegroupGame from "./games/additionRegroup/AdditionRegroupGame.jsx";
 import MinusRegroupGame from "./games/minusRegroup/MinusRegroupGame.jsx";
 import MosquitoSplatGame from "./games/mosquitoSplat/MosquitoSplatGame.jsx";
 import KvSoundPondGame from "./games/kvSoundPond/KvSoundPondGame.jsx";
+import PerkataanFlashCardGame from "./components/bm/PerkataanFlashCardGame.jsx";
+import PerkataanQuizGame from "./components/bm/PerkataanQuizGame.jsx";
 import "./styles.css";
 
 const LetterCaseGame = lazy(() => import("./games/letterCase/LetterCaseGame.jsx"));
 
 const OPEN_DURATION = 1280;
 const NEXT_ROUND_DELAY = 900;
+const INTERFACE_CLICK_SOUND = "/audio/quiz/interface-click.mp3";
 
 const syllableAudioCache = new Map();
 let activeSyllableAudio = null;
+
+function playInterfaceClick() {
+  if (!window.Audio) return;
+
+  const audio = new window.Audio(INTERFACE_CLICK_SOUND);
+  audio.volume = 0.45;
+  audio.play().catch(() => {});
+}
+
+function isInteractiveTarget(target) {
+  return target instanceof Element
+    ? target.closest("button, a, select, summary, input, textarea, [role='button'], [role='tab'], [role='radio'], [role='checkbox'], [role='switch'], [role='option'], [role='menuitem'], [role='link']")
+    : null;
+}
 
 function playSyllableAudio(item) {
   const source = syllableAudioPath(item);
@@ -526,8 +544,8 @@ const BM_CATEGORIES = [
     icon: "Languages",
     subCategories: [
       { id: "belajar", title: "Belajar", description: "Kenal perkataan", component: "perkataan-belajar" },
-      { id: "main", title: "Main", description: "Padan gambar", component: "perkataan-main" },
-      { id: "ujian", title: "Ujian", description: "Cabaran ayat", component: "perkataan-ujian" }
+      { id: "main", title: "Main", description: "Kuiz 4 pilihan", component: "perkataan-main" },
+      { id: "ujian", title: "Ulang kaji", description: "Ulang kaji kad imbas", component: "perkataan-ujian" }
     ]
   }
 ];
@@ -724,11 +742,12 @@ function preferredMalayVoice() {
   return voices.find((voice) => /^ms[-_]/i.test(voice.lang)) || null;
 }
 
-function speakMalayText(text) {
+function speakMalayText(text, rate = 1) {
   // Use local audio files for Malay words
   const audioUrl = `/audio/perkataan/${text}.mp3`;
-  
+
   const audio = new Audio(audioUrl);
+  audio.playbackRate = rate;
   audio.play().catch((err) => {
     console.warn("Local audio not found, falling back to browser TTS:", err);
     // Fallback to browser TTS
@@ -741,7 +760,7 @@ function speakMalayText(text) {
     } else {
       voiceLine.lang = "ms-MY";
     }
-    voiceLine.rate = 0.58;
+    voiceLine.rate = 0.58 * rate;
     voiceLine.pitch = 1.08;
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(voiceLine);
@@ -1433,7 +1452,7 @@ function HurufModule({ onBack }) {
   );
 }
 
-function PerkataanWordCard({ word, isSpeaking, onSpeak }) {
+function PerkataanWordCard({ word, isSpeaking, onSpeak, color = "coral", activeSyllableIndex = -1 }) {
   const [imageFailed, setImageFailed] = useState(false);
   const [imageSrc, setImageSrc] = useState(`/images/perkataan/${word}.png`);
 
@@ -1459,43 +1478,18 @@ function PerkataanWordCard({ word, isSpeaking, onSpeak }) {
         )}
         {imageFailed && <Image size={40} />}
       </span>
-      <SyllableWord word={word} />
+      <SyllableWord word={word} color={color} activeSyllableIndex={activeSyllableIndex} />
       <span className="word-card-listen" aria-hidden="true"><Volume2 size={14} /></span>
     </button>
   );
 }
 
-function splitMalaySyllables(word) {
-  const vowels = /[aeiou]/i;
-  const result = [];
-  let current = "";
-  let hasVowel = false;
-
-  for (let i = 0; i < word.length; i++) {
-    const char = word[i];
-    current += char;
-    if (vowels.test(char)) {
-      hasVowel = true;
-    }
-    if (hasVowel && i < word.length - 1) {
-      const nextChar = word[i + 1];
-      if (!vowels.test(nextChar) && i + 2 < word.length && vowels.test(word[i + 2])) {
-        result.push(current);
-        current = "";
-        hasVowel = false;
-      }
-    }
-  }
-  if (current) result.push(current);
-  return result.length > 0 ? result : [word];
-}
-
-function SyllableWord({ word }) {
+function SyllableWord({ word, color = "coral", activeSyllableIndex = -1 }) {
   const syllables = splitMalaySyllables(word);
   return (
     <strong className="word-syllable-text">
       {syllables.map((syl, i) => (
-        <span key={i} className={`syllable-part syllable-${i % 2 === 0 ? "black" : "red"}`}>
+        <span key={i} className={`syllable-part syllable-${i % 2 === 0 ? "first" : "second"} syllable-color-${color} ${i === activeSyllableIndex ? "syllable-active" : ""}`} data-index={i}>
           {syl}
         </span>
       ))}
@@ -1505,15 +1499,47 @@ function SyllableWord({ word }) {
 
 function PerkataanSkillSection({ skill }) {
   const [speakingWord, setSpeakingWord] = useState(null);
+  const [activeSyllableIndex, setActiveSyllableIndex] = useState(-1);
+  const [speechRate, setSpeechRate] = useState(1); // 1 = normal, 0.5 = slow
   const speakingTimer = useRef(null);
+  const syllableTimers = useRef([]);
 
   useEffect(() => () => window.clearTimeout(speakingTimer.current), []);
+  useEffect(() => () => syllableTimers.current.forEach(clearTimeout), []);
 
   function speakWord(word) {
     setSpeakingWord(word);
+    setActiveSyllableIndex(-1);
+
+    // Clear previous timers
     window.clearTimeout(speakingTimer.current);
-    speakingTimer.current = window.setTimeout(() => setSpeakingWord(null), 1100);
-    speakMalayText(word);
+    syllableTimers.current.forEach(clearTimeout);
+    syllableTimers.current = [];
+
+    // Speak the word
+    speakMalayText(word, speechRate);
+
+    // Animate syllables
+    const syllables = splitMalaySyllables(word);
+    const baseDuration = speechRate === 1 ? 400 : 700; // ms per syllable
+
+    syllables.forEach((syl, index) => {
+      const timer = setTimeout(() => {
+        setActiveSyllableIndex(index);
+      }, index * baseDuration);
+      syllableTimers.current.push(timer);
+    });
+
+    // Reset after all syllables
+    const totalDuration = syllables.length * baseDuration + 200;
+    speakingTimer.current = window.setTimeout(() => {
+      setSpeakingWord(null);
+      setActiveSyllableIndex(-1);
+    }, totalDuration);
+  }
+
+  function toggleSpeed() {
+    setSpeechRate(prev => prev === 1 ? 0.5 : 1);
   }
 
   const practiceWords = skill.practice || [];
@@ -1529,11 +1555,28 @@ function PerkataanSkillSection({ skill }) {
               <h2 id={`${skill.id}-practice-title`}>{skill.title || skill.code}</h2>
               <p>Tekan setiap bunyi untuk mendengar sebutan.</p>
             </div>
-            <span className="skill-count"><Volume2 size={15} /> {practiceWords.length} bunyi</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <button
+                type="button"
+                className="speed-toggle-btn"
+                onClick={toggleSpeed}
+                title={speechRate === 1 ? "Kelajuan: Normal (klik untuk perlahan)" : "Kelajuan: Perlahan (klik untuk normal)"}
+              >
+                {speechRate === 1 ? "🐰 Normal" : "🐢 Perlahan"}
+              </button>
+              <span className="skill-count"><Volume2 size={15} /> {practiceWords.length} bunyi</span>
+            </div>
           </div>
           <div className="word-card-grid">
             {practiceWords.map((word) => (
-              <PerkataanWordCard key={word} word={word} isSpeaking={speakingWord === word} onSpeak={() => speakWord(word)} />
+              <PerkataanWordCard
+                key={word}
+                word={word}
+                isSpeaking={speakingWord === word}
+                onSpeak={() => speakWord(word)}
+                color={skill.color}
+                activeSyllableIndex={speakingWord === word ? activeSyllableIndex : -1}
+              />
             ))}
           </div>
         </section>
@@ -1546,11 +1589,28 @@ function PerkataanSkillSection({ skill }) {
               <h2 id={`${skill.id}-word-title`}>{skill.title || skill.code}</h2>
               <p>Tekan perkataan untuk mendengar dan mengikut sebutan.</p>
             </div>
-            <span className="skill-count"><Image size={15} /> {skillWords.length} perkataan</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <button
+                type="button"
+                className="speed-toggle-btn"
+                onClick={toggleSpeed}
+                title={speechRate === 1 ? "Kelajuan: Normal (klik untuk perlahan)" : "Kelajuan: Perlahan (klik untuk normal)"}
+              >
+                {speechRate === 1 ? "🐰 Normal" : "🐢 Perlahan"}
+              </button>
+              <span className="skill-count"><Image size={15} /> {skillWords.length} perkataan</span>
+            </div>
           </div>
           <div className="word-card-grid">
             {skillWords.map((word) => (
-              <PerkataanWordCard key={word} word={word} isSpeaking={speakingWord === word} onSpeak={() => speakWord(word)} />
+              <PerkataanWordCard
+                key={word}
+                word={word}
+                isSpeaking={speakingWord === word}
+                onSpeak={() => speakWord(word)}
+                color={skill.color}
+                activeSyllableIndex={speakingWord === word ? activeSyllableIndex : -1}
+              />
             ))}
           </div>
         </section>
@@ -1706,30 +1766,8 @@ function BahasaMelayuHub({ onBack, onComingSoon, notice }) {
     // PERKATAAN category
     if (category === "perkataan") {
       if (subCategory === "belajar") return <PerkataanModule onBack={goBack} />;
-      if (subCategory === "main") return (
-        <div className="home-content hub-content">
-          <div className="hub-hero">
-            <button className="back-button" type="button" onClick={goBack}><ArrowLeft size={18} /> <span>Perkataan</span></button>
-            <div className="hub-title-block">
-              <h1>Main Perkataan</h1>
-              <p>Padan gambar dengan perkataan</p>
-            </div>
-          </div>
-          <p className="home-notice">Permainan perkataan akan datang.</p>
-        </div>
-      );
-      if (subCategory === "ujian") return (
-        <div className="home-content hub-content">
-          <div className="hub-hero">
-            <button className="back-button" type="button" onClick={goBack}><ArrowLeft size={18} /> <span>Perkataan</span></button>
-            <div className="hub-title-block">
-              <h1>Ujian Perkataan</h1>
-              <p>Cabaran ayat pendek</p>
-            </div>
-          </div>
-          <p className="home-notice">Ujian perkataan akan datang.</p>
-        </div>
-      );
+      if (subCategory === "main") return <PerkataanQuizGame onBack={goBack} />;
+      if (subCategory === "ujian") return <PerkataanFlashCardGame onBack={goBack} />;
     }
   }
 
@@ -1918,6 +1956,23 @@ function HomePlaceholder() {
 }
 
 export default function App() {
+  useEffect(() => {
+    const handleDocumentActivation = (event) => {
+      const control = isInteractiveTarget(event.target);
+      if (!control || control.disabled || control.getAttribute("aria-disabled") === "true") return;
+
+      if (event.type === "keydown" && event.key !== "Enter" && event.key !== " ") return;
+      playInterfaceClick();
+    };
+
+    document.addEventListener("pointerdown", handleDocumentActivation, true);
+    document.addEventListener("keydown", handleDocumentActivation, true);
+    return () => {
+      document.removeEventListener("pointerdown", handleDocumentActivation, true);
+      document.removeEventListener("keydown", handleDocumentActivation, true);
+    };
+  }, []);
+
   const path = window.location.pathname.replace(/\/+$/, "") || "/";
   if (path === "/kvk") return <KVKGame />;
   if (path === "/kv-sound-pond") return <KvSoundPondGame />;
