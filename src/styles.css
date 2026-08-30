@@ -3953,9 +3953,9 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .role-card:hover { transform: translateY(-5px); box-shadow: 8px 14px 0 rgba(25,56,74,.14); }
 .role-card-icon { display: grid; width: 48px; height: 48px; place-items: center; border: 2px solid #19384a; border-radius: 7px; background: #fffaf0; }
 .role-card-blue .role-card-icon { color: #3655bd; }
-.role-card-image { width: 100%; height: 120px; }
-.home-image-slot { position: relative; display: grid; place-items: center; overflow: hidden; aspect-ratio: 4 / 3; border-radius: 7px; }
-.home-image-slot img { width: 100%; height: 100%; object-fit: contain; }
+.role-card-image { width: 100%; height: auto; min-height: 0; aspect-ratio: 3 / 2; }
+.home-image-slot { position: relative; display: grid; place-items: center; overflow: hidden; aspect-ratio: 3 / 2; border-radius: 7px; }
+.home-image-slot img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .home-image-fallback { display: grid; position: absolute; inset: 20%; place-items: center; border: 3px dashed currentColor; color: rgba(25,56,74,.32); font-size: 3rem; font-weight: 900; }
 .role-card-blue .home-image-fallback { color: rgba(255,255,255,.6); }
 .role-card-copy { display: grid; align-content: end; gap: .2rem; }
