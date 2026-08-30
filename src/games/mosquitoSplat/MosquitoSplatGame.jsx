@@ -486,7 +486,7 @@ export default function MosquitoSplatGame({ initialOp = null }) {
   return (
     <main className="mos-app">
       <header className="mos-topbar">
-        <a className="mos-home-link" href="/" aria-label="Kembali ke ruang belajar">
+            <a className="mos-home-link" href="/murid/ruang" aria-label="Kembali ke ruang belajar">
           <ArrowLeft size={17} /> <span>Ruang</span>
         </a>
         <div className="mos-brand">

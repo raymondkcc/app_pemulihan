@@ -4,6 +4,10 @@ import KvSoundPondGame from "./games/kvSoundPond/KvSoundPondGame.jsx";
 import MinusRegroupGame from "./games/minusRegroup/MinusRegroupGame.jsx";
 import MosquitoSplatGame from "./games/mosquitoSplat/MosquitoSplatGame.jsx";
 import HomeLanding from "./components/home/HomeLanding.jsx";
+import RoleChooser from "./components/home/RoleChooser.jsx";
+import StudentEntry from "./components/home/StudentEntry.jsx";
+import StudentDashboard from "./components/home/StudentDashboard.jsx";
+import TeacherHub from "./components/home/TeacherHub.jsx";
 import KVKGame from "./components/kvk/KVKGame.jsx";
 import { isInteractiveTarget, playInterfaceClick } from "./utils/interfaceAudio.js";
 import "./styles.css";
@@ -28,6 +32,14 @@ function useInterfaceClickSound() {
 
 function RouteView() {
   const path = window.location.pathname.replace(/\/+$/, "") || "/";
+  if (path === "/") return <RoleChooser />;
+  if (path === "/murid") return <StudentEntry />;
+  if (path === "/murid/ruang") return <StudentDashboard />;
+  if (path === "/cikgu") return <TeacherHub />;
+  if (path === "/cikgu/bahasa-melayu") return <TeacherHub initialSubject="bm" />;
+  if (path === "/cikgu/matematik") return <TeacherHub initialSubject="math" />;
+  if (path === "/murid/bahasa-melayu") return <BahasaMelayuHub onBack={() => { window.location.href = "/murid/ruang"; }} onComingSoon={() => {}} notice="" />;
+  if (path === "/murid/matematik") return <MathHub onBack={() => { window.location.href = "/murid/ruang"; }} onComingSoon={() => {}} notice="" />;
   if (path === "/kvk") return <KVKGame />;
   if (path === "/kv-sound-pond") return <KvSoundPondGame />;
   if (path === "/addition-regroup") return <AdditionRegroupGame />;

@@ -486,7 +486,7 @@ function AdditionRegroupGame() {
   return (
     <main className="arg-app">
       <header className="arg-topbar">
-        <a className="arg-home-link" href="/" aria-label="Back to learning space"><ArrowLeft size={17} /> <span>Learning space</span></a>
+        <a className="arg-home-link" href="/murid/ruang" aria-label="Back to learning space"><ArrowLeft size={17} /> <span>Learning space</span></a>
         <div className="arg-equation-pill" aria-label={`${problem.n1} plus ${problem.n2}`}>
           <strong>{problem.n1} + {problem.n2} = </strong><span>{phase === "success" ? problem.n1 + problem.n2 : "?"}</span>
         </div>

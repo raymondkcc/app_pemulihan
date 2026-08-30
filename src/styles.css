@@ -3924,6 +3924,93 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
   .flash-card-inner { transition-duration: .01ms; }
 }
 
+/* Role entry and local learner spaces */
+.portal-page, .teacher-page, .dashboard-page {
+  min-height: 100vh;
+  color: #19384a;
+  background: #fffaf0;
+  font-family: "Nunito", "Trebuchet MS", sans-serif;
+}
+.portal-page { background: linear-gradient(140deg, #fffaf0 0 62%, #e5f7f1 62%); }
+.portal-header, .teacher-header, .dashboard-header { display: flex; width: min(100% - 2rem, 1040px); align-items: center; gap: .8rem; margin: 0 auto; padding: 1.25rem 0; }
+.portal-header > div:last-of-type, .teacher-header > div:last-of-type { display: grid; gap: .1rem; }
+.portal-header strong, .teacher-header strong, .dashboard-brand strong { font-family: "Baloo 2", sans-serif; font-size: 1.3rem; line-height: 1; }
+.portal-kicker { color: #bd4e40; font-size: .65rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.portal-logo { display: flex; gap: -.1rem; align-items: center; }
+.portal-logo span { display: grid; width: 31px; height: 31px; place-items: center; border: 2px solid #19384a; font-family: "Baloo 2", sans-serif; font-weight: 900; }
+.portal-logo span:nth-child(1) { color: #19384a; background: #f1785d; transform: rotate(-7deg); }
+.portal-logo span:nth-child(2) { color: white; background: #5879e8; transform: rotate(6deg); }
+.portal-logo span:nth-child(3) { background: #f4ca47; transform: rotate(-4deg); }
+.portal-status, .teacher-badge { display: inline-flex; align-items: center; gap: .35rem; margin-left: auto; color: #167764; font-size: .73rem; font-weight: 900; }
+.portal-content, .profile-content { width: min(100% - 2rem, 1040px); margin: 0 auto; padding: clamp(3.5rem, 10vh, 7rem) 0 3rem; }
+.portal-intro { max-width: 650px; }
+.portal-eyebrow { display: inline-flex; align-items: center; gap: .35rem; color: #bd4e40; font-size: .72rem; font-weight: 900; letter-spacing: .05em; text-transform: uppercase; }
+.portal-intro h1, .teacher-intro h1, .dashboard-welcome h1 { margin: .55rem 0 0; color: #19384a; font-family: "Baloo 2", sans-serif; font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 800; line-height: .92; }
+.portal-intro p, .teacher-intro p, .dashboard-welcome p { max-width: 570px; margin: .8rem 0 0; color: #64727b; font-size: 1rem; font-weight: 700; line-height: 1.5; }
+.role-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 2rem; }
+.role-card { position: relative; display: grid; min-height: 370px; grid-template-rows: auto auto 1fr auto; gap: .8rem; overflow: hidden; border: 3px solid #19384a; border-radius: 8px; padding: 1rem; color: #19384a; text-decoration: none; box-shadow: 8px 9px 0 rgba(25,56,74,.14); transition: transform .16s ease, box-shadow .16s ease; }
+.role-card-coral { background: #f1785d; } .role-card-blue { color: white; background: #5879e8; }
+.role-card:hover { transform: translateY(-5px); box-shadow: 8px 14px 0 rgba(25,56,74,.14); }
+.role-card-icon { display: grid; width: 48px; height: 48px; place-items: center; border: 2px solid #19384a; border-radius: 7px; background: #fffaf0; }
+.role-card-blue .role-card-icon { color: #3655bd; }
+.role-card-image { width: 100%; height: 120px; }
+.home-image-slot { position: relative; display: grid; place-items: center; overflow: hidden; aspect-ratio: 4 / 3; border-radius: 7px; }
+.home-image-slot img { width: 100%; height: 100%; object-fit: contain; }
+.home-image-fallback { display: grid; position: absolute; inset: 20%; place-items: center; border: 3px dashed currentColor; color: rgba(25,56,74,.32); font-size: 3rem; font-weight: 900; }
+.role-card-blue .home-image-fallback { color: rgba(255,255,255,.6); }
+.role-card-copy { display: grid; align-content: end; gap: .2rem; }
+.role-card-copy strong { font-family: "Baloo 2", sans-serif; font-size: 2.25rem; line-height: 1; }
+.role-card-copy span { font-size: .85rem; font-weight: 900; }
+.role-card-copy em { max-width: 360px; margin-top: .35rem; color: rgba(25,56,74,.75); font-size: .85rem; font-style: normal; font-weight: 700; line-height: 1.4; }
+.role-card-blue .role-card-copy em { color: rgba(255,255,255,.86); }
+.role-card-action { display: inline-flex; align-items: center; gap: .4rem; font-size: .8rem; font-weight: 900; }
+.portal-note { display: flex; align-items: center; gap: .35rem; margin-top: 1.4rem; color: #64727b; font-size: .75rem; font-weight: 900; }
+.portal-back { display: grid; width: 40px; height: 40px; place-items: center; border: 2px solid #dce4de; border-radius: 7px; color: #19384a; background: rgba(255,255,255,.7); }
+.profile-content { max-width: 720px; padding-top: 4rem; }
+.profile-list { display: grid; gap: .65rem; margin-top: 1.6rem; }
+.profile-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .8rem; min-height: 76px; border: 2px solid #19384a; border-radius: 8px; padding: .7rem .85rem; color: #19384a; background: white; text-align: left; box-shadow: 4px 5px 0 rgba(25,56,74,.1); }
+.profile-card strong, .profile-card small { display: block; } .profile-card small { margin-top: .15rem; color: #64727b; font-size: .7rem; font-weight: 800; }
+.avatar { display: grid; place-items: center; width: 50px; height: 50px; border: 2px solid #19384a; border-radius: 50%; color: #19384a; font-family: "Baloo 2", sans-serif; font-size: 1.8rem; font-weight: 900; }
+.avatar-lemon { background: #f4ca47; } .avatar-blue { color: white; background: #5879e8; } .avatar-coral { background: #f1785d; } .avatar-mint { background: #5dcab0; }
+.avatar-small { width: 27px; height: 27px; font-size: 1rem; }
+.new-profile-button, .profile-submit { display: inline-flex; align-items: center; justify-content: center; gap: .4rem; min-height: 46px; border: 2px solid #19384a; border-radius: 7px; padding: .55rem .75rem; color: #19384a; background: #f4ca47; font-size: .8rem; font-weight: 900; }
+.new-profile-button { margin-top: 1rem; background: white; }
+.profile-form { display: grid; gap: .55rem; margin-top: 1.2rem; border-top: 2px solid #dce4de; padding-top: 1.2rem; }
+.profile-form label, .avatar-label { color: #19384a; font-size: .75rem; font-weight: 900; }
+.profile-form input { min-height: 48px; border: 2px solid #19384a; border-radius: 7px; padding: .55rem .7rem; color: #19384a; background: white; font-size: 1rem; font-weight: 800; }
+.avatar-grid { display: flex; flex-wrap: wrap; gap: .6rem; margin: .2rem 0 .8rem; }
+.avatar-choice { position: relative; display: grid; width: 58px; height: 58px; place-items: center; border: 2px solid #19384a; border-radius: 50%; color: #19384a; font-size: 1.5rem; }
+.avatar-choice svg { position: absolute; right: -3px; bottom: -3px; padding: 2px; border-radius: 50%; color: white; background: #167764; }
+.avatar-choice.is-selected { box-shadow: 0 0 0 4px #fffaf0, 0 0 0 6px #19384a; }
+.profile-submit { color: white; background: #3655bd; } .profile-submit:disabled { opacity: .4; cursor: not-allowed; }
+.dashboard-page { background: #fffaf0; }
+.dashboard-header { border-bottom: 2px solid #dce4de; }
+.dashboard-brand { display: inline-flex; align-items: center; gap: .5rem; color: #19384a; text-decoration: none; }
+.dashboard-brand span { display: grid; width: 31px; height: 31px; place-items: center; border: 2px solid #19384a; color: #19384a; background: #f1785d; font-family: "Baloo 2", sans-serif; font-weight: 900; transform: rotate(-6deg); }
+.dashboard-actions { display: flex; align-items: center; gap: 1rem; margin-left: auto; }
+.dashboard-actions a { display: inline-flex; align-items: center; gap: .35rem; color: #19384a; font-size: .75rem; font-weight: 900; text-decoration: none; }
+.dashboard-actions .exit-link { color: #64727b; }
+.dashboard-content { width: min(100% - 2rem, 1040px); margin: 0 auto; padding: 3.5rem 0; }
+.dashboard-welcome { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.dashboard-welcome h1 { font-size: clamp(2.5rem, 5vw, 4rem); }
+.dashboard-avatar { display: grid; width: 100px; height: 100px; flex: none; place-items: center; border: 3px solid #19384a; border-radius: 50%; font-family: "Baloo 2", sans-serif; font-size: 3rem; box-shadow: 7px 8px 0 rgba(25,56,74,.12); }
+.mission-strip { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem; margin-top: 2.3rem; border: 2px solid #19384a; border-radius: 8px; padding: 1rem; background: #e5f8ef; box-shadow: 5px 6px 0 rgba(25,56,74,.1); }
+.mission-icon { display: grid; width: 48px; height: 48px; place-items: center; border: 2px solid #19384a; border-radius: 7px; background: #5dcab0; }
+.mission-strip span, .mission-strip strong { display: block; } .mission-strip span { color: #167764; font-size: .7rem; font-weight: 900; } .mission-strip strong { margin-top: .25rem; font-family: "Baloo 2", sans-serif; font-size: 1.2rem; line-height: 1; }
+.mission-strip a, .teacher-activity a { display: inline-flex; align-items: center; gap: .3rem; color: white; background: #3655bd; border-radius: 6px; padding: .6rem .7rem; font-size: .75rem; font-weight: 900; text-decoration: none; }
+.dashboard-section { margin-top: 3rem; }
+.dashboard-section h2, .teacher-activity-panel h2, .teacher-guide h2 { margin: .35rem 0 0; color: #19384a; font-family: "Baloo 2", sans-serif; font-size: 2rem; line-height: 1; }
+.mode-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; margin-top: 1.15rem; }
+.mode-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .7rem; min-height: 130px; border: 2px solid #19384a; border-radius: 8px; padding: .75rem; color: #19384a; text-decoration: none; box-shadow: 4px 5px 0 rgba(25,56,74,.1); transition: transform .16s ease; }
+.mode-card:hover { transform: translateY(-3px); } .mode-card-mint { background: #d9f3e9; } .mode-card-coral { background: #ffd8cd; } .mode-card-lemon { background: #fff0b1; }
+.mode-card-image { width: 60px; height: 65px; } .mode-card-copy { display: grid; gap: .15rem; } .mode-card-copy strong { font-family: "Baloo 2", sans-serif; font-size: 1.35rem; line-height: 1; } .mode-card-copy span { font-size: .68rem; font-weight: 900; } .mode-card-copy em { color: #64727b; font-size: .68rem; font-style: normal; font-weight: 700; }
+.dashboard-subject-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin-top: 1rem; }
+.dashboard-subject { display: flex; align-items: center; gap: .8rem; border: 2px solid #19384a; border-radius: 8px; padding: 1rem; color: #19384a; text-decoration: none; box-shadow: 4px 5px 0 rgba(25,56,74,.1); } .subject-bm { background: #ffd8cd; } .subject-math { background: #eaf0ff; } .dashboard-subject span { display: grid; flex: 1; gap: .15rem; } .dashboard-subject strong { font-family: "Baloo 2", sans-serif; font-size: 1.3rem; line-height: 1; } .dashboard-subject small { font-size: .7rem; font-weight: 900; }
+.teacher-page { background: #edf5f3; } .teacher-header { border-bottom: 2px solid #cbdcd6; } .teacher-content { width: min(100% - 2rem, 1100px); margin: 0 auto; padding: 3.5rem 0; } .teacher-intro { max-width: 700px; } .teacher-intro h1 { font-size: clamp(2.4rem, 5vw, 4rem); } .teacher-badge { border: 2px solid #19384a; border-radius: 6px; padding: .45rem .6rem; background: #f4ca47; color: #19384a; }
+.teacher-subject-tabs { display: flex; gap: .5rem; margin-top: 2rem; border-bottom: 2px solid #cbdcd6; } .teacher-subject-tabs button { display: inline-flex; align-items: center; gap: .35rem; border: 0; border-bottom: 4px solid transparent; padding: .75rem .9rem; color: #64727b; background: transparent; font-size: .8rem; font-weight: 900; } .teacher-subject-tabs button small { font-size: .65rem; font-weight: 700; } .teacher-subject-tabs button.is-active { border-bottom-color: #bd4e40; color: #19384a; background: white; }
+.teacher-layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(260px, .6fr); gap: 1rem; margin-top: 1.5rem; } .teacher-activity-panel, .teacher-guide { border: 2px solid #19384a; border-radius: 8px; padding: 1rem; background: white; box-shadow: 5px 6px 0 rgba(25,56,74,.1); } .teacher-activity-list { display: grid; gap: .5rem; margin-top: 1rem; } .teacher-activity { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .7rem; min-height: 68px; border: 1px solid #dce4de; border-radius: 6px; padding: .55rem; background: #fffaf0; } .teacher-number { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 50%; color: #19384a; background: #f4ca47; font-size: .7rem; font-weight: 900; } .teacher-activity-copy { display: grid; gap: .15rem; } .teacher-activity-copy strong { font-family: "Baloo 2", sans-serif; font-size: 1.1rem; line-height: 1; } .teacher-activity-copy span { color: #64727b; font-size: .7rem; font-weight: 700; } .teacher-activity.is-locked { opacity: .6; } .teacher-coming { display: inline-flex; align-items: center; gap: .25rem; color: #64727b; font-size: .68rem; font-weight: 900; text-align: right; } .teacher-guide { background: #fff0b1; } .teacher-guide ul { display: grid; gap: .9rem; margin: 1.5rem 0; padding: 0; list-style: none; } .teacher-guide li { display: grid; gap: .15rem; } .teacher-guide li strong { font-family: "Baloo 2", sans-serif; font-size: 1.1rem; } .teacher-guide li span { color: #64727b; font-size: .75rem; font-weight: 700; } .teacher-tip { display: flex; gap: .45rem; border-top: 2px solid rgba(25,56,74,.2); padding-top: .8rem; color: #3655bd; font-size: .72rem; font-weight: 900; line-height: 1.35; }
+@media (max-width: 700px) { .role-grid, .mode-grid, .dashboard-subject-grid, .teacher-layout { grid-template-columns: 1fr; } .portal-content, .profile-content, .dashboard-content, .teacher-content { padding-top: 2.5rem; } .portal-status, .teacher-badge { display: none; } .role-card { min-height: 330px; } .mission-strip { grid-template-columns: auto 1fr; } .mission-strip a { grid-column: 2; justify-self: start; } .dashboard-welcome { align-items: flex-start; } .dashboard-avatar { width: 70px; height: 70px; font-size: 2.2rem; } .teacher-subject-tabs { overflow-x: auto; } .teacher-subject-tabs button { flex: none; flex-direction: column; } }
+
 /* Perkataan four-choice quiz */
 .quiz-game-content { padding: 3.4rem 0 3.5rem; }
 .quiz-game-header {

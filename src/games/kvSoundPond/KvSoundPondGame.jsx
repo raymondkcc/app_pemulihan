@@ -691,7 +691,7 @@ export default function KvSoundPondGame() {
   if (phase === "setup") {
     return (
       <main className="pond-page pond-setup-page">
-        <a className="pond-back" href="/" title="Kembali ke ruang belajar"><ArrowLeft size={20} /> Kembali</a>
+        <a className="pond-back" href="/murid/ruang" title="Kembali ke ruang belajar"><ArrowLeft size={20} /> Kembali</a>
         <section className="pond-setup" aria-labelledby="pond-setup-title">
           <div className="pond-setup-sky" aria-hidden="true"><img src="/images/pond/echo-frog.svg" alt="" /></div>
           <div className="pond-setup-copy">
@@ -752,7 +752,7 @@ export default function KvSoundPondGame() {
   return (
     <main className="pond-page pond-game-page">
       <header className="pond-hud">
-        <a className="pond-back" href="/" title="Kembali ke ruang belajar"><ArrowLeft size={19} /><span>Kembali</span></a>
+        <a className="pond-back" href="/murid/ruang" title="Kembali ke ruang belajar"><ArrowLeft size={19} /><span>Kembali</span></a>
         <div className="pond-progress" aria-label={`Soalan ${roundNumber} daripada ${questionCount}`}>
           <div className="pond-progress-counter">
             <strong>{roundNumber}</strong>
