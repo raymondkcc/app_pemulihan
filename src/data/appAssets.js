@@ -1,12 +1,12 @@
 // Generated image slots are kept in one place so the visual asset pack can be swapped in later.
 export const APP_IMAGES = {
-  studentWelcome: "/images/home/student-welcome.png",
-  teacherWelcome: "/images/home/teacher-welcome.png",
-  bahasaMelayu: "/images/home/bahasa-melayu.png",
-  matematik: "/images/home/matematik.png",
-  belajar: "/images/home/belajar.png",
-  main: "/images/home/main.png",
-  ujiDiri: "/images/home/uji-diri.png"
+  studentWelcome: "/images/home/student-welcome.webp",
+  teacherWelcome: "/images/home/teacher-welcome.webp",
+  bahasaMelayu: "/images/home/bahasa-melayu.webp",
+  matematik: "/images/home/matematik.webp",
+  belajar: "/images/home/belajar.webp",
+  main: "/images/home/main.webp",
+  ujiDiri: "/images/home/uji-diri.webp"
 };
 
 export const AVATARS = [
