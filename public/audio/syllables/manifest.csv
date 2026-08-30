@@ -856,7 +856,7 @@ KV,ca,standard,ms,ca,,KV/KV_ca.mp3,generated-ms
 KV,ce,e-pepet,ms,ce.,,KV/KV_ce_e-pepet.mp3,generated-ms
 KV,ce,e-taling,ms,ceée,,KV/KV_ce_e-taling.mp3,generated-ms
 KV,ci,standard,ms,ci,,KV/KV_ci.mp3,generated-ms
-KV,co,standard,ms,cotok,,KV/KV_co.mp3,open-ms
+KV,co,standard,ms,cogan,,KV/KV_co.mp3,open-ms
 KV,cu,standard,ms,cu,,KV/KV_cu.mp3,generated-ms
 KV,da,standard,zh-CN,da,,KV/KV_da.mp3,pinyin-zh
 KV,de,e-pepet,ms,de.,,KV/KV_de_e-pepet.mp3,generated-ms
@@ -895,7 +895,7 @@ KV,ki,standard,ms,ki,,KV/KV_ki.mp3,generated-ms
 KV,ko,standard,ms,ko,,KV/KV_ko.mp3,generated-ms
 KV,ku,standard,ms,ku,,KV/KV_ku.mp3,generated-ms
 KV,la,standard,zh-CN,la,,KV/KV_la.mp3,pinyin-zh
-KV,le,e-pepet,ms,le.,,KV/KV_le_e-pepet.mp3,generated-ms
+KV,le,e-pepet,ms,lemah,,KV/KV_le_e-pepet.mp3,open-ms
 KV,le,e-taling,ms,leée,,KV/KV_le_e-taling.mp3,generated-ms
 KV,li,standard,ms,li,,KV/KV_li.mp3,generated-ms
 KV,lo,standard,ms,lo,,KV/KV_lo.mp3,generated-ms
@@ -961,8 +961,8 @@ KV,yi,standard,ms,yi,,KV/KV_yi.mp3,generated-ms
 KV,yo,standard,ms,yo,,KV/KV_yo.mp3,generated-ms
 KV,yu,standard,ms,yu,,KV/KV_yu.mp3,generated-ms
 KV,za,standard,zh-CN,za,,KV/KV_za.mp3,pinyin-zh
-KV,ze,e-pepet,zh-CN,则,,KV/KV_ze_e-pepet.mp3,sound-alike-zh
-KV,ze,e-taling,ms,zebra,,KV/KV_ze_e-taling.mp3,open-ms
+KV,ze,e-pepet,ms,zeta,,KV/KV_ze_e-pepet.mp3,open-ms
+KV,ze,e-taling,zh-CN,这,,KV/KV_ze_e-taling.mp3,sound-alike-zh
 KV,zi,standard,ms,zi,,KV/KV_zi.mp3,generated-ms
 KV,zo,standard,ms,zo,,KV/KV_zo.mp3,generated-ms
 KV,zu,standard,ms,zu,,KV/KV_zu.mp3,generated-ms

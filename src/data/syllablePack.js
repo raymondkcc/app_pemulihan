@@ -1,5 +1,6 @@
 export const PACK_ONSETS = [..."bcdfghjklmnpqrstvwyz"];
 export const PACK_VOWELS = ["a", "e", "i", "o", "u"];
+const KV_AUDIO_VERSION = "20260830-2";
 
 export const E_SOUND_OPTIONS = [
   { id: "e-pepet", label: "e pepet", hint: "/ə/ · enam · belum" },
@@ -15,7 +16,7 @@ export function createKvItem(onset, vowel, eSound = "e-pepet") {
     pattern: "KV",
     syllable,
     sound,
-    audioPath: `/audio/syllables/KV/KV_${syllable}${sound === "standard" ? "" : `_${sound}`}.mp3`
+    audioPath: `/audio/syllables/KV/KV_${syllable}${sound === "standard" ? "" : `_${sound}`}.mp3?v=${KV_AUDIO_VERSION}`
   };
 }
 

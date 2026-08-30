@@ -83,7 +83,21 @@ function playSyllableAudio(item) {
   activeSyllableAudio = audio;
   audio.pause();
   audio.currentTime = 0;
-  audio.play().catch(() => {});
+  audio.preload = "auto";
+  const playback = audio.play();
+  playback?.catch((error) => {
+    // A media element can remain rejected after a transient load failure.
+    // Retry with a fresh element so a replaced static asset can recover.
+    syllableAudioCache.delete(source);
+    const retryAudio = new window.Audio(source);
+    retryAudio.preload = "auto";
+    syllableAudioCache.set(source, retryAudio);
+    activeSyllableAudio = retryAudio;
+    retryAudio.play().catch((retryError) => {
+      if (activeSyllableAudio === retryAudio) activeSyllableAudio = null;
+      console.warn("Syllable audio could not be played", { source, error, retryError });
+    });
+  });
 }
 
 function createExitChallenge() {
