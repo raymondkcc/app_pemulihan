@@ -1,10 +1,17 @@
-function MathematicsHub({ onBack, onComingSoon, notice }) {
+import { ArrowLeft, ArrowRight, Calculator, LockKeyhole, Minus, Plus, Sparkles, Star } from "lucide-react";
+
+const MATH_OPERATIONS = [
+  { id: "tambah", title: "Operasi tambah", english: "Addition", symbol: "+", helper: "Gabung nombor", color: "coral", Icon: Plus, href: "/addition-regroup" },
+  { id: "tolak", title: "Operasi tolak", english: "Subtraction", symbol: "-", helper: "Ambil dan kira", color: "mint", Icon: Minus, href: "/minus-regroup" },
+  { id: "darab", title: "Operasi darab", english: "Multiplication", symbol: "x", helper: "Kumpulan sama banyak", color: "lemon", Icon: Star, href: "/mosquito-splat?op=darab" },
+  { id: "bahagi", title: "Operasi bahagi", english: "Division", symbol: "÷", helper: "Kongsi sama rata", color: "blue", Icon: Calculator }
+];
+
+export default function MathHub({ onBack, onComingSoon, notice }) {
   return (
     <div className="home-content hub-content math-hub-content">
       <div className="hub-hero math-hero">
-        <button className="back-button" type="button" onClick={onBack} title="Kembali pilih subjek">
-          <ArrowLeft size={18} /> <span>Subjek</span>
-        </button>
+        <button className="back-button" type="button" onClick={onBack} title="Kembali pilih subjek"><ArrowLeft size={18} /> <span>Subjek</span></button>
         <div className="hub-title-block">
           <span className="hub-eyebrow"><Calculator size={15} /> Matematik <span>/ Mathematics</span></span>
           <h1>Kira, cuba, tepuk tangan!</h1>
@@ -15,24 +22,17 @@ function MathematicsHub({ onBack, onComingSoon, notice }) {
 
       <section className="hub-section operation-section" aria-labelledby="operation-title">
         <div className="section-heading-row">
-          <div>
-            <span className="section-kicker">01 / Nombor</span>
-            <h2 id="operation-title">Pilih operasi</h2>
-            <p>Pick a maths move to practise next.</p>
-          </div>
+          <div><span className="section-kicker">01 / Nombor</span><h2 id="operation-title">Pilih operasi</h2><p>Pick a maths move to practise next.</p></div>
           <span className="skill-count"><Calculator size={15} /> 4 ruang latihan</span>
         </div>
         <div className="operation-grid">
           {MATH_OPERATIONS.map(({ id, title, english, symbol, helper, color, Icon, href }) => {
-            const content = (
-              <>
-                <span className="operation-card-icon"><Icon size={23} strokeWidth={2.8} /></span>
-                <span className="operation-symbol" aria-hidden="true">{symbol}</span>
-                <span className="operation-copy"><strong>{title}</strong><span>{english}</span><em>{helper}</em></span>
-                <span className="operation-status">{href ? <>Buka latihan <ArrowRight size={14} /></> : <>Akan datang <LockKeyhole size={14} /></>}</span>
-              </>
-            );
-
+            const content = <>
+              <span className="operation-card-icon"><Icon size={23} strokeWidth={2.8} /></span>
+              <span className="operation-symbol" aria-hidden="true">{symbol}</span>
+              <span className="operation-copy"><strong>{title}</strong><span>{english}</span><em>{helper}</em></span>
+              <span className="operation-status">{href ? <>Buka latihan <ArrowRight size={14} /></> : <>Akan datang <LockKeyhole size={14} /></>}</span>
+            </>;
             return href
               ? <a className={`operation-card operation-card-${color} is-live`} href={href} key={id} aria-label={`Buka ${title}`}>{content}</a>
               : <button className={`operation-card operation-card-${color}`} type="button" key={id} onClick={() => onComingSoon(title)}>{content}</button>;
@@ -48,18 +48,10 @@ function MathematicsHub({ onBack, onComingSoon, notice }) {
 
       <section className="math-game-strip" aria-label="Permainan matematik">
         <span className="math-game-icon"><Sparkles size={26} /></span>
-        <div className="math-game-copy">
-          <span className="section-kicker">Permainan laju</span>
-          <strong>Hempaplah Nyamuk!</strong>
-          <em>Tambah, tolak dan darab dalam 60 saat.</em>
-        </div>
+        <div className="math-game-copy"><span className="section-kicker">Permainan laju</span><strong>Hempaplah Nyamuk!</strong><em>Tambah, tolak dan darab dalam 60 saat.</em></div>
         <a className="math-game-link" href="/mosquito-splat">Main <ArrowRight size={15} /></a>
       </section>
       {notice && <div className="home-notice" role="status"><Sparkles size={17} /> <span>{notice}</span></div>}
     </div>
   );
 }
-
-function SubjectPicker({ onChooseSubject }) {
-  return (
-    <div className="home-content picker-content">

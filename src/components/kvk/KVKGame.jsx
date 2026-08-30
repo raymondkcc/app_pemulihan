@@ -1,4 +1,106 @@
-function KVKGame() {
+import { useEffect, useRef, useState } from "react";
+import { BookOpen, Check, DoorOpen, LockKeyhole, Maximize2, Minimize2, RotateCcw, Volume2, X } from "lucide-react";
+import { ENDINGS, pickAdaptiveEnding } from "../../data/kvk.js";
+import { loadKvkPack, pickPackSyllable } from "../../data/syllablePack.js";
+import { playSyllableAudio, stopSyllableAudio } from "../../utils/syllableAudio.js";
+
+const OPEN_DURATION = 1280;
+const NEXT_ROUND_DELAY = 900;
+
+function createExitChallenge() {
+  const operator = Math.random() > 0.5 ? "+" : "−";
+  let first = 10 + Math.floor(Math.random() * 90);
+  let second = 10 + Math.floor(Math.random() * 90);
+
+  if (operator === "−" && second > first) [first, second] = [second, first];
+
+  return {
+    first,
+    second,
+    operator,
+    answer: operator === "+" ? first + second : first - second
+  };
+}
+function DoorWindow({ letter, index, phase }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    setIsOpen(false);
+    if (phase === "opening") {
+      const frame = window.requestAnimationFrame(() => setIsOpen(true));
+      return () => window.cancelAnimationFrame(frame);
+    }
+    if (phase === "answering" || phase === "feedback") setIsOpen(true);
+  }, [letter, phase]);
+
+  const doorClass = [
+    "letter-door",
+    isOpen ? "is-open" : ""
+  ].filter(Boolean).join(" ");
+
+  return (
+    <div
+      className={doorClass}
+      style={{ "--door-delay": `${index * 110}ms` }}
+      aria-label={`Huruf ${letter}`}
+    >
+      <span className="door-cavity" aria-hidden="true" />
+      <span className="letter-face" aria-hidden="true">{letter}</span>
+      <span className="saloon-leaf door-left" aria-hidden="true">
+        <span className="leaf-lattice" />
+        <span className="leaf-slats" />
+        <span className="leaf-hinge" />
+      </span>
+      <span className="saloon-leaf door-right" aria-hidden="true">
+        <span className="leaf-lattice" />
+        <span className="leaf-slats" />
+        <span className="leaf-hinge" />
+      </span>
+    </div>
+  );
+}
+function ScoreTile({ kind, label, value }) {
+  const Icon = kind === "correct" ? Check : kind === "retry" ? X : BookOpen;
+  return (
+    <div className={`score-tile score-${kind}`}>
+      <span className="score-label"><Icon size={14} strokeWidth={3} /> {label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function emptyCategoryStats() {
+  return Object.fromEntries(ENDINGS.map((ending) => [ending, { correct: 0, wrong: 0 }]));
+}
+
+function CategoryStats({ stats }) {
+  return (
+    <section className="category-stats" aria-labelledby="category-stats-title">
+      <div className="category-stats-heading">
+        <h2 id="category-stats-title">Prestasi setiap kategori</h2>
+        <span>Latihan akan ikut keperluan</span>
+      </div>
+      <div className="category-stats-grid">
+        {ENDINGS.map((ending) => {
+          const current = stats[ending];
+          const attempts = current.correct + current.wrong;
+          const accuracy = attempts ? Math.round((current.correct / attempts) * 100) : null;
+          const needsPractice = attempts >= 2 && accuracy < 60;
+          return (
+            <div className={`category-stat ${needsPractice ? "needs-practice" : ""}`} key={ending}>
+              <strong>-{ending}</strong>
+              <span className="stat-accuracy">{accuracy === null ? "-" : `${accuracy}%`}</span>
+              <span className="stat-detail"><b>{current.correct}</b> betul · <b>{current.wrong}</b> salah</span>
+              <span className="stat-bar" aria-hidden="true"><i style={{ width: `${accuracy ?? 0}%` }} /></span>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+export default function KVKGame() {
   const [selectedEnding, setSelectedEnding] = useState(null);
   const [currentEnding, setCurrentEnding] = useState(null);
   const [phase, setPhase] = useState("ready");
@@ -14,6 +116,7 @@ function KVKGame() {
   const [exitChallenge, setExitChallenge] = useState(null);
   const [exitAnswer, setExitAnswer] = useState("");
   const [exitError, setExitError] = useState("");
+  const [audioPlaying, setAudioPlaying] = useState(false);
   const previousSyllable = useRef("");
   const timers = useRef([]);
   const exitAnswerInput = useRef(null);
@@ -21,7 +124,10 @@ function KVKGame() {
   const permittedExit = useRef(false);
   const challengeRef = useRef(null);
 
-  useEffect(() => () => timers.current.forEach(window.clearTimeout), []);
+  useEffect(() => () => {
+    timers.current.forEach(window.clearTimeout);
+    stopSyllableAudio();
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -36,10 +142,6 @@ function KVKGame() {
       active = false;
     };
   }, []);
-
-  useEffect(() => {
-    if (phase === "answering" && currentItem) playSyllableAudio(currentItem);
-  }, [currentItem, phase]);
 
   useEffect(() => {
     const updateFullscreenState = () => {
@@ -82,6 +184,8 @@ function KVKGame() {
     if (phase === "opening" || !packItems.length) return;
 
     clearTimers();
+    stopSyllableAudio();
+    setAudioPlaying(false);
     const nextItem = pickPackSyllable(packItems, nextEnding, previousSyllable.current);
     if (!nextItem) return;
     previousSyllable.current = `${nextItem.syllable}-${nextItem.sound}`;
@@ -122,6 +226,8 @@ function KVKGame() {
   function recordAnswer(result) {
     if (phase !== "answering") return;
 
+    stopSyllableAudio();
+    setAudioPlaying(false);
     setScores((current) => ({ ...current, [result]: current[result] + 1 }));
     setCategoryStats((current) => ({
       ...current,
@@ -137,6 +243,8 @@ function KVKGame() {
 
   function resetSession() {
     clearTimers();
+    stopSyllableAudio();
+    setAudioPlaying(false);
     previousSyllable.current = "";
     setSelectedEnding(null);
     setCurrentEnding(null);
@@ -184,6 +292,15 @@ function KVKGame() {
     else permittedExit.current = false;
   }
 
+  function playCurrentAudio() {
+    if (!currentItem || phase === "opening" || audioPlaying) return;
+    setAudioPlaying(true);
+    playSyllableAudio(currentItem, {
+      onEnd: () => setAudioPlaying(false),
+      onError: () => setAudioPlaying(false)
+    });
+  }
+
   const total = scores.correct + scores.retry;
 
   return (
@@ -227,9 +344,9 @@ function KVKGame() {
               </button>
             )}
             {currentItem && (
-              <button className="sound-replay-button" type="button" onClick={() => playSyllableAudio(currentItem)} disabled={phase === "opening"}>
+              <button className="sound-replay-button" type="button" onClick={playCurrentAudio} disabled={phase === "opening" || audioPlaying}>
                 <Volume2 size={18} /> Dengar {currentItem.syllable}
-                <span>{currentItem.sound === "e-pepet" ? "e pepet" : currentItem.sound === "e-taling" ? "e taling" : "bunyi Melayu"}</span>
+                <span>{audioPlaying ? "Sedang bunyi..." : currentItem.sound === "e-pepet" ? "e pepet" : currentItem.sound === "e-taling" ? "e taling" : "bunyi Melayu"}</span>
               </button>
             )}
             <div className="answer-actions">
@@ -311,5 +428,3 @@ function KVKGame() {
     </main>
   );
 }
-
-const BM_CATEGORIES = [

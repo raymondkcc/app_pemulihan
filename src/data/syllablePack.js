@@ -28,11 +28,22 @@ export async function loadKvkPack() {
   const response = await fetch("/audio/syllables/manifest.csv");
   if (!response.ok) throw new Error("Fail audio KVK tidak dapat dibaca.");
 
-  const lines = (await response.text()).trim().split(/\r?\n/).slice(1);
+  const [headerLine, ...lines] = (await response.text()).trim().split(/\r?\n/);
+  const headers = headerLine.split(",");
   return lines
     .map((line) => {
-      const [pattern, syllable, sound, locale, queryText, example, file] = line.split(",");
-      return { pattern, syllable, sound, locale, queryText, example, file };
+      const values = line.split(",");
+      const row = Object.fromEntries(headers.map((header, index) => [header, values[index]?.trim() || ""]));
+      return {
+        pattern: row.pattern,
+        syllable: row.syllable,
+        sound: row.vowel_sound,
+        locale: row.tts_locale,
+        queryText: row.query_text,
+        example: row.example_word,
+        file: row.file,
+        status: row.status
+      };
     })
     .filter((item) => item.pattern === "KVK" && item.file && item.syllable);
 }
