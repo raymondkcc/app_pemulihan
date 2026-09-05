@@ -4011,6 +4011,187 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .teacher-layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(260px, .6fr); gap: 1rem; margin-top: 1.5rem; } .teacher-activity-panel, .teacher-guide { border: 2px solid #19384a; border-radius: 8px; padding: 1rem; background: white; box-shadow: 5px 6px 0 rgba(25,56,74,.1); } .teacher-activity-list { display: grid; gap: .5rem; margin-top: 1rem; } .teacher-activity { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .7rem; min-height: 68px; border: 1px solid #dce4de; border-radius: 6px; padding: .55rem; background: #fffaf0; } .teacher-number { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 50%; color: #19384a; background: #f4ca47; font-size: .7rem; font-weight: 900; } .teacher-activity-copy { display: grid; gap: .15rem; } .teacher-activity-copy strong { font-family: "Baloo 2", sans-serif; font-size: 1.1rem; line-height: 1; } .teacher-activity-copy span { color: #64727b; font-size: .7rem; font-weight: 700; } .teacher-activity.is-locked { opacity: .6; } .teacher-coming { display: inline-flex; align-items: center; gap: .25rem; color: #64727b; font-size: .68rem; font-weight: 900; text-align: right; } .teacher-guide { background: #fff0b1; } .teacher-guide ul { display: grid; gap: .9rem; margin: 1.5rem 0; padding: 0; list-style: none; } .teacher-guide li { display: grid; gap: .15rem; } .teacher-guide li strong { font-family: "Baloo 2", sans-serif; font-size: 1.1rem; } .teacher-guide li span { color: #64727b; font-size: .75rem; font-weight: 700; } .teacher-tip { display: flex; gap: .45rem; border-top: 2px solid rgba(25,56,74,.2); padding-top: .8rem; color: #3655bd; font-size: .72rem; font-weight: 900; line-height: 1.35; }
 @media (max-width: 700px) { .role-grid, .mode-grid, .dashboard-subject-grid, .teacher-layout { grid-template-columns: 1fr; } .portal-content, .profile-content, .dashboard-content, .teacher-content { padding-top: 2.5rem; } .portal-status, .teacher-badge { display: none; } .role-card { min-height: 330px; } .mission-strip { grid-template-columns: auto 1fr; } .mission-strip a { grid-column: 2; justify-self: start; } .dashboard-welcome { align-items: flex-start; } .dashboard-avatar { width: 70px; height: 70px; font-size: 2.2rem; } .teacher-subject-tabs { overflow-x: auto; } .teacher-subject-tabs button { flex: none; flex-direction: column; } }
 
+/* Compact, image-led role chooser */
+html:has(.role-chooser-page),
+body:has(.role-chooser-page) {
+  min-width: 0;
+  overflow: hidden;
+}
+.role-chooser-page {
+  min-height: 100svh;
+  overflow: hidden;
+  background:
+    linear-gradient(125deg, transparent 0 72%, rgba(86, 202, 176, .2) 72%),
+    #fff9ec;
+}
+.role-chooser-page .portal-header {
+  height: 72px;
+  padding: .7rem 0;
+}
+.role-chooser-page .portal-header > div:last-of-type { gap: .15rem; }
+.role-chooser-page .portal-header strong { font-size: 1.2rem; }
+.role-chooser-page .portal-kicker {
+  color: #64727b;
+  font-size: .58rem;
+  letter-spacing: .08em;
+}
+.role-chooser-page .portal-content {
+  display: grid;
+  height: calc(100svh - 72px);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: clamp(.7rem, 2vh, 1.25rem);
+  padding: clamp(.65rem, 2vh, 1.4rem) 0 clamp(.8rem, 2vh, 1.4rem);
+}
+.role-chooser-page .portal-intro {
+  max-width: none;
+  text-align: center;
+}
+.role-chooser-page .portal-intro h1 {
+  margin: 0;
+  color: #19384a;
+  font-size: clamp(2rem, 5vh, 3.4rem);
+  line-height: 1;
+}
+.role-chooser-page .portal-intro p {
+  max-width: none;
+  margin: .25rem 0 0;
+  color: #bd4e40;
+  font-size: .78rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+.role-chooser-page .role-grid {
+  min-height: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(.75rem, 2vw, 1.2rem);
+  margin: 0;
+}
+.role-chooser-page .role-card {
+  position: relative;
+  display: block;
+  min-height: 0;
+  overflow: hidden;
+  border: 3px solid #19384a;
+  border-radius: 8px;
+  padding: 0;
+  background: #fff;
+  box-shadow: 7px 8px 0 rgba(25, 56, 74, .14);
+  isolation: isolate;
+}
+.role-chooser-page .role-card::after {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 1;
+  height: 43%;
+  background: linear-gradient(to top, rgba(17, 40, 53, .88), transparent);
+  content: "";
+  pointer-events: none;
+}
+.role-chooser-page .role-card-coral { background: #f1785d; }
+.role-chooser-page .role-card-blue { background: #5879e8; }
+.role-chooser-page .role-card-image,
+.role-chooser-page .home-image-slot {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  border-radius: 0;
+}
+.role-chooser-page .home-image-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.role-chooser-page .role-card-copy {
+  position: absolute;
+  right: 4.8rem;
+  bottom: clamp(.8rem, 2.4vh, 1.35rem);
+  left: clamp(.8rem, 2vw, 1.35rem);
+  z-index: 2;
+  display: grid;
+  gap: .08rem;
+  color: white;
+  text-shadow: 0 2px 5px rgba(17, 40, 53, .3);
+}
+.role-chooser-page .role-card-copy strong {
+  font-size: clamp(1.65rem, 4vh, 2.65rem);
+  line-height: 1;
+}
+.role-chooser-page .role-card-copy span {
+  font-size: .76rem;
+  font-weight: 900;
+}
+.role-chooser-page .role-card-action {
+  position: absolute;
+  right: clamp(.8rem, 2vw, 1.25rem);
+  bottom: clamp(.8rem, 2.4vh, 1.25rem);
+  z-index: 2;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 2px solid #19384a;
+  border-radius: 50%;
+  color: #19384a;
+  background: #f4ca47;
+  box-shadow: 3px 3px 0 rgba(25, 56, 74, .2);
+}
+.role-chooser-page .portal-note {
+  justify-content: center;
+  margin: 0;
+  color: #167764;
+}
+.role-chooser-page .role-card:focus-visible {
+  outline: 4px solid #f4ca47;
+  outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+  .role-chooser-page .portal-header {
+    width: min(100% - 1.25rem, 1040px);
+    height: 58px;
+    padding: .45rem 0;
+  }
+  .role-chooser-page .portal-logo span { width: 27px; height: 27px; }
+  .role-chooser-page .portal-header strong { font-size: 1rem; }
+  .role-chooser-page .portal-content {
+    width: min(100% - 1.25rem, 1040px);
+    height: calc(100svh - 58px);
+    gap: .65rem;
+    padding: .45rem 0 .7rem;
+  }
+  .role-chooser-page .portal-intro h1 { font-size: clamp(1.75rem, 4.5vh, 2.35rem); }
+  .role-chooser-page .portal-intro p { margin-top: .15rem; font-size: .7rem; }
+  .role-chooser-page .role-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: .65rem;
+  }
+  .role-chooser-page .role-card { min-height: 0; }
+  .role-chooser-page .role-card-copy { bottom: .7rem; left: .85rem; }
+  .role-chooser-page .role-card-copy strong { font-size: clamp(1.45rem, 4vh, 2rem); }
+  .role-chooser-page .role-card-action { right: .75rem; bottom: .7rem; width: 38px; height: 38px; }
+  .role-chooser-page .portal-note { font-size: .65rem; }
+}
+
+@media (max-height: 610px) and (max-width: 700px) {
+  .role-chooser-page .portal-header { height: 52px; }
+  .role-chooser-page .portal-content { height: calc(100svh - 52px); }
+  .role-chooser-page .portal-intro h1 { font-size: 1.55rem; }
+  .role-chooser-page .portal-note { display: none; }
+}
+
+@media (max-height: 610px) and (min-width: 480px) and (orientation: landscape) {
+  .role-chooser-page .role-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .role-chooser-page .role-card-copy strong { font-size: 1.25rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .role-chooser-page .role-card { transition: none; }
+}
+
 /* Perkataan four-choice quiz */
 .quiz-game-content { padding: 3.4rem 0 3.5rem; }
 .quiz-game-header {
