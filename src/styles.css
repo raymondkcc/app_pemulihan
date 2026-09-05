@@ -4097,6 +4097,8 @@ body:has(.role-chooser-page) {
   border-radius: 0;
 }
 .role-chooser-page .home-image-slot img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -4167,6 +4169,8 @@ body:has(.role-chooser-page) {
     gap: .65rem;
   }
   .role-chooser-page .role-card { min-height: 0; }
+  .role-chooser-page .role-card-coral .home-image-slot img { object-position: center 68%; }
+  .role-chooser-page .role-card-blue .home-image-slot img { object-position: center 78%; }
   .role-chooser-page .role-card-copy { bottom: .7rem; left: .85rem; }
   .role-chooser-page .role-card-copy strong { font-size: clamp(1.45rem, 4vh, 2rem); }
   .role-chooser-page .role-card-action { right: .75rem; bottom: .7rem; width: 38px; height: 38px; }
