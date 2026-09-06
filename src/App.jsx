@@ -8,6 +8,8 @@ import RoleChooser from "./components/home/RoleChooser.jsx";
 import StudentEntry from "./components/home/StudentEntry.jsx";
 import StudentDashboard from "./components/home/StudentDashboard.jsx";
 import TeacherHub from "./components/home/TeacherHub.jsx";
+import BahasaMelayuHub from "./components/bm/BahasaMelayuHub.jsx";
+import MathHub from "./components/math/MathHub.jsx";
 import KVKGame from "./components/kvk/KVKGame.jsx";
 import { isInteractiveTarget, playInterfaceClick } from "./utils/interfaceAudio.js";
 import "./styles.css";
