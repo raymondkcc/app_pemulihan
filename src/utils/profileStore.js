@@ -1,4 +1,25 @@
 const STORAGE_KEY = "pemulihan-learning-profiles-v1";
+const GUEST_KEY = "pemulihan-learning-guest";
+const GUEST_COOKIE = "pemulihan_learning_guest";
+const GUEST_PROFILE = { id: "guest", nickname: "Murid", avatarId: "bintang", progress: {}, lastActivity: null, isGuest: true };
+let guestSessionFallback = false;
+
+function setGuestSession(active) {
+  guestSessionFallback = active;
+  try {
+    if (active) window.sessionStorage.setItem(GUEST_KEY, "1");
+    else window.sessionStorage.removeItem(GUEST_KEY);
+  } catch { /* session-only fallback */ }
+  try { document.cookie = `${GUEST_COOKIE}=${active ? "1" : ""}; Path=/; SameSite=Lax${active ? "" : "; Max-Age=0"}`; } catch { /* in-memory fallback */ }
+}
+
+function hasGuestSession() {
+  if (guestSessionFallback) return true;
+  try {
+    if (window.sessionStorage.getItem(GUEST_KEY) === "1") return true;
+  } catch { /* check the same-origin fallback */ }
+  try { return document.cookie.split("; ").includes(`${GUEST_COOKIE}=1`); } catch { return false; }
+}
 
 function readStore() {
   try {
@@ -26,12 +47,19 @@ export function createProfile(nickname, avatarId) {
     progress: {},
     lastActivity: null
   };
+  setGuestSession(false);
   return writeStore({ ...store, profiles: [...store.profiles, profile], activeProfileId: profile.id });
 }
 
 export function setActiveProfile(profileId) {
+  setGuestSession(false);
   const store = readStore();
   return writeStore({ ...store, activeProfileId: profileId });
+}
+
+export function continueAsGuest() {
+  setGuestSession(true);
+  return GUEST_PROFILE;
 }
 
 export function updateProfile(profileId, patch) {
@@ -40,5 +68,6 @@ export function updateProfile(profileId, patch) {
 }
 
 export function getActiveProfile(store = readStore()) {
+  if (hasGuestSession()) return GUEST_PROFILE;
   return store.profiles.find((profile) => profile.id === store.activeProfileId) || null;
 }

@@ -10,6 +10,7 @@ import PerkataanFlashCardGame from "./PerkataanFlashCardGame.jsx";
 import PerkataanQuizGame from "./PerkataanQuizGame.jsx";
 import SpeechSyllableQuiz from "./SpeechSyllableQuiz.jsx";
 import SyllableLearningChoice from "./SyllableLearningChoice.jsx";
+import LetterLearningChoice from "./LetterLearningChoice.jsx";
 
 const LetterCaseGame = lazy(() => import("../../games/letterCase/LetterCaseGame.jsx"));
 
@@ -98,6 +99,10 @@ export default function BahasaMelayuHub({ onBack, onComingSoon, notice }) {
   }
 
   function selectSubCategory(subId) {
+    if (category === "huruf" && subId === "belajar") {
+      setLearningChoiceOpen(true);
+      return;
+    }
     if (category === "suku-kata" && subId === "belajar") {
       setLearningChoiceOpen(true);
       return;
@@ -119,7 +124,7 @@ export default function BahasaMelayuHub({ onBack, onComingSoon, notice }) {
 
   if (category && subCategory) {
     if (category === "huruf") {
-      if (subCategory === "belajar") return <HurufModule onBack={goBack} />;
+      if (subCategory === "baca" || subCategory === "tulis") return <HurufModule mode={subCategory} onBack={goBack} />;
       if (subCategory === "main") return <MainHuruf onBack={goBack} />;
       if (subCategory === "ujian") return <ComingSoon onBack={goBack} title="Ujian Huruf" description="Uji diri anda" />;
     }
@@ -166,6 +171,7 @@ export default function BahasaMelayuHub({ onBack, onComingSoon, notice }) {
             </button>
           ))}
         </div>
+        {category === "huruf" && learningChoiceOpen && <LetterLearningChoice onBack={() => setLearningChoiceOpen(false)} onChoose={(choice) => { setLearningChoiceOpen(false); setSubCategory(choice); window.scrollTo({ top: 0, behavior: "auto" }); }} />}
         {category === "suku-kata" && learningChoiceOpen && <SyllableLearningChoice onBack={() => setLearningChoiceOpen(false)} onChoose={(choice) => { setLearningChoiceOpen(false); setSubCategory(choice); window.scrollTo({ top: 0, behavior: "auto" }); }} />}
       </div>
     );
