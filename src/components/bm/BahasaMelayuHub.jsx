@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from "react";
-import { ArrowLeft, BookOpen, PenLine, Sparkles, Volume2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, PenLine, Sparkles, Volume2 } from "lucide-react";
 import { BM_CATEGORIES, HURUF } from "../../data/bm.js";
 import HurufModule from "./HurufModule.jsx";
 import VokalModule from "./VokalModule.jsx";
@@ -197,6 +197,7 @@ export default function BahasaMelayuHub({ onBack, onComingSoon, notice }) {
           >
             <img className="bm-category-image" src={cat.image} alt="" onError={(event) => { event.currentTarget.hidden = true; }} />
             <span className="bm-category-copy"><span className="bm-category-title">{cat.title}</span><span className="bm-category-subtitle">{cat.subtitle}</span></span>
+            <span className="bm-category-action" aria-hidden="true"><ArrowRight size={22} /></span>
           </button>
         ))}
       </div>
