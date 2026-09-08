@@ -1,5 +1,6 @@
 import { Sparkles, Star, Trophy } from "lucide-react";
 import SubjectCard from "./SubjectCard.jsx";
+import { APP_IMAGES } from "../../data/appAssets.js";
 
 export default function SubjectPicker({ onChooseSubject }) {
   return (
@@ -10,8 +11,8 @@ export default function SubjectPicker({ onChooseSubject }) {
         <p>Pilih satu subjek untuk mulakan misi kecil hari ini.</p>
       </div>
       <div className="subject-grid">
-        <SubjectCard title="Bahasa Melayu" english="Malay" description="Baca bunyi, bina perkataan, padan gambar." type="book" color="coral" onClick={() => onChooseSubject("bm")} />
-        <SubjectCard title="Matematik" english="Mathematics" description="Kira nombor dengan tambah, tolak, darab, bahagi." type="math" color="blue" onClick={() => onChooseSubject("math")} />
+        <SubjectCard title="Bahasa Melayu" english="Malay" description="Baca bunyi, bina perkataan, padan gambar." image={APP_IMAGES.bahasaMelayu3d} color="coral" onClick={() => onChooseSubject("bm")} />
+        <SubjectCard title="Matematik" english="Mathematics" description="Kira nombor dengan tambah, tolak, darab, bahagi." image={APP_IMAGES.matematik3d} color="blue" onClick={() => onChooseSubject("math")} />
       </div>
       <div className="picker-footer">
         <span><Star size={16} fill="currentColor" /> Belajar sedikit demi sedikit</span>

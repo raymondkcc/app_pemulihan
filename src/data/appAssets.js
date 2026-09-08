@@ -4,12 +4,16 @@ export const APP_IMAGES = {
   teacherWelcome: "/images/home/teacher-welcome.webp",
   bahasaMelayu: "/images/home/bahasa-melayu.webp",
   matematik: "/images/home/matematik.webp",
-  belajar: "/images/home/belajar.webp",
-  main: "/images/home/main.webp",
-  ujiDiri: "/images/home/uji-diri.webp"
+  bahasaMelayu3d: "/images/home/bahasa-melayu-3d.jpg",
+  matematik3d: "/images/home/matematik-3d.jpg",
+  learningSpace: "/images/home/learning-space-3d.jpg",
+  pattern: "/images/home/pattern-3d.jpg",
+  belajar: "/images/home/belajar-3d.jpg",
+  main: "/images/home/main-3d.jpg",
+  ujiDiri: "/images/home/uji-diri-3d.jpg"
 };
 
-export const AVATARS = [
+const AVATAR_OPTIONS = [
   { id: "bintang", label: "Bintang", mark: "⭐", color: "lemon" },
   { id: "awan", label: "Awan", mark: "☁️", color: "blue" },
   { id: "pelangi", label: "Pelangi", mark: "🌈", color: "coral" },
@@ -34,3 +38,8 @@ export const AVATARS = [
   { id: "roket", label: "Roket", mark: "🛸", color: "coral" },
   { id: "bola", label: "Bola", mark: "⚽", color: "lemon" }
 ];
+
+export const AVATARS = AVATAR_OPTIONS.map((avatar) => ({
+  ...avatar,
+  image: `/images/avatars/${avatar.id}.png`
+}));

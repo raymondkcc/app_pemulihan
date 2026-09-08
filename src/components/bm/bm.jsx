@@ -149,9 +149,8 @@ function BahasaMelayuHub({ onBack, onComingSoon, notice }) {
             type="button"
             onClick={() => selectCategory(cat.id)}
           >
-            <span className="bm-category-title">{cat.title}</span>
-            <span className="bm-category-subtitle">{cat.subtitle}</span>
-            <span className="bm-category-desc">{cat.description}</span>
+            <img className="bm-category-image" src={cat.image} alt="" onError={(event) => { event.currentTarget.hidden = true; }} />
+            <span className="bm-category-copy"><span className="bm-category-title">{cat.title}</span><span className="bm-category-subtitle">{cat.subtitle}</span></span>
           </button>
         ))}
       </div>

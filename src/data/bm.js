@@ -4,6 +4,7 @@ export const BM_CATEGORIES = [
     title: "Huruf",
     subtitle: "Letters",
     description: "Kenal dan bunyi 26 huruf",
+    image: "/images/topics/huruf.jpg",
     color: "coral",
     subCategories: [
       { id: "belajar", title: "Belajar", description: "Belajar bunyi huruf" },
@@ -16,6 +17,7 @@ export const BM_CATEGORIES = [
     title: "Vokal",
     subtitle: "Vowels",
     description: "Bunyi a, e, i, o, u",
+    image: "/images/topics/vokal.jpg",
     color: "lemon",
     subCategories: [
       { id: "belajar", title: "Belajar", description: "Kenal bunyi vokal" },
@@ -28,6 +30,7 @@ export const BM_CATEGORIES = [
     title: "Suku Kata",
     subtitle: "Syllables",
     description: "KV, KVK, dan bunyi bergabung",
+    image: "/images/topics/suku-kata.jpg",
     color: "mint",
     subCategories: [
       { id: "belajar", title: "Belajar", description: "Pilih KV atau KVK" },
@@ -40,6 +43,7 @@ export const BM_CATEGORIES = [
     title: "Perkataan",
     subtitle: "Words",
     description: "Bina dan kenal perkataan",
+    image: "/images/topics/perkataan.jpg",
     color: "blue",
     subCategories: [
       { id: "belajar", title: "Belajar", description: "Kenal perkataan" },
