@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, BookOpen, Image, Volume2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Image, Maximize2, Volume2, X } from "lucide-react";
 import { PERKATAAN_SKILLS, perkataanItemCount } from "../../data/perkataan.js";
 import { splitMalaySyllables } from "../../utils/malaySyllables.js";
 import { speakMalayText } from "../../utils/malaySpeech.js";
@@ -60,13 +60,42 @@ function PerkataanSkillSection({ skill }) {
   const [speakingWord, setSpeakingWord] = useState(null);
   const [activeSyllableIndex, setActiveSyllableIndex] = useState(-1);
   const [speechRate, setSpeechRate] = useState(1);
+  const [focusIndex, setFocusIndex] = useState(null);
   const speakingTimer = useRef(null);
   const syllableTimers = useRef([]);
+  const sectionRef = useRef(null);
+  const fullscreenStartedRef = useRef(false);
 
   useEffect(() => () => {
     window.clearTimeout(speakingTimer.current);
     syllableTimers.current.forEach((timer) => window.clearTimeout(timer));
   }, []);
+
+  useEffect(() => {
+    if (focusIndex === null) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event) => {
+      if (event.key === "ArrowLeft") setFocusIndex((current) => Math.max(0, current - 1));
+      if (event.key === "ArrowRight") setFocusIndex((current) => Math.min((skill.words || []).length - 1, current + 1));
+      if (event.key === "Escape" && !document.fullscreenElement) setFocusIndex(null);
+    };
+    const handleFullscreenChange = () => {
+      if (fullscreenStartedRef.current && !document.fullscreenElement) {
+        fullscreenStartedRef.current = false;
+        setFocusIndex(null);
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, [focusIndex, skill.words]);
 
   function speakWord(word) {
     if (speakingWord) return;
@@ -92,6 +121,22 @@ function PerkataanSkillSection({ skill }) {
     setSpeechRate((current) => current === 1 ? 0.5 : 1);
   }
 
+  function openFocusMode(index = 0) {
+    setFocusIndex(index);
+    if (document.fullscreenEnabled && sectionRef.current?.requestFullscreen && !document.fullscreenElement) {
+      fullscreenStartedRef.current = true;
+      sectionRef.current.requestFullscreen().catch(() => {
+        fullscreenStartedRef.current = false;
+      });
+    }
+  }
+
+  function closeFocusMode() {
+    setFocusIndex(null);
+    fullscreenStartedRef.current = false;
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  }
+
   const practiceWords = skill.practice || [];
   const skillWords = skill.words || [];
   const groups = [
@@ -102,7 +147,12 @@ function PerkataanSkillSection({ skill }) {
   return (
     <Fragment>
       {groups.filter(({ words }) => words.length > 0).map(({ words, label, countLabel, icon: Icon, id }) => (
-        <section className="word-skill-section" aria-labelledby={`${skill.id}-${id}-title`} key={id}>
+        <section
+          className="word-skill-section"
+          aria-labelledby={`${skill.id}-${id}-title`}
+          key={id}
+          ref={id === "words" ? sectionRef : undefined}
+        >
           <div className="section-heading-row">
             <div>
               <span className="section-kicker">{skill.code} / {label}</span>
@@ -110,6 +160,16 @@ function PerkataanSkillSection({ skill }) {
               <p>Tekan {label.toLocaleLowerCase("ms-MY")} untuk mendengar sebutan.</p>
             </div>
             <div className="word-section-tools">
+              {id === "words" && (
+                <button
+                  type="button"
+                  className="focus-mode-button"
+                  onClick={() => openFocusMode(0)}
+                  title="Lihat satu perkataan pada satu masa"
+                >
+                  <Maximize2 size={16} /> Fokus satu-satu
+                </button>
+              )}
               <button
                 type="button"
                 className="speed-toggle-btn"
@@ -133,6 +193,39 @@ function PerkataanSkillSection({ skill }) {
               />
             ))}
           </div>
+
+          {id === "words" && focusIndex !== null && words[focusIndex] && (
+            <div className={`word-focus-overlay focus-color-${skill.color}`} role="dialog" aria-modal="true" aria-label={`Fokus perkataan ${words[focusIndex]}`}>
+              <header className="word-focus-header">
+                <span><strong>{skill.code}</strong> · {focusIndex + 1} / {words.length}</span>
+                <button type="button" onClick={closeFocusMode} title="Tutup paparan penuh" aria-label="Tutup paparan penuh">
+                  <X size={24} />
+                </button>
+              </header>
+
+              <div className="word-focus-stage">
+                <PerkataanWordCard
+                  word={words[focusIndex]}
+                  isSpeaking={speakingWord === words[focusIndex]}
+                  onSpeak={() => speakWord(words[focusIndex])}
+                  color={skill.color}
+                  activeSyllableIndex={speakingWord === words[focusIndex] ? activeSyllableIndex : -1}
+                />
+              </div>
+
+              <div className="word-focus-nav">
+                <button type="button" onClick={() => setFocusIndex((current) => current - 1)} disabled={focusIndex === 0}>
+                  <ArrowLeft size={22} /> Sebelum
+                </button>
+                <div className="word-focus-dots" aria-hidden="true">
+                  {words.map((word, index) => <span className={index === focusIndex ? "is-active" : ""} key={word} />)}
+                </div>
+                <button type="button" onClick={() => setFocusIndex((current) => current + 1)} disabled={focusIndex === words.length - 1}>
+                  Selepas <ArrowRight size={22} />
+                </button>
+              </div>
+            </div>
+          )}
         </section>
       ))}
     </Fragment>

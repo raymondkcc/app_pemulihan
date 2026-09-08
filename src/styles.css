@@ -3593,6 +3593,122 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
   background: #eef3ff;
 }
 
+.focus-mode-button {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  gap: .4rem;
+  border: 2px solid var(--home-ink);
+  border-radius: 7px;
+  padding: .4rem .65rem;
+  color: white;
+  background: var(--home-blue-dark);
+  box-shadow: 0 3px 0 #213c91;
+  font-size: .72rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.focus-mode-button:hover { transform: translateY(-2px); box-shadow: 0 5px 0 #213c91; }
+
+.word-focus-overlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 1rem;
+  padding: clamp(1rem, 2.5vw, 2rem);
+  color: var(--home-ink);
+  background: #dff5ee;
+}
+
+.word-focus-overlay.focus-color-coral { background: #ffe4dc; }
+.word-focus-overlay.focus-color-purple { background: #f1e3f8; }
+.word-focus-overlay.focus-color-cyan { background: #dff6fb; }
+.word-focus-overlay.focus-color-green { background: #ddf6e9; }
+.word-focus-overlay.focus-color-orange { background: #fff0d8; }
+.word-focus-overlay.focus-color-blue { background: #e3ebff; }
+
+.word-focus-header,
+.word-focus-nav {
+  display: flex;
+  width: min(100%, 1100px);
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-inline: auto;
+}
+
+.word-focus-header > span {
+  font-family: "Baloo 2", "Trebuchet MS", sans-serif;
+  font-size: clamp(1rem, 2vw, 1.35rem);
+  font-weight: 800;
+}
+
+.word-focus-header > button {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  flex: none;
+  place-items: center;
+  border: 2px solid #19384a;
+  border-radius: 50%;
+  color: white;
+  background: #bd4e40;
+  box-shadow: 0 3px 0 #19384a;
+  cursor: pointer;
+}
+
+.word-focus-stage {
+  display: grid;
+  min-height: 0;
+  place-items: center;
+}
+
+.word-focus-stage .word-card {
+  width: min(82vw, 680px);
+  height: min(64vh, 610px);
+  min-height: 360px;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 1rem;
+  border-width: 4px;
+  padding: clamp(1rem, 2.5vw, 1.8rem);
+  box-shadow: 10px 12px 0 rgba(25, 56, 74, .16);
+  color: #19384a;
+  background: white;
+}
+
+.word-focus-stage .word-card-picture { border: 0; background: white; }
+.word-focus-stage .word-card-picture img { padding: 1rem; }
+.word-focus-stage .word-syllable-text { font-size: clamp(2.5rem, 7vh, 5rem); }
+.word-focus-stage .word-card-listen { width: 52px; height: 52px; top: 1rem; right: 1rem; }
+.word-focus-stage .word-card-listen { border-color: #19384a; background: #5879e8; }
+.word-focus-stage .word-card-listen svg { width: 23px; height: 23px; }
+
+.word-focus-nav > button {
+  display: inline-flex;
+  min-width: 128px;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  border: 2px solid #19384a;
+  border-radius: 7px;
+  padding: .55rem .8rem;
+  color: #19384a;
+  background: #f4ca47;
+  box-shadow: 0 3px 0 #19384a;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.word-focus-nav > button:disabled { cursor: not-allowed; opacity: .35; }
+.word-focus-dots { display: flex; max-width: 50%; flex-wrap: wrap; justify-content: center; gap: .35rem; }
+.word-focus-dots span { width: 9px; height: 9px; border: 1px solid #19384a; border-radius: 50%; background: white; }
+.word-focus-dots span.is-active { background: #3655bd; transform: scale(1.35); }
+
 @media (max-width: 560px) {
   .word-card-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4482,7 +4598,7 @@ body:has(.role-chooser-page) {
   border-radius: 8px;
   padding: 1.1rem;
   color: var(--home-ink);
-  background: white;
+  background: #fff5c9;
   box-shadow: 6px 7px 0 rgba(25, 56, 74, .12);
   text-align: center;
 }
@@ -4523,11 +4639,14 @@ body:has(.role-chooser-page) {
   border-radius: 8px;
   padding: 1.1rem 1rem 1rem;
   color: var(--home-ink);
-  background: rgba(255, 255, 255, .82);
+  background: #ffd8cf;
   box-shadow: 4px 5px 0 rgba(25, 56, 74, .1);
   text-align: center;
   transition: transform .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease;
 }
+.quiz-option:nth-child(2) { background: #cfe9ff; }
+.quiz-option:nth-child(3) { background: #ccefdc; }
+.quiz-option:nth-child(4) { background: #ffe69a; }
 .quiz-options-imageToWord .quiz-option { min-height: 91px; padding: .85rem 2rem .75rem 1rem; }
 .quiz-option strong { overflow-wrap: anywhere; font-family: "Comic Sans MS", "Comic Neue", cursive; font-size: 1.55rem; font-weight: 700; line-height: 1; }
 .quiz-option-picture { display: grid; width: 100%; height: 112px; min-width: 0; min-height: 0; place-items: center; padding: .7rem; }
@@ -4611,7 +4730,7 @@ body:has(.role-chooser-page) {
 .quiz-picture-target button:hover,
 .quiz-word-target button:hover { transform: translateY(-2px); }
 .quiz-skill-card:hover { filter: brightness(1.02); transform: translateY(-3px); box-shadow: 4px 8px 0 rgba(25, 56, 74, .14); }
-.quiz-option:not(:disabled):hover { background: var(--home-lemon); transform: translateY(-3px); box-shadow: 5px 8px 0 rgba(25, 56, 74, .14); }
+.quiz-option:not(:disabled):hover { filter: saturate(1.18) brightness(.98); transform: translateY(-3px); box-shadow: 5px 8px 0 rgba(25, 56, 74, .14); }
 
 @media (max-width: 900px) { .quiz-skill-grid { grid-template-columns: 1fr; } }
 
@@ -4645,6 +4764,13 @@ body:has(.role-chooser-page) {
   .quiz-result-panel { margin-top: 1.5rem; padding: 1.25rem 1rem; }
   .quiz-result-actions { width: 100%; flex-direction: column; }
   .quiz-secondary-action, .quiz-primary-action { width: 100%; }
+  .word-section-tools { align-items: stretch; }
+  .focus-mode-button { justify-content: center; }
+  .word-focus-overlay { gap: .6rem; padding: .75rem; }
+  .word-focus-stage .word-card { width: min(94vw, 560px); height: min(66vh, 560px); min-height: 300px; }
+  .word-focus-nav > button { min-width: 46px; padding-inline: .65rem; font-size: 0; }
+  .word-focus-nav > button svg { width: 22px; height: 22px; }
+  .word-focus-dots { max-width: 65%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
