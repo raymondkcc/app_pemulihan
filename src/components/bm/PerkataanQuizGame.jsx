@@ -162,7 +162,7 @@ function ModeSwitch({ mode, onChange }) {
       {Object.entries(QUIZ_MODES).map(([id, details]) => {
         const Icon = details.Icon;
         return (
-      <button
+          <button
             key={id}
             type="button"
             className={mode === id ? "is-active" : ""}
@@ -461,10 +461,13 @@ export default function PerkataanQuizGame({ onBack }) {
                 type="button"
                 onClick={() => startSkill(skill.id)}
               >
-                <span className="quiz-skill-number">{String(index + 1).padStart(2, "0")}</span>
-                <strong>{skill.code}</strong>
-                <span>{skill.title}</span>
-                <small>{skill.quizWords.length} perkataan <ChevronRight size={14} /></small>
+                <span className="quiz-skill-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                <span className="quiz-skill-copy">
+                  <strong>{skill.code}</strong>
+                  <span>{skill.title}</span>
+                  <small>{skill.quizWords.length} perkataan</small>
+                </span>
+                <span className="quiz-skill-arrow" aria-hidden="true"><ChevronRight size={18} /></span>
               </button>
             ))}
           </div>

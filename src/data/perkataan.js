@@ -1,8 +1,8 @@
 export const PERKATAAN_SKILLS = [
   {
     id: "k5",
-    code: "K5",
-    title: "KVKV",
+    code: "KP 5",
+    title: "Perkataan KV + KV",
     color: "coral",
     words: [
       "baju",
@@ -27,134 +27,134 @@ export const PERKATAAN_SKILLS = [
   },
   {
     id: "k6",
-    code: "K6",
-    title: "VKV",
+    code: "KP 6",
+    title: "Perkataan V + KV",
     color: "coral",
     words: ["ibu", "api", "eja", "ubi", "ini", "itu", "uji", "ada"]
   },
   {
     id: "k7",
-    code: "K7",
-    title: "KVKVKV",
+    code: "KP 7",
+    title: "Perkataan KV + KV + KV",
     color: "purple",
     words: ["kelapa", "kereta", "kerusi", "kamera", "bateri", "tomato", "lelaki", "kepala"]
   },
   {
     id: "k8",
-    code: "K8",
-    title: "KVK",
+    code: "KP 8",
+    title: "Perkataan KVK",
     color: "cyan",
     words: ["bas", "jus", "gam", "jam", "kek", "rak", "pen", "pin", "cat"]
   },
   {
     id: "k10",
-    code: "K10",
-    title: "VKV(K)",
+    code: "KP 10",
+    title: "Perkataan V + KVK",
     color: "green",
     words: ["ayam", "epal", "ekor", "enam", "emak", "ikan", "itik", "ubat", "oren"]
   },
   {
     id: "k11",
-    code: "K11",
-    title: "KVKVK",
+    code: "KP 11",
+    title: "Perkataan KV + KVK",
     color: "orange",
     words: ["kasut", "pokok", "rumah", "botol", "datuk", "nenek", "katil", "telur", "makan"]
   },
   {
     id: "k12",
-    code: "K12",
-    title: "KVKKV",
+    code: "KP 12",
+    title: "Perkataan KVK + KV",
     color: "blue",
     words: ["lembu", "lampu", "panda", "bomba", "pintu", "warna", "mandi", "cikgu", "kunci"]
   },
   {
     id: "k13",
-    code: "K13",
-    title: "KVKKVK",
+    code: "KP 13",
+    title: "Perkataan KVK + KVK",
     color: "coral",
     words: ["tandas", "biskut", "cantik", "sampah", "gambar", "rambut", "kertas", "nombor", "doktor"]
   },
   {
     id: "k14-k15",
-    code: "K14 dan K15",
-    title: "KVKVKVK",
+    code: "KP 14 dan KP 15",
+    title: "Perkataan KV + KV + KVK · Perkataan KVK + KV + KVK",
     color: "purple",
     words: ["sekolah", "zirafah", "telefon", "basikal", "selipar", "pemadam", "komputer", "rambutan", "hospital"]
   },
   {
     id: "k16-k17",
-    code: "K16 dan K17",
-    title: "KVK (final ng)",
+    code: "KP 16 dan KP 17",
+    title: "Perkataan KVKK · Suku kata KVKK",
     color: "cyan",
     words: ["tong", "wang", "bank"]
   },
   {
     id: "k18-k19",
-    code: "K18 dan K19",
-    title: "VKVK (final ng)",
+    code: "KP 18 dan KP 19",
+    title: "Perkataan KV + KVKK · Perkataan V + KVKK",
     color: "green",
     words: ["abang", "udang", "orang", "sotong", "kucing", "pisang", "burung", "padang", "payung"]
   },
   {
     id: "k20-k21",
-    code: "K20 dan K21",
-    title: "KVKKVK (ng)",
+    code: "KP 20 dan KP 21",
+    title: "Perkataan KVK + KVKK · Perkataan KVKK + KV",
     color: "orange",
     words: ["gunting", "panjang", "bintang", "kambing", "dinding", "tangga", "mangga", "bangku", "singki"]
   },
   {
     id: "k22-k23",
-    code: "K22 dan K23",
-    title: "KVKKVK (ngg)",
+    code: "KP 22 dan KP 23",
+    title: "Perkataan KVKK + KVK · Perkataan KVK + KVKK",
     color: "blue",
     words: ["tingkap", "manggis", "tinggal", "pinggan", "mangkuk", "congkak", "pingpong", "longkang", "tanglung"]
   },
   {
     id: "k24-k25",
-    code: "K24 dan K25",
-    title: "KVKVKVK (ng)",
+    code: "KP 24 dan KP 25",
+    title: "Perkataan KVK + KV + KVKK · Perkataan KV + KVK + KVKK",
     color: "coral",
     words: ["berenang", "menolong", "belakang", "binatang", "memancing", "keranjang", "melancong", "menendang", "pelampung"]
   },
   {
     id: "k26-k28",
-    code: "K26, K27 dan K28",
-    title: "Konsonan bergabung (ng, ngg)",
+    code: "KP 26, KP 27 dan KP 28",
+    title: "Perkataan KVK + KV + KVKK · Perkataan KVKK + KV + KVK · Perkataan KV + KVKK + KVK",
     color: "purple",
     words: ["berjoging", "membaling", "menggosok", "tenggelam", "gelongsor", "perangkap"]
   },
   {
     id: "k29-diftong",
-    code: "K29",
-    title: "Diftong",
+    code: "KP 29 · Diftong",
+    title: "Perkataan yang melibatkan diftong dan vokal berganding: ai, au, oi",
     color: "cyan",
     words: ["kedai", "pantai", "ramai", "pisau", "harimau", "pulau", "kaloi", "amoi", "cakoi"]
   },
   {
     id: "k29-vokal-berganding",
-    code: "K29",
-    title: "Vokal berganding",
+    code: "KP 29 · Vokal berganding",
+    title: "Perkataan yang melibatkan diftong dan vokal berganding: ai, au, oi",
     color: "green",
     words: ["air", "daun", "buah", "kuih", "piano", "durian", "duit", "suis", "paip"]
   },
   {
     id: "k30a",
-    code: "K30(a)",
-    title: "Digraf ng & ny",
+    code: "KP 30 · ng dan ny",
+    title: "Perkataan gabungan melibatkan huruf konsonan bergabung (digraf) ng, ny, sy, kh, gh",
     color: "orange",
     words: ["bunga", "tangan", "mengelap", "mengutip", "menangis", "nyamuk", "menyanyi", "penyapu", "menyimpan"]
   },
   {
     id: "k30b",
-    code: "K30(b)",
-    title: "Digraf sy & kh",
+    code: "KP 30 · sy dan kh",
+    title: "Perkataan gabungan melibatkan huruf konsonan bergabung (digraf) ng, ny, sy, kh, gh",
     color: "blue",
     words: ["syampu", "syiling", "Khamis", "khemah"]
   },
   {
     id: "k30c",
-    code: "K30(c)",
-    title: "Konsonan bergabung",
+    code: "KP 30 · Konsonan bergabung",
+    title: "Perkataan gabungan melibatkan huruf konsonan bergabung (digraf) ng, ny, sy, kh, gh",
     color: "coral",
     words: ["stoking", "troli", "plastik", "krayon", "aiskrim", "brokoli", "klip", "dram", "skuter"]
   }
