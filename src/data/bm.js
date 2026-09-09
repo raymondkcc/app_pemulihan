@@ -47,7 +47,7 @@ export const BM_CATEGORIES = [
     color: "blue",
     subCategories: [
       { id: "belajar", title: "Belajar", description: "Kenal perkataan" },
-      { id: "main", title: "Main", description: "Kuiz 4 pilihan" },
+      { id: "main", title: "Main", description: "Kuiz pilihan kemahiran" },
       { id: "ujian", title: "Ulang kaji", description: "Ulang kaji kad imbas" }
     ]
   }

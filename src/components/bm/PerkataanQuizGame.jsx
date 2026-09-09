@@ -53,8 +53,6 @@ function wordsForSkill(skill) {
   );
 }
 
-const ALL_WORDS = Array.from(new Set(PERKATAAN_SKILLS.flatMap(wordsForSkill)));
-
 function createQuestions(skill) {
   const words = wordsForSkill(skill);
   return shuffle(words).map((word) => ({
@@ -62,10 +60,7 @@ function createQuestions(skill) {
     retryCount: 0,
     choices: shuffle([
       word,
-      ...shuffle([
-        ...words.filter((candidate) => candidate !== word),
-        ...ALL_WORDS.filter((candidate) => !words.includes(candidate))
-      ]).slice(0, 3)
+      ...shuffle(words.filter((candidate) => candidate !== word)).slice(0, 3)
     ])
   }));
 }
@@ -435,7 +430,7 @@ export default function PerkataanQuizGame({ onBack }) {
             <ArrowLeft size={18} /> <span>Perkataan</span>
           </button>
           <div className="quiz-game-title">
-            <span><ListChecks size={16} /> Kuiz 4 pilihan</span>
+            <span><ListChecks size={16} /> Kuiz pilihan kemahiran</span>
             <h1>Main Perkataan</h1>
             <p>Pilih satu kemahiran untuk mula menjawab.</p>
           </div>
@@ -451,7 +446,7 @@ export default function PerkataanQuizGame({ onBack }) {
               <h2 id="quiz-skill-title">Kemahiran mana hari ini?</h2>
               <p>Setiap kuiz menggunakan perkataan daripada satu kemahiran sahaja.</p>
             </div>
-            <span className="quiz-skill-count"><ListChecks size={16} /> 4 pilihan setiap soalan</span>
+            <span className="quiz-skill-count"><ListChecks size={16} /> Pilihan dalam kemahiran sahaja</span>
           </div>
           <div className="quiz-skill-grid" aria-label="Pilih kemahiran perkataan">
             {skills.map((skill, index) => (
@@ -522,7 +517,7 @@ export default function PerkataanQuizGame({ onBack }) {
           <ArrowLeft size={18} /> <span>Perkataan</span>
         </button>
         <div className="quiz-game-title">
-          <span><ListChecks size={16} /> Kuiz 4 pilihan</span>
+          <span><ListChecks size={16} /> Kuiz pilihan kemahiran</span>
           <h1>{selectedSkill.code} · {selectedSkill.title}</h1>
           <p>{modeDetails.label}</p>
         </div>
@@ -585,7 +580,7 @@ export default function PerkataanQuizGame({ onBack }) {
           )}
         </div>
 
-        <div className={`quiz-options quiz-options-${mode}`} aria-label="Empat pilihan jawapan">
+        <div className={`quiz-options quiz-options-${mode} quiz-options-count-${question.choices.length}`} aria-label="Pilihan jawapan">
           {question.choices.map((choice, index) => {
             const choiceIsCorrect = isCorrect && choice === question.word;
             const choiceIsWrong = answered && choice === selectedAnswer && choice !== question.word;

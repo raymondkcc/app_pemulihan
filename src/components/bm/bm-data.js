@@ -47,7 +47,7 @@ const BM_CATEGORIES = [
     icon: "Languages",
     subCategories: [
       { id: "belajar", title: "Belajar", description: "Kenal perkataan", component: "perkataan-belajar" },
-      { id: "main", title: "Main", description: "Kuiz 4 pilihan", component: "perkataan-main" },
+      { id: "main", title: "Main", description: "Kuiz pilihan kemahiran", component: "perkataan-main" },
       { id: "ujian", title: "Ulang kaji", description: "Ulang kaji kad imbas", component: "perkataan-ujian" }
     ]
   }
