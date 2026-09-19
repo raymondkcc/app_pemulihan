@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
+    "firebase": "^12.19.0",
     "lucide-react": "latest",
     "phaser": "^4.2.1",
     "react": "latest",

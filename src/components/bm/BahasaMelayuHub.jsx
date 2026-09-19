@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState } from "react";
 import { ArrowLeft, ArrowRight, BookOpen, PenLine, Sparkles, Volume2 } from "lucide-react";
 import { BM_CATEGORIES, HURUF } from "../../data/bm.js";
+import { getActiveStudent } from "../../utils/kembaraStore.js";
 import HurufModule from "./HurufModule.jsx";
 import VokalModule from "./VokalModule.jsx";
 import KVModule from "./KVModule.jsx";
@@ -90,8 +91,14 @@ export default function BahasaMelayuHub({ onBack, onComingSoon, notice }) {
   const [category, setCategory] = useState(null);
   const [subCategory, setSubCategory] = useState(null);
   const [learningChoiceOpen, setLearningChoiceOpen] = useState(false);
+  const student = getActiveStudent();
+  const guestDemo = Boolean(student?.isGuest);
 
   function selectCategory(catId) {
+    if (guestDemo && catId !== "huruf") {
+      window.location.href = "/murid/demo-tamat";
+      return;
+    }
     setCategory(catId);
     setSubCategory(null);
     setLearningChoiceOpen(false);
@@ -188,7 +195,7 @@ export default function BahasaMelayuHub({ onBack, onComingSoon, notice }) {
         </div>
       </div>
       <div className="bm-categories-grid">
-        {BM_CATEGORIES.map(cat => (
+        {(guestDemo ? BM_CATEGORIES.filter((item) => item.id === "huruf") : BM_CATEGORIES).map(cat => (
           <button
             key={cat.id}
             className={`bm-category-card bm-category-${cat.color}`}

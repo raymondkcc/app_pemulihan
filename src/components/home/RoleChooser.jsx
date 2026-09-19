@@ -12,7 +12,7 @@ function RoleCard({ image, imageAlt, title, english, color, href }) {
 
 export default function RoleChooser() {
   return <main className="portal-page role-chooser-page">
-    <header className="portal-header"><div className="portal-logo"><span>A</span><span>1</span><span>*</span></div><div><strong>Bijak belajar</strong><span className="portal-kicker">Ruang belajar</span></div><span className="portal-status"><Sparkles size={15} /> Jom mula!</span></header>
+    <header className="portal-header"><div className="portal-logo"><span>A</span><span>1</span><span>*</span></div><div><strong>Kembara Pintar</strong><span className="portal-kicker">Ruang belajar</span></div><span className="portal-status"><Sparkles size={15} /> Jom mula!</span></header>
     <section className="portal-content">
       <div className="portal-intro"><h1>Saya adalah...</h1><p>Pilih satu / Choose one</p></div>
       <div className="role-grid">
