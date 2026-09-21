@@ -1,32 +1,62 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, GraduationCap, LogOut, Plus, Shield } from "lucide-react";
 import { FREE_STUDENT_LIMIT } from "../../data/kembara.js";
 import {
   bootstrapAdmin,
   createAdult,
   getActiveAdult,
-  getDailyStats,
-  getKembaraStore,
   hasAdmin,
   listStudentsForAdult,
+  loadAdminWorkspace,
   logoutAdult,
   makeAdmin,
+  refreshAppMeta,
   setAdultActive,
-  setAdultLimit
+  setAdultLimit,
+  whenAuthReady
 } from "../../utils/kembaraStore.js";
 import { canRun, tooFrequent } from "../../utils/rateLimit.js";
 
 export default function AdminPanel() {
-  const adult = getActiveAdult();
-  if (!hasAdmin()) return <BootstrapAdmin />;
-  if (!adult) {
-    window.location.replace("/cikgu");
-    return null;
+  const [phase, setPhase] = useState("loading");
+  const [adult, setAdult] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      await whenAuthReady();
+      await refreshAppMeta();
+      const current = getActiveAdult();
+      if (cancelled) return;
+      if (!hasAdmin() && !current) {
+        setPhase("bootstrap");
+        return;
+      }
+      if (!current) {
+        window.location.replace("/cikgu");
+        return;
+      }
+      if (current.role !== "admin") {
+        window.location.replace("/akaun");
+        return;
+      }
+      setAdult(current);
+      setPhase("ready");
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  if (phase === "loading") {
+    return (
+      <main className="portal-page">
+        <section className="profile-content">
+          <p className="portal-note">Menyambung Firebase...</p>
+        </section>
+      </main>
+    );
   }
-  if (adult.role !== "admin") {
-    window.location.replace("/akaun");
-    return null;
-  }
+  if (phase === "bootstrap") return <BootstrapAdmin />;
+  if (!adult) return null;
   return <AdminHome adult={adult} />;
 }
 
@@ -35,10 +65,14 @@ function BootstrapAdmin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  function submit(event) {
+  async function submit(event) {
     event.preventDefault();
-    const result = bootstrapAdmin({ name, email, password });
+    setBusy(true);
+    setError("");
+    const result = await bootstrapAdmin({ name, email, password });
+    setBusy(false);
     if (!result.ok) {
       setError(result.error);
       return;
@@ -56,7 +90,7 @@ function BootstrapAdmin() {
       <section className="profile-content">
         <div className="portal-intro">
           <h1>Cipta akaun admin</h1>
-          <p>Akaun ini hanya pada pelayar ini sehingga Firebase disambung. Jangan kongsi kata laluan.</p>
+          <p>Akaun ini disimpan dalam Firebase Auth dan Firestore. Jika anda sudah cipta pengguna di konsol Firebase, guna e-mel dan kata laluan yang sama.</p>
         </div>
         <form className="profile-form" onSubmit={submit}>
           <label htmlFor="admin-name">Nama</label>
@@ -66,7 +100,7 @@ function BootstrapAdmin() {
           <label htmlFor="admin-password">Kata laluan</label>
           <input id="admin-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} minLength={6} required />
           {error && <p className="form-error">{error}</p>}
-          <button className="profile-submit" type="submit">Simpan admin</button>
+          <button className="profile-submit" type="submit" disabled={busy}>{busy ? "Menyimpan..." : "Simpan admin"}</button>
         </form>
       </section>
     </main>
@@ -74,28 +108,40 @@ function BootstrapAdmin() {
 }
 
 function AdminHome({ adult }) {
-  const [store, setStore] = useState(getKembaraStore);
-  const [stats, setStats] = useState(getDailyStats);
+  const [store, setStore] = useState({ adults: [], classes: [], students: [] });
+  const [stats, setStats] = useState({ activeAdults: 0, students: 0, classes: 0, tracks: { bm: 0, math: 0, both: 0 } });
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("teacher");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
   const adults = useMemo(() => store.adults, [store]);
 
-  function refresh() {
+  async function load() {
+    const result = await loadAdminWorkspace();
+    setStore(result.store);
+    setStats(result.stats);
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function refresh() {
     if (!canRun("admin-refresh", 30000)) {
       tooFrequent("adult");
       return;
     }
-    setStore(getKembaraStore());
-    setStats(getDailyStats());
+    await load();
   }
 
-  function addAdult(event) {
+  async function addAdult(event) {
     event.preventDefault();
-    const result = createAdult({ name, email, password, role });
+    setBusy(true);
+    const result = await createAdult({ name, email, password, role });
+    setBusy(false);
     if (!result.ok) {
       setError(result.error);
       setNotice("");
@@ -106,8 +152,25 @@ function AdminHome({ adult }) {
     setPassword("");
     setError("");
     setNotice(`Akaun ${result.adult.email} dibuka. Kod kelas: ${result.classRecord.code}`);
-    setStore(getKembaraStore());
-    setStats(getDailyStats());
+    await load();
+  }
+
+  async function changeLimit(id, limit) {
+    const result = await setAdultLimit(id, limit);
+    if (!result.ok) setError(result.error);
+    await load();
+  }
+
+  async function promote(id) {
+    const result = await makeAdmin(id);
+    if (!result.ok) setError(result.error);
+    await load();
+  }
+
+  async function toggleActive(item) {
+    const result = await setAdultActive(item.id, !item.active);
+    if (!result.ok) setError(result.error);
+    await load();
   }
 
   return (
@@ -117,7 +180,7 @@ function AdminHome({ adult }) {
         <div className="portal-logo"><span>A</span><span>1</span><span>*</span></div>
         <div><span className="portal-kicker">Admin</span><strong>Panel Kembara</strong></div>
         <span className="teacher-badge"><Shield size={16} /> {adult.name}</span>
-        <a className="exit-link" href="/" onClick={() => logoutAdult()}><LogOut size={16} /> Keluar</a>
+        <a className="exit-link" href="/" onClick={async (event) => { event.preventDefault(); await logoutAdult(); window.location.href = "/"; }}><LogOut size={16} /> Keluar</a>
       </header>
       <section className="teacher-content">
         <div className="teacher-intro">
@@ -149,7 +212,7 @@ function AdminHome({ adult }) {
             </select>
             {error && <p className="form-error">{error}</p>}
             {notice && <p className="form-notice">{notice}</p>}
-            <button className="profile-submit" type="submit">Buka akaun percuma</button>
+            <button className="profile-submit" type="submit" disabled={busy}>{busy ? "Membuka akaun..." : "Buka akaun percuma"}</button>
           </form>
         </section>
         <section className="admin-panel-card">
@@ -168,10 +231,10 @@ function AdminHome({ adult }) {
                     <small>Kod {classRecord?.code || "-"} · Murid {seats}/{item.studentLimit || FREE_STUDENT_LIMIT}</small>
                   </div>
                   <div className="admin-adult-actions">
-                    <button type="button" onClick={() => { setAdultLimit(item.id, 30); setStore(getKembaraStore()); }}>Had 30</button>
-                    <button type="button" onClick={() => { setAdultLimit(item.id, 80); setStore(getKembaraStore()); }}>Had 80</button>
-                    {item.role !== "admin" && <button type="button" onClick={() => { makeAdmin(item.id); setStore(getKembaraStore()); }}>Jadikan admin</button>}
-                    <button type="button" onClick={() => { setAdultActive(item.id, !item.active); setStore(getKembaraStore()); }}>{item.active ? "Tutup" : "Buka"}</button>
+                    <button type="button" onClick={() => changeLimit(item.id, 30)}>Had 30</button>
+                    <button type="button" onClick={() => changeLimit(item.id, 80)}>Had 80</button>
+                    {item.role !== "admin" && <button type="button" onClick={() => promote(item.id)}>Jadikan admin</button>}
+                    <button type="button" onClick={() => toggleActive(item)}>{item.active ? "Tutup" : "Buka"}</button>
                   </div>
                 </article>
               );

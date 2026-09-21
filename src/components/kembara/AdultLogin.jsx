@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, ChevronLeft } from "lucide-react";
-import { hasAdmin, loginAdult } from "../../utils/kembaraStore.js";
+import { hasAdmin, loginAdult, refreshAppMeta, whenAuthReady, getActiveAdult } from "../../utils/kembaraStore.js";
 import { canRun, tooFrequent } from "../../utils/rateLimit.js";
 import WhatsAppCta from "./WhatsAppCta.jsx";
 
@@ -8,19 +8,58 @@ export default function AdultLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [adminReady, setAdminReady] = useState(hasAdmin());
 
-  function submit(event) {
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      await whenAuthReady();
+      const adult = getActiveAdult();
+      if (adult) {
+        window.location.replace(adult.role === "admin" ? "/admin" : "/akaun");
+        return;
+      }
+      let exists = false;
+      try {
+        exists = await refreshAppMeta();
+      } catch {
+        exists = false;
+      }
+      if (!cancelled) {
+        setAdminReady(exists);
+        setReady(true);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  async function submit(event) {
     event.preventDefault();
     if (!canRun("adult-login", 2000)) {
       tooFrequent("adult");
       return;
     }
-    const result = loginAdult(email, password);
+    setBusy(true);
+    setError("");
+    const result = await loginAdult(email, password);
+    setBusy(false);
     if (!result.ok) {
       setError(result.error);
       return;
     }
     window.location.href = result.adult.role === "admin" ? "/admin" : "/akaun";
+  }
+
+  if (!ready) {
+    return (
+      <main className="portal-page student-entry-page">
+        <section className="profile-content">
+          <p className="portal-note">Menyambung Firebase...</p>
+        </section>
+      </main>
+    );
   }
 
   return (
@@ -43,11 +82,13 @@ export default function AdultLogin() {
           <label htmlFor="adult-password">Kata laluan / Password</label>
           <input id="adult-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required autoComplete="current-password" />
           {error && <p className="form-error" role="alert">{error}</p>}
-          <button className="profile-submit" type="submit">Log masuk / Sign in <ArrowRight size={18} /></button>
+          <button className="profile-submit" type="submit" disabled={busy}>
+            {busy ? "Sedang log masuk..." : "Log masuk / Sign in"} <ArrowRight size={18} />
+          </button>
         </form>
         <div className="entry-divider" role="separator"><span>ATAU<small>OR</small></span></div>
         <WhatsAppCta />
-        {!hasAdmin() && <p className="portal-note">Admin pertama: buka /admin untuk cipta akaun pada pelayar ini.</p>}
+        {!adminReady && <p className="portal-note">Admin pertama: buka /admin untuk cipta akaun Firebase, atau log masuk dengan akaun Auth yang sudah ada.</p>}
         <p className="portal-note">Lupa kata laluan? WhatsApp admin. / Forgot password? WhatsApp admin.</p>
       </section>
     </main>

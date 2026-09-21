@@ -1,5 +1,7 @@
-import { initializeApp } from "firebase/app";
+import { getApp, getApps, initializeApp } from "firebase/app";
 import { getAnalytics, isSupported } from "firebase/analytics";
+import { getAuth } from "firebase/auth";
+import { getFirestore, initializeFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -11,7 +13,23 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-export const firebaseApp = initializeApp(firebaseConfig);
+export const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
+export const secondaryApp = getApps().some((app) => app.name === "Secondary")
+  ? getApp("Secondary")
+  : initializeApp(firebaseConfig, "Secondary");
+
+export const auth = getAuth(firebaseApp);
+export const secondaryAuth = getAuth(secondaryApp);
+
+function createDb(app) {
+  try {
+    return initializeFirestore(app, { ignoreUndefinedProperties: true });
+  } catch {
+    return getFirestore(app);
+  }
+}
+
+export const db = createDb(firebaseApp);
 
 export let analytics = null;
 

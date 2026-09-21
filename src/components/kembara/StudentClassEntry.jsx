@@ -12,14 +12,17 @@ export default function StudentClassEntry() {
   const [faces, setFaces] = useState([]);
   const [selected, setSelected] = useState(null);
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  function loadClass(event) {
+  async function loadClass(event) {
     event.preventDefault();
     if (!canRun("class-code", 5000)) {
       tooFrequent("child");
       return;
     }
-    const result = listClassFaces(code);
+    setBusy(true);
+    const result = await listClassFaces(code);
+    setBusy(false);
     if (!result.ok) {
       setError(result.error);
       setFaces([]);
@@ -30,13 +33,15 @@ export default function StudentClassEntry() {
     setSelected(null);
   }
 
-  function useKad(event) {
+  async function useKad(event) {
     event.preventDefault();
     if (!canRun("kad-login", 3000)) {
       tooFrequent("child");
       return;
     }
-    const result = loginStudentWithKad(kad);
+    setBusy(true);
+    const result = await loginStudentWithKad(kad);
+    setBusy(false);
     if (!result.ok) {
       setError(result.error === "locked" ? "Kunci dikunci. Cikgu perlu reset." : result.error);
       return;
@@ -49,13 +54,15 @@ export default function StudentClassEntry() {
     window.location.href = "/murid/ruang";
   }
 
-  function submitLock(pictureIds) {
+  async function submitLock(pictureIds) {
     if (!selected) return;
     if (!canRun("picture-login", 2000)) {
       tooFrequent("child");
       return;
     }
-    const result = loginStudentWithPictures(selected.id, pictureIds);
+    setBusy(true);
+    const result = await loginStudentWithPictures(selected.id, pictureIds);
+    setBusy(false);
     if (!result.ok) {
       if (result.error === "locked") setError("Terlalu banyak cubaan. Cikgu perlu buka semula.");
       else if (result.error === "wrong") setError(`Belum tepat. Baki cubaan: ${result.remaining}`);
@@ -81,7 +88,7 @@ export default function StudentClassEntry() {
         <form className="profile-form" onSubmit={loadClass}>
           <label htmlFor="class-code">Kod kelas / Class code</label>
           <input id="class-code" value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} maxLength={6} placeholder="PINTAR" />
-          <button className="profile-submit" type="submit">Lihat wajah / See faces <ArrowRight size={18} /></button>
+          <button className="profile-submit" type="submit" disabled={busy}>Lihat wajah / See faces <ArrowRight size={18} /></button>
         </form>
 
         {faces.length > 0 && !selected && (
@@ -106,7 +113,7 @@ export default function StudentClassEntry() {
         <form className="profile-form" onSubmit={useKad}>
           <label htmlFor="kad-code">Atau kod kad / Or card code</label>
           <input id="kad-code" value={kad} onChange={(event) => setKad(event.target.value.toUpperCase())} placeholder="KANCIL-4821" />
-          <button className="profile-submit" type="submit">Masuk dengan kad</button>
+          <button className="profile-submit" type="submit" disabled={busy}>Masuk dengan kad</button>
         </form>
 
         {error && <p className="form-error" role="alert">{error}</p>}

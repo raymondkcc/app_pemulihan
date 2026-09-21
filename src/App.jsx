@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import AdditionRegroupGame from "./games/additionRegroup/AdditionRegroupGame.jsx";
 import KvSoundPondGame from "./games/kvSoundPond/KvSoundPondGame.jsx";
 import MinusRegroupGame from "./games/minusRegroup/MinusRegroupGame.jsx";
@@ -17,11 +17,8 @@ import StudentClassEntry from "./components/kembara/StudentClassEntry.jsx";
 import GuestDemoGate from "./components/kembara/GuestDemoGate.jsx";
 import RateLimitToast from "./components/kembara/RateLimitToast.jsx";
 import { isInteractiveTarget, playInterfaceClick } from "./utils/interfaceAudio.js";
-import { getActiveAdult, getActiveStudent, isGuestPathAllowed } from "./utils/kembaraStore.js";
-import { firebaseApp } from "./utils/firebase.js";
+import { getActiveAdult, getActiveStudent, isGuestPathAllowed, startKembaraAuth, whenAuthReady } from "./utils/kembaraStore.js";
 import "./styles.css";
-
-void firebaseApp;
 
 function useInterfaceClickSound() {
   useEffect(() => {
@@ -123,12 +120,33 @@ function RouteView() {
   return <HomeLanding />;
 }
 
+function AuthGate({ children }) {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    startKembaraAuth();
+    whenAuthReady().then(() => setReady(true));
+  }, []);
+
+  if (!ready) {
+    return (
+      <main className="portal-page">
+        <section className="profile-content">
+          <p className="portal-note">Menyambung Firebase...</p>
+        </section>
+      </main>
+    );
+  }
+
+  return children;
+}
+
 export default function App() {
   useInterfaceClickSound();
   return (
-    <>
+    <AuthGate>
       <RouteView />
       <RateLimitToast />
-    </>
+    </AuthGate>
   );
 }

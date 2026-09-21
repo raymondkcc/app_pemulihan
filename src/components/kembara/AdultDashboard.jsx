@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, Check, LogOut, UserRound } from "lucide-react";
 import { AVATARS } from "../../data/appAssets.js";
 import { FREE_STUDENT_LIMIT, TRACKS, WHATSAPP_LINK, trackLabel } from "../../data/kembara.js";
@@ -8,43 +8,71 @@ import {
   ensureAdultClass,
   getActiveAdult,
   listStudentsForAdult,
+  loadAdultWorkspace,
   logoutAdult,
   resetStudentLock,
-  setStudentLock
+  setStudentLock,
+  whenAuthReady
 } from "../../utils/kembaraStore.js";
 import PictureLockSetup from "./PictureLockSetup.jsx";
 
 export default function AdultDashboard() {
-  const adult = getActiveAdult();
-  const [students, setStudents] = useState(() => adult ? listStudentsForAdult(adult.id) : []);
+  const [adult, setAdult] = useState(null);
+  const [students, setStudents] = useState([]);
+  const [classRecord, setClassRecord] = useState(null);
   const [nickname, setNickname] = useState("");
   const [avatar, setAvatar] = useState(AVATARS[0].id);
   const [track, setTrack] = useState("both");
   const [error, setError] = useState("");
   const [lockStudent, setLockStudent] = useState(null);
-  const [classRecord, setClassRecord] = useState(() => adult ? ensureAdultClass(adult.id) : null);
+  const [ready, setReady] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    if (!adult) {
-      window.location.replace("/cikgu");
-      return;
-    }
-    setClassRecord(ensureAdultClass(adult.id));
-    setStudents(listStudentsForAdult(adult.id));
-  }, [adult?.id]);
-
-  if (!adult || !classRecord) return null;
-
-  const limit = adult.studentLimit || FREE_STUDENT_LIMIT;
-  const atLimit = students.length >= limit;
-
-  function refresh() {
-    setStudents(listStudentsForAdult(adult.id));
+  async function refresh(currentAdult) {
+    const actor = currentAdult || getActiveAdult();
+    if (!actor) return;
+    await loadAdultWorkspace();
+    const nextClass = await ensureAdultClass(actor.id);
+    setClassRecord(nextClass);
+    setStudents(listStudentsForAdult(actor.id));
   }
 
-  function submit(event) {
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      await whenAuthReady();
+      const current = getActiveAdult();
+      if (!current) {
+        window.location.replace("/cikgu");
+        return;
+      }
+      if (cancelled) return;
+      setAdult(current);
+      await refresh(current);
+      if (!cancelled) setReady(true);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const limit = adult?.studentLimit || FREE_STUDENT_LIMIT;
+  const atLimit = students.length >= limit;
+  const seatLabel = `Murid ${students.length}/${limit}`;
+
+  if (!ready || !adult || !classRecord) {
+    return (
+      <main className="dashboard-page">
+        <section className="dashboard-content">
+          <p className="portal-note">Menyambung Firebase...</p>
+        </section>
+      </main>
+    );
+  }
+
+  async function submit(event) {
     event.preventDefault();
-    const result = addStudent({ nickname, avatarId: avatar, track });
+    setBusy(true);
+    const result = await addStudent({ nickname, avatarId: avatar, track });
+    setBusy(false);
     if (!result.ok) {
       setError(result.error === "limit" ? `Had percuma: ${limit} murid.` : result.error);
       return;
@@ -52,10 +80,8 @@ export default function AdultDashboard() {
     setNickname("");
     setError("");
     setLockStudent(result.student);
-    refresh();
+    await refresh(adult);
   }
-
-  const seatLabel = useMemo(() => `Murid ${students.length}/${limit}`, [students.length, limit]);
 
   return (
     <main className="dashboard-page">
@@ -65,7 +91,7 @@ export default function AdultDashboard() {
           <span className="seat-meter">{seatLabel}</span>
           {adult.role === "admin" && <a href="/admin">Admin</a>}
           <a href="/cikgu/panduan">Panduan</a>
-          <a className="exit-link" href="/" onClick={() => logoutAdult()}><LogOut size={16} /><span>Keluar / Exit</span></a>
+          <a className="exit-link" href="/" onClick={async (event) => { event.preventDefault(); await logoutAdult(); window.location.href = "/"; }}><LogOut size={16} /><span>Keluar / Exit</span></a>
         </div>
       </header>
       <section className="dashboard-content">
@@ -81,10 +107,10 @@ export default function AdultDashboard() {
           <PictureLockSetup
             studentName={lockStudent.nickname}
             onCancel={() => setLockStudent(null)}
-            onSave={(pictureIds) => {
-              setStudentLock(lockStudent.id, pictureIds);
+            onSave={async (pictureIds) => {
+              await setStudentLock(lockStudent.id, pictureIds);
               setLockStudent(null);
-              refresh();
+              await refresh(adult);
             }}
           />
         )}
@@ -103,12 +129,12 @@ export default function AdultDashboard() {
                   <span className={`avatar avatar-${item.color}`}><img src={item.image} alt="" onError={(event) => { event.currentTarget.hidden = true; }} /><span>{item.mark}</span></span>
                   <span>
                     <strong>{student.nickname}</strong>
-                    <small>{trackInfo.title} · {student.lock ? "Kunci sedia" : "Kunci belum"} · {student.kadCode}</small>
+                    <small>{trackInfo.title} · {student.hasLock ? "Kunci sedia" : "Kunci belum"} · {student.kadCode}</small>
                   </span>
                   <span className="student-manage-actions">
-                    <button type="button" onClick={() => setLockStudent(student)}>{student.lock ? "Tukar kunci" : "Buat kunci"}</button>
-                    {student.lock && <button type="button" onClick={() => { resetStudentLock(student.id); refresh(); }}>Reset</button>}
-                    <button type="button" onClick={() => { archiveStudent(student.id); refresh(); }}>Padam</button>
+                    <button type="button" onClick={() => setLockStudent(student)}>{student.hasLock ? "Tukar kunci" : "Buat kunci"}</button>
+                    {student.hasLock && <button type="button" onClick={async () => { await resetStudentLock(student.id); await refresh(adult); }}>Reset</button>}
+                    <button type="button" onClick={async () => { await archiveStudent(student.id); await refresh(adult); }}>Padam</button>
                   </span>
                 </div>
               );
@@ -150,7 +176,9 @@ export default function AdultDashboard() {
                 ))}
               </div>
               {error && <p className="form-error">{error}</p>}
-              <button className="profile-submit" type="submit">Tambah murid / Add student <ArrowRight size={18} /></button>
+              <button className="profile-submit" type="submit" disabled={busy}>
+                {busy ? "Menambah..." : "Tambah murid / Add student"} <ArrowRight size={18} />
+              </button>
             </form>
           )}
         </section>
