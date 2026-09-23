@@ -58,6 +58,7 @@ function RouteView() {
   if (path === "/akaun") return <AdultDashboard />;
   if (path === "/admin") return <AdminPanel />;
   if (path === "/murid/demo-tamat") return <GuestDemoGate />;
+  if (path === "/cikgu/mengajar") return <TeacherHub teachingMode />;
   if (path === "/cikgu/panduan") return <TeacherHub />;
   if (path === "/cikgu/bahasa-melayu") return <TeacherHub initialSubject="bm" />;
   if (path === "/cikgu/matematik") return <TeacherHub initialSubject="math" />;

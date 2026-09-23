@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowRight, Check, LogOut, UserRound } from "lucide-react";
+import { ArrowRight, Check, LogOut, Presentation, UserRound } from "lucide-react";
 import { AVATARS } from "../../data/appAssets.js";
 import { FREE_STUDENT_LIMIT, TRACKS, WHATSAPP_LINK, trackLabel } from "../../data/kembara.js";
 import {
@@ -103,6 +103,15 @@ export default function AdultDashboard() {
           </div>
         </div>
 
+        <section className="teaching-entry-card">
+          <div className="teaching-entry-icon"><Presentation size={26} /></div>
+          <div className="teaching-entry-copy">
+            <span className="section-kicker">Untuk mengajar / For teaching</span>
+            <h2>Masuk ke mod pengajaran</h2>
+            <p>Pilih sebanyak mana subjek dan mod yang mahu anda gunakan bersama murid.</p>
+          </div>
+          <a className="teaching-entry-button" href="/cikgu/mengajar"><span>Buka mod mengajar</span><small>Teaching mode</small><ArrowRight size={19} /></a>
+        </section>
         {lockStudent && (
           <PictureLockSetup
             studentName={lockStudent.nickname}
