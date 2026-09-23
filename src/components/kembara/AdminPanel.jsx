@@ -16,6 +16,7 @@ import {
   whenAuthReady
 } from "../../utils/kembaraStore.js";
 import { canRun, tooFrequent } from "../../utils/rateLimit.js";
+import LoadingScreen from "./LoadingScreen.jsx";
 
 export default function AdminPanel() {
   const [phase, setPhase] = useState("loading");
@@ -47,13 +48,7 @@ export default function AdminPanel() {
   }, []);
 
   if (phase === "loading") {
-    return (
-      <main className="portal-page">
-        <section className="profile-content">
-          <p className="portal-note">Menyambung Firebase...</p>
-        </section>
-      </main>
-    );
+    return <LoadingScreen />;
   }
   if (phase === "bootstrap") return <BootstrapAdmin />;
   if (!adult) return null;

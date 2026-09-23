@@ -15,6 +15,7 @@ import {
   whenAuthReady
 } from "../../utils/kembaraStore.js";
 import PictureLockSetup from "./PictureLockSetup.jsx";
+import LoadingScreen from "./LoadingScreen.jsx";
 
 export default function AdultDashboard() {
   const [adult, setAdult] = useState(null);
@@ -59,13 +60,7 @@ export default function AdultDashboard() {
   const seatLabel = `Murid ${students.length}/${limit}`;
 
   if (!ready || !adult || !classRecord) {
-    return (
-      <main className="dashboard-page">
-        <section className="dashboard-content">
-          <p className="portal-note">Menyambung Firebase...</p>
-        </section>
-      </main>
-    );
+    return <LoadingScreen variant="dashboard" />;
   }
 
   async function submit(event) {
