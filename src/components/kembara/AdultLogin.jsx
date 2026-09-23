@@ -3,6 +3,7 @@ import { ArrowRight, ChevronLeft } from "lucide-react";
 import { hasAdmin, loginAdult, refreshAppMeta, whenAuthReady, getActiveAdult } from "../../utils/kembaraStore.js";
 import { canRun, tooFrequent } from "../../utils/rateLimit.js";
 import WhatsAppCta from "./WhatsAppCta.jsx";
+import LoadingScreen from "./LoadingScreen.jsx";
 
 export default function AdultLogin() {
   const [email, setEmail] = useState("");
@@ -53,13 +54,7 @@ export default function AdultLogin() {
   }
 
   if (!ready) {
-    return (
-      <main className="portal-page student-entry-page">
-        <section className="profile-content">
-          <p className="portal-note">Menyambung Firebase...</p>
-        </section>
-      </main>
-    );
+    return <LoadingScreen />;
   }
 
   return (

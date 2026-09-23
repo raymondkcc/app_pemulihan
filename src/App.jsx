@@ -16,6 +16,7 @@ import AdultDashboard from "./components/kembara/AdultDashboard.jsx";
 import StudentClassEntry from "./components/kembara/StudentClassEntry.jsx";
 import GuestDemoGate from "./components/kembara/GuestDemoGate.jsx";
 import RateLimitToast from "./components/kembara/RateLimitToast.jsx";
+import LoadingScreen from "./components/kembara/LoadingScreen.jsx";
 import { isInteractiveTarget, playInterfaceClick } from "./utils/interfaceAudio.js";
 import { getActiveAdult, getActiveStudent, isGuestPathAllowed, startKembaraAuth, whenAuthReady } from "./utils/kembaraStore.js";
 import "./styles.css";
@@ -131,11 +132,7 @@ function AuthGate({ children }) {
 
   if (!ready) {
     return (
-      <main className="portal-page">
-        <section className="profile-content">
-          <p className="portal-note">Menyambung Firebase...</p>
-        </section>
-      </main>
+      <LoadingScreen />
     );
   }
 
