@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, GraduationCap, LogOut, Plus, Shield } from "lucide-react";
+import { ChevronLeft, GraduationCap, LogOut, Plus, Presentation, Shield } from "lucide-react";
 import { FREE_STUDENT_LIMIT } from "../../data/kembara.js";
 import {
   bootstrapAdmin,
@@ -175,6 +175,7 @@ function AdminHome({ adult }) {
         <div className="portal-logo"><span>A</span><span>1</span><span>*</span></div>
         <div><span className="portal-kicker">Admin</span><strong>Panel Kembara</strong></div>
         <span className="teacher-badge"><Shield size={16} /> {adult.name}</span>
+        <a className="teacher-mode-link" href="/cikgu/mengajar"><Presentation size={16} /> Mod mengajar</a>
         <a className="exit-link" href="/" onClick={async (event) => { event.preventDefault(); await logoutAdult(); window.location.href = "/"; }}><LogOut size={16} /> Keluar</a>
       </header>
       <section className="teacher-content">
