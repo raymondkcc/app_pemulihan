@@ -127,16 +127,29 @@ async function allocateClassCode(ownerId) {
   throw new Error("Tidak dapat menjana kod kelas unik. Cuba lagi.");
 }
 
-async function allocateKadCode() {
-  const alphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
-  for (let attempt = 0; attempt < 12; attempt += 1) {
-    const code = `KANCIL-${randomCode(attempt > 8 ? 6 : 4, alphabet)}`;
-    const snap = await getDocs(query(collection(db, "students"), where("kadCode", "==", code), limit(1)));
-    if (snap.empty) return code;
-  }
-  return `KANCIL-${randomCode(8, alphabet)}`;
-}
+async function allocateStudentCode(classRecord) {
+  const prefix = `${classRecord.code}-`;
+  const studentsSnap = await getDocs(query(collection(db, "students"), where("classId", "==", classRecord.id)));
+  const highestExistingNumber = studentsSnap.docs.reduce((highest, item) => {
+    const value = item.data()?.studentCode || item.data()?.kadCode || "";
+    const match = String(value).toUpperCase().match(new RegExp(`^${prefix}(\\d+)$`, "i"));
+    return match ? Math.max(highest, Number(match[1])) : highest;
+  }, 0);
+  const classRef = doc(db, "classes", classRecord.id);
+  let studentCode = "";
 
+  await runTransaction(db, async (transaction) => {
+    const classSnap = await transaction.get(classRef);
+    const storedNextNumber = Number(classSnap.data()?.nextStudentNumber);
+    const nextNumber = Number.isInteger(storedNextNumber) && storedNextNumber > 0
+      ? storedNextNumber
+      : highestExistingNumber + 1;
+    studentCode = `${classRecord.code}-${nextNumber}`;
+    transaction.set(classRef, { nextStudentNumber: nextNumber + 1 }, { merge: true });
+  });
+
+  return studentCode;
+}
 function adultFromDoc(id, data = {}) {
   return {
     id,
@@ -155,6 +168,7 @@ function classFromDoc(id, data = {}) {
     id,
     ownerId: data.ownerId,
     code: data.code,
+    nextStudentNumber: data.nextStudentNumber || null,
     name: data.name || "Kelas"
   };
 }
@@ -170,6 +184,7 @@ function studentFromDoc(id, data = {}) {
     lock: data.lock || null,
     lockHash: data.lockHash || null,
     hasLock: Boolean(data.hasLock || data.lockHash || data.lock),
+    studentCode: data.studentCode || data.kadCode || "",
     kadCode: data.kadCode,
     failCount: data.failCount || 0,
     locked: Boolean(data.locked),
@@ -626,7 +641,7 @@ export async function addStudent({ nickname, avatarId, track }) {
     lock: null,
     lockHash: null,
     hasLock: false,
-    kadCode: await allocateKadCode(),
+    studentCode: await allocateStudentCode(classRecord),
     failCount: 0,
     locked: false,
     progress: {},
@@ -717,14 +732,18 @@ export async function listClassFaces(code) {
   };
 }
 
-export async function findStudentByKad(kadCode) {
-  const normalised = String(kadCode || "").trim().toUpperCase();
-  const snap = await getDocs(query(collection(db, "students"), where("kadCode", "==", normalised), limit(1)));
+export async function findStudentByCode(studentCode) {
+  const normalised = String(studentCode || "").trim().toUpperCase();
+  if (!normalised) return null;
+  let snap = await getDocs(query(collection(db, "students"), where("studentCode", "==", normalised), limit(1)));
+  if (snap.empty) {
+    // Keep previously issued KANCIL codes working while existing records are migrated.
+    snap = await getDocs(query(collection(db, "students"), where("kadCode", "==", normalised), limit(1)));
+  }
   if (snap.empty) return null;
   const student = studentFromDoc(snap.docs[0].id, snap.docs[0].data());
   return student.archived ? null : student;
 }
-
 export async function loginStudentWithPictures(studentId, pictureIds) {
   const snap = await getDoc(doc(db, "students", studentId));
   if (!snap.exists()) return { ok: false, error: "Murid tidak jumpa." };
@@ -757,9 +776,9 @@ export async function loginStudentWithPictures(studentId, pictureIds) {
   return { ok: true, student: unlocked };
 }
 
-export async function loginStudentWithKad(kadCode) {
-  const student = await findStudentByKad(kadCode);
-  if (!student) return { ok: false, error: "Kad tidak jumpa." };
+export async function loginStudentWithCode(studentCode) {
+  const student = await findStudentByCode(studentCode);
+  if (!student) return { ok: false, error: "Kod murid tidak jumpa." };
   if (student.locked) return { ok: false, error: "locked" };
   cachedStore = {
     ...cachedStore,
