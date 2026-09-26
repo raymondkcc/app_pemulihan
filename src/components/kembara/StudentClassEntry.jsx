@@ -87,7 +87,7 @@ export default function StudentClassEntry() {
 
         <form className="profile-form" onSubmit={loadClass}>
           <label htmlFor="class-code">Kod kelas / Class code</label>
-          <input id="class-code" value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} maxLength={6} placeholder="DT69" />
+          <input id="class-code" value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} maxLength={6} />
           <button className="profile-submit" type="submit" disabled={busy}>Lihat wajah / See faces <ArrowRight size={18} /></button>
         </form>
 
@@ -98,7 +98,7 @@ export default function StudentClassEntry() {
               return (
                 <button className="profile-card" key={face.id} type="button" disabled={face.locked || !face.hasLock} onClick={() => setSelected(face)}>
                   <span className={`avatar avatar-${item.color}`}><img src={item.image} alt="" onError={(event) => { event.currentTarget.hidden = true; }} /><span>{item.mark}</span></span>
-                  <span><strong>{face.nickname}</strong><small>{face.locked ? "Dikunci" : face.hasLock ? "Tekan untuk masuk" : "Kunci belum"}</small></span>
+                  <span><strong>{face.nickname}</strong><small>{face.locked ? "Dikunci" : face.hasLock ? "Tekan untuk masuk" : "Kunci belum ditetapkan. Sila cari cikgu anda untuk tetapkan kunci."}</small></span>
                   <ArrowRight size={19} />
                 </button>
               );
@@ -112,7 +112,7 @@ export default function StudentClassEntry() {
 
         <form className="profile-form" onSubmit={useKad}>
           <label htmlFor="kad-code">Atau kod kad / Or card code</label>
-          <input id="kad-code" value={kad} onChange={(event) => setKad(event.target.value.toUpperCase())} placeholder="KANCIL-4821" />
+          <input id="kad-code" value={kad} onChange={(event) => setKad(event.target.value.toUpperCase())} />
           <button className="profile-submit" type="submit" disabled={busy}>Masuk dengan kad</button>
         </form>
 
