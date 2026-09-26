@@ -66,7 +66,11 @@ export default function StudentClassEntry() {
         {error && <p className="form-error" role="alert">{error}</p>}
 
         <div className="entry-divider" role="separator"><span>ATAU<small>OR</small></span></div>
-        <button className="guest-entry" type="button" onClick={enterGuest}>Cuba secara percuma / Try for free <ArrowRight size={17} /></button>
+        <button className="guest-entry" type="button" onClick={enterGuest}>
+          <span className="guest-entry-spark" aria-hidden="true">✦</span>
+          <span className="guest-entry-label">Cuba secara percuma <em>/ Try for free</em></span>
+          <ArrowRight size={20} />
+        </button>
       </section>
     </main>
   );
