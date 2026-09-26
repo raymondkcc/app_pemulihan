@@ -14,11 +14,12 @@ import {
   getDocs,
   limit,
   query,
+  runTransaction,
   setDoc,
   updateDoc,
   where
 } from "firebase/firestore";
-import { CLASS_CODE_ALPHABET, FREE_STUDENT_LIMIT, GUEST_DEMO_PATHS } from "../data/kembara.js";
+import { CLASS_CODE_ALPHABET, CLASS_CODE_DIGITS, FREE_STUDENT_LIMIT, GUEST_DEMO_PATHS } from "../data/kembara.js";
 import { auth, db, secondaryAuth } from "./firebase.js";
 
 const SESSION_KEY = "kembara-pintar-session-v1";
@@ -96,13 +97,34 @@ function hashSecret(value) {
   return `k1-${(hash >>> 0).toString(16)}-${text.length}`;
 }
 
-async function allocateClassCode() {
-  for (let attempt = 0; attempt < 12; attempt += 1) {
-    const code = randomCode(attempt > 8 ? 8 : 6);
-    const snap = await getDocs(query(collection(db, "classes"), where("code", "==", code), limit(1)));
-    if (snap.empty) return code;
+function randomClassCode() {
+  return `${randomCode(2, CLASS_CODE_ALPHABET)}${randomCode(2, CLASS_CODE_DIGITS)}`;
+}
+
+class ClassCodeTakenError extends Error {
+  constructor() {
+    super("Kod kelas sudah digunakan.");
+    this.name = "ClassCodeTakenError";
   }
-  return randomCode(8);
+}
+
+async function allocateClassCode(ownerId) {
+  for (let attempt = 0; attempt < 24; attempt += 1) {
+    const code = randomClassCode();
+    const reservationRef = doc(db, "classCodes", code);
+    try {
+      await runTransaction(db, async (transaction) => {
+        const reservation = await transaction.get(reservationRef);
+        if (reservation.exists()) throw new ClassCodeTakenError();
+        transaction.set(reservationRef, { ownerId, createdAt: nowIso() });
+      });
+      return code;
+    } catch (error) {
+      if (error instanceof ClassCodeTakenError) continue;
+      throw error;
+    }
+  }
+  throw new Error("Tidak dapat menjana kod kelas unik. Cuba lagi.");
 }
 
 async function allocateKadCode() {
@@ -446,11 +468,16 @@ export async function createAdult({ name, email, password, role = "teacher", stu
     createdAt: nowIso()
   };
   const classId = uid("class");
-  const classRecord = {
-    ownerId: newUid,
-    code: await allocateClassCode(),
-    name: adult.name
-  };
+  let classRecord;
+  try {
+    classRecord = {
+      ownerId: newUid,
+      code: await allocateClassCode(newUid),
+      name: adult.name
+    };
+  } catch (error) {
+    return { ok: false, error: authMessage(error) };
+  }
 
   try {
     await setDoc(doc(db, "adults", newUid), adult);
@@ -569,7 +596,7 @@ export async function ensureAdultClass(adultId) {
   const classId = uid("class");
   const classRecord = {
     ownerId: adultId,
-    code: await allocateClassCode(),
+    code: await allocateClassCode(adultId),
     name: adult?.name || "Kelas"
   };
   await setDoc(doc(db, "classes", classId), classRecord);

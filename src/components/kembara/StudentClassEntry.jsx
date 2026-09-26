@@ -87,7 +87,7 @@ export default function StudentClassEntry() {
 
         <form className="profile-form" onSubmit={loadClass}>
           <label htmlFor="class-code">Kod kelas / Class code</label>
-          <input id="class-code" value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} maxLength={6} placeholder="PINTAR" />
+          <input id="class-code" value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} maxLength={6} placeholder="DT69" />
           <button className="profile-submit" type="submit" disabled={busy}>Lihat wajah / See faces <ArrowRight size={18} /></button>
         </form>
 
