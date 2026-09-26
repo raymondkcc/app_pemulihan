@@ -4,6 +4,12 @@ import { continueAsGuest, loginStudentWithCode } from "../../utils/kembaraStore.
 import { canRun, tooFrequent } from "../../utils/rateLimit.js";
 import WhatsAppCta from "./WhatsAppCta.jsx";
 
+function formatStudentCode(value) {
+  const compact = String(value || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (compact.length <= 4) return compact;
+  return `${compact.slice(0, 4)}-${compact.slice(4)}`;
+}
+
 export default function StudentClassEntry() {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
@@ -48,8 +54,7 @@ export default function StudentClassEntry() {
           <input
             id="student-code"
             value={code}
-            onChange={(event) => setCode(event.target.value.toUpperCase())}
-            placeholder="JC75-1"
+            onChange={(event) => setCode(formatStudentCode(event.target.value))}
             maxLength={24}
             autoComplete="off"
             required
