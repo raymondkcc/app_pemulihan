@@ -2,11 +2,10 @@ import { useState } from "react";
 import { ArrowRight, ChevronLeft } from "lucide-react";
 import { continueAsGuest, loginStudentWithCode } from "../../utils/kembaraStore.js";
 import { canRun, tooFrequent } from "../../utils/rateLimit.js";
-import WhatsAppCta from "./WhatsAppCta.jsx";
 
 function formatStudentCode(value) {
   const compact = String(value || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
-  if (compact.length <= 4) return compact;
+  if (compact.length < 4) return compact;
   return `${compact.slice(0, 4)}-${compact.slice(4)}`;
 }
 
@@ -67,8 +66,7 @@ export default function StudentClassEntry() {
         {error && <p className="form-error" role="alert">{error}</p>}
 
         <div className="entry-divider" role="separator"><span>ATAU<small>OR</small></span></div>
-        <button className="guest-entry" type="button" onClick={enterGuest}>Cuba demo tanpa kod / Try demo <ArrowRight size={17} /></button>
-        <WhatsAppCta />
+        <button className="guest-entry" type="button" onClick={enterGuest}>Cuba secara percuma / Try for free <ArrowRight size={17} /></button>
       </section>
     </main>
   );
