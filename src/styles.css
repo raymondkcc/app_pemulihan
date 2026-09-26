@@ -4804,6 +4804,10 @@ body:has(.role-chooser-page) {
 .lock-tile span { font-size: .75rem; font-weight: 900; }
 .lock-tile.is-selected { box-shadow: 0 0 0 4px #fffaf0, 0 0 0 6px #19384a; }
 .lock-practice, .lock-adult-check { color: #19384a; font-size: .8rem; font-weight: 800; }
+.lock-practice-dialog-backdrop { position: fixed; z-index: 70; inset: 0; display: grid; place-items: center; padding: 1rem; background: rgba(25,56,74,.5); }
+.lock-practice-dialog { width: min(420px, 100%); border: 2px solid #19384a; border-radius: 10px; padding: 1.25rem; background: white; box-shadow: 6px 7px 0 rgba(25,56,74,.2); }
+.lock-practice-dialog h3 { margin: .25rem 0 .45rem; font-family: "Baloo 2", sans-serif; font-size: 1.45rem; line-height: 1.05; }
+.lock-practice-dialog p { margin: 0 0 1rem; color: #19384a; font-size: .9rem; font-weight: 800; line-height: 1.45; }
 .lock-adult-check { display: flex; gap: .5rem; align-items: center; margin: 1rem 0; }
 .track-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .55rem; }
 .track-choice { display: grid; gap: .15rem; border: 2px solid #19384a; border-radius: 8px; padding: .7rem; background: white; text-align: left; }

@@ -16,6 +16,7 @@ export default function PictureLockSetup({ studentName, onCancel, onSave }) {
   const [practiceWins, setPracticeWins] = useState(0);
   const [error, setError] = useState("");
   const [adultHere, setAdultHere] = useState(false);
+  const [practiceNoticeOpen, setPracticeNoticeOpen] = useState(false);
 
   function speak(word) {
     speakMalayText(word);
@@ -49,7 +50,8 @@ export default function PictureLockSetup({ studentName, onCancel, onSave }) {
       setPractice([]);
       setPracticeWins(0);
       setStep("practice");
-      prompt("Cuba sendiri. Tekan yang pertama, kemudian yang kedua.");
+      setPracticeNoticeOpen(true);
+      prompt("Kunci gambar disimpan. Sila ulang kunci gambar 2 kali lagi untuk pengesahan.");
       return;
     }
 
@@ -81,6 +83,8 @@ export default function PictureLockSetup({ studentName, onCancel, onSave }) {
 
   const first = pictureById(picked[0]);
   const second = pictureById(picked[1]);
+  const firstSlot = step === "practice" ? pictureById(practice[0]) : first;
+  const secondSlot = step === "practice" ? pictureById(practice[1]) : second;
 
   return (
     <section className="lock-setup">
@@ -103,8 +107,8 @@ export default function PictureLockSetup({ studentName, onCancel, onSave }) {
       {(step === "pick1" || step === "pick2" || step === "practice") && (
         <>
           <div className="lock-slots">
-            <div className={`lock-slot ${picked[0] ? "is-filled" : ""}`}><b>1</b>{first ? <img src={first.image} alt={first.word} /> : <span>Pertama</span>}</div>
-            <div className={`lock-slot ${picked[1] ? "is-filled" : ""}`}><b>2</b>{second ? <img src={second.image} alt={second.word} /> : <span>Kedua</span>}</div>
+            <div className={`lock-slot ${firstSlot ? "is-filled" : ""}`}><b>1</b>{firstSlot ? <img src={firstSlot.image} alt={firstSlot.word} /> : <span>{step === "practice" ? "Pilih pertama" : "Pertama"}</span>}</div>
+            <div className={`lock-slot ${secondSlot ? "is-filled" : ""}`}><b>2</b>{secondSlot ? <img src={secondSlot.image} alt={secondSlot.word} /> : <span>{step === "practice" ? "Pilih kedua" : "Kedua"}</span>}</div>
           </div>
           {step === "practice" && <p className="lock-practice">Cuba sendiri. Betul berturut: {practiceWins}/2</p>}
           <div className="lock-grid">
@@ -116,6 +120,17 @@ export default function PictureLockSetup({ studentName, onCancel, onSave }) {
             ))}
           </div>
         </>
+      )}
+
+      {step === "practice" && practiceNoticeOpen && (
+        <div className="lock-practice-dialog-backdrop">
+          <div className="lock-practice-dialog" role="dialog" aria-modal="true" aria-labelledby="lock-practice-title">
+            <span className="section-kicker">Pengesahan kunci</span>
+            <h3 id="lock-practice-title">Cuba sendiri</h3>
+            <p>Kunci gambar disimpan. Sila ulang kunci gambar 2 kali lagi untuk pengesahan.</p>
+            <button className="profile-submit" type="button" autoFocus onClick={() => setPracticeNoticeOpen(false)}>OK</button>
+          </div>
+        </div>
       )}
 
       {step === "confirm" && first && second && (
