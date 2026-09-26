@@ -133,7 +133,7 @@ export default function AdultDashboard() {
                   <span className={`avatar avatar-${item.color}`}><img src={item.image} alt="" onError={(event) => { event.currentTarget.hidden = true; }} /><span>{item.mark}</span></span>
                   <span>
                     <strong>{student.nickname}</strong>
-                    <small>{trackInfo.title} · {student.hasLock ? "Kunci sedia" : "Kunci belum"} · {student.kadCode}</small>
+                    <small>{trackInfo.title} · {student.hasLock ? "Kunci sedia" : "Kunci belum"} · {student.studentCode}</small>
                   </span>
                   <span className="student-manage-actions">
                     <button type="button" onClick={() => setLockStudent(student)}>{student.hasLock ? "Tukar kunci" : "Buat kunci"}</button>
