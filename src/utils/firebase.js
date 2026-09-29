@@ -30,6 +30,7 @@ function createDb(app) {
 }
 
 export const db = createDb(firebaseApp);
+export const secondaryDb = createDb(secondaryApp);
 
 export let analytics = null;
 

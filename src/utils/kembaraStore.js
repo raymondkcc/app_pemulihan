@@ -21,6 +21,7 @@ import {
 } from "firebase/firestore";
 import { CLASS_CODE_ALPHABET, CLASS_CODE_DIGITS, FREE_STUDENT_LIMIT, GUEST_DEMO_PATHS } from "../data/kembara.js";
 import { auth, db, secondaryAuth } from "./firebase.js";
+import { establishStudentPracticeSession } from "../games/multiplicationZombie/multiplicationPersistence.js";
 
 const SESSION_KEY = "kembara-pintar-session-v1";
 
@@ -216,6 +217,13 @@ function notifyAuthWaiters() {
 export function startKembaraAuth() {
   if (authStarted || typeof window === "undefined") return;
   authStarted = true;
+  const restoredSession = readSession();
+  if (restoredSession.studentId && !restoredSession.guest && restoredSession.student?.studentCode) {
+    void establishStudentPracticeSession({
+      studentId: restoredSession.studentId,
+      studentCode: String(restoredSession.student.studentCode).trim().toUpperCase()
+    }).catch(() => {});
+  }
   onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     if (!user) {
@@ -307,6 +315,10 @@ export async function logoutAdult() {
 export function logoutStudent() {
   const session = readSession();
   writeSession({ ...session, studentId: null, guest: false, demoComplete: false, student: null });
+  // The practice token lives in the secondary Firebase app. Clear it when a
+  // learner changes profile so a later session cannot reuse another learner's
+  // scoped credentials.
+  void signOut(secondaryAuth).catch(() => {});
 }
 
 export function clearClassSession() {
@@ -773,6 +785,7 @@ export async function loginStudentWithPictures(studentId, pictureIds) {
     students: cachedStore.students.map((item) => item.id === studentId ? unlocked : item)
   };
   writeSession({ ...readSession(), studentId, guest: false, demoComplete: false, student: unlocked });
+  await establishStudentPracticeSession({ studentId, pictureIds }).catch(() => {});
   return { ok: true, student: unlocked };
 }
 
@@ -785,6 +798,7 @@ export async function loginStudentWithCode(studentCode) {
     students: [...cachedStore.students.filter((item) => item.id !== student.id), student]
   };
   writeSession({ ...readSession(), studentId: student.id, guest: false, classCode: null, student });
+  await establishStudentPracticeSession({ studentId: student.id, studentCode: String(student.studentCode || student.kadCode || studentCode || "").trim().toUpperCase() }).catch(() => {});
   return { ok: true, student };
 }
 

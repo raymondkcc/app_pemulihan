@@ -4276,7 +4276,7 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .mission-strip { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem; margin-top: 2.3rem; border: 2px solid #19384a; border-radius: 8px; padding: 1rem; background: #e5f8ef; box-shadow: 5px 6px 0 rgba(25,56,74,.1); }
 .mission-icon { display: grid; width: 48px; height: 48px; place-items: center; border: 2px solid #19384a; border-radius: 7px; background: #5dcab0; }
 .mission-strip span, .mission-strip strong { display: block; } .mission-strip span { color: #167764; font-size: .7rem; font-weight: 900; } .mission-strip strong { margin-top: .25rem; font-family: "Baloo 2", sans-serif; font-size: 1.2rem; line-height: 1; }
-.mission-strip a, .teacher-activity a { display: inline-flex; align-items: center; gap: .3rem; color: white; background: #3655bd; border-radius: 6px; padding: .6rem .7rem; font-size: .75rem; font-weight: 900; text-decoration: none; }
+.mission-strip a, .teacher-activity a, .teacher-activity button { display: inline-flex; align-items: center; gap: .3rem; border: 0; color: white; background: #3655bd; border-radius: 6px; padding: .6rem .7rem; font: inherit; font-size: .75rem; font-weight: 900; text-decoration: none; cursor: pointer; }
 .dashboard-section { margin-top: 3rem; }
 .dashboard-section h2, .teacher-activity-panel h2, .teacher-guide h2 { margin: .35rem 0 0; color: #19384a; font-family: "Baloo 2", sans-serif; font-size: 2rem; line-height: 1; }
 .mode-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; margin-top: 1.15rem; }
@@ -5043,3 +5043,113 @@ body:has(.role-chooser-page) {
   .app-loading-logo,
   .app-loading-dots i { animation: none; }
 }
+
+/* Multiplication Zombie teacher analysis */
+.student-manage-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+}
+.multiplication-report {
+  border: 2px solid #d9e7dc;
+  border-radius: 12px;
+  padding: 1rem;
+  background: #fbfff8;
+}
+.multiplication-report .section-heading-row { margin-bottom: 1rem; }
+.report-close-button {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  border: 2px solid #19384a;
+  border-radius: 6px;
+  padding: .45rem .6rem;
+  color: #19384a;
+  background: white;
+  font-size: .7rem;
+  font-weight: 900;
+}
+.report-close-button:hover { background: #fff5d8; }
+.multiplication-report-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .55rem;
+  margin-bottom: .8rem;
+}
+.multiplication-report-summary article {
+  border: 1px solid #d9e7dc;
+  border-radius: 8px;
+  padding: .65rem .55rem;
+  background: white;
+  text-align: center;
+}
+.multiplication-report-summary strong,
+.multiplication-report-summary span { display: block; }
+.multiplication-report-summary strong { color: #3655bd; font-family: "Baloo 2", sans-serif; font-size: 1.5rem; line-height: 1; }
+.multiplication-report-summary span { margin-top: .2rem; color: #64727b; font-size: .66rem; font-weight: 900; }
+.report-callout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem .75rem;
+  margin-bottom: .8rem;
+  border-left: 4px solid #f4ca47;
+  border-radius: 5px;
+  padding: .55rem .7rem;
+  color: #19384a;
+  background: #fff8dc;
+  font-size: .72rem;
+}
+.report-callout strong { font-weight: 1000; }
+.report-callout span { color: #64727b; font-weight: 800; }
+.report-empty-state { color: #64727b; font-size: .78rem; font-weight: 800; }
+.multiplication-report-table {
+  display: grid;
+  overflow-x: auto;
+  border: 1px solid #d9e7dc;
+  border-radius: 8px;
+  background: white;
+}
+.multiplication-report-row {
+  display: grid;
+  grid-template-columns: minmax(145px, 1.7fr) repeat(4, minmax(55px, .55fr)) minmax(105px, 1fr);
+  align-items: center;
+  min-width: 690px;
+  gap: .35rem;
+  border-top: 1px solid #edf1ed;
+  padding: .52rem .65rem;
+  color: #19384a;
+  font-size: .69rem;
+}
+.multiplication-report-row:first-child { border-top: 0; }
+.multiplication-report-row > span:not(.report-status) { color: #64727b; font-weight: 800; }
+.multiplication-report-header { color: #64727b; background: #f2f8f1; font-size: .62rem; font-weight: 1000; text-transform: uppercase; }
+.report-status { width: fit-content; border-radius: 999px; padding: .2rem .4rem; font-size: .58rem; font-weight: 1000; }
+.report-status-weak { color: #9e2944; background: #ffe4e9; }
+.report-status-new { color: #8d6511; background: #fff3c7; }
+.report-status-mastered { color: #167764; background: #dff5e9; }
+@media (max-width: 700px) {
+  .multiplication-report-summary { grid-template-columns: 1fr 1fr; }
+  .multiplication-report .section-heading-row { align-items: flex-start; }
+  .report-close-button { flex: 0 0 auto; }
+}
+
+
+/* Mathematics game chooser */
+.math-game-choice-dialog { width: min(100% - 2rem, 620px); }
+.math-game-choice-dialog > p { margin: .35rem 0 1.25rem; color: var(--home-muted); font-size: .86rem; font-weight: 800; }
+.math-game-choice-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+.math-game-choice { position: relative; display: flex; min-height: 190px; flex-direction: column; align-items: flex-start; gap: .35rem; border: 2px solid var(--home-ink); border-radius: 8px; padding: 1rem; color: var(--home-ink); text-align: left; box-shadow: 4px 5px 0 rgba(25,56,74,.1); cursor: pointer; transition: transform .18s ease, box-shadow .18s ease; }
+.math-game-choice:hover { transform: translateY(-3px); box-shadow: 6px 8px 0 rgba(25,56,74,.15); }
+.math-game-choice:disabled { cursor: not-allowed; opacity: .62; transform: none; box-shadow: 2px 3px 0 rgba(25,56,74,.08); }
+.math-game-choice > span { display: grid; width: 44px; height: 44px; place-items: center; border: 2px solid var(--home-ink); border-radius: 8px; background: rgba(255,255,255,.7); }
+.math-game-choice strong { margin-top: auto; font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.2rem; line-height: 1; }
+.math-game-choice small { max-width: 22ch; color: var(--home-muted); font-size: .72rem; font-weight: 800; line-height: 1.35; }
+.math-game-choice > svg { position: absolute; right: 1rem; bottom: 1rem; }
+.math-game-choice-learn { background: #dcecff; }
+.math-game-choice-play { background: #ffe8b0; }
+.math-game-choice-mosquito { background: #d9f3e9; }
+.math-game-choice-zombie { background: #fff0b1; }
+.math-choice-badge { width: auto !important; height: auto !important; margin-top: auto; border: 0 !important; border-radius: 0 !important; padding: 0 !important; color: var(--home-muted); background: transparent !important; font-size: .67rem; font-weight: 900; }
+.math-choice-back { display: inline-flex; align-items: center; gap: .3rem; margin: .1rem 0 .65rem; border: 0; padding: 0; color: var(--home-muted); background: transparent; font: inherit; font-size: .72rem; font-weight: 900; cursor: pointer; }
+.math-choice-back:hover { color: var(--home-ink); }
+@media (max-width: 580px) { .math-game-choice-grid { grid-template-columns: 1fr; } .math-game-choice { min-height: 150px; } }

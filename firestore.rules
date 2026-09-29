@@ -18,6 +18,18 @@ service cloud.firestore {
       );
     }
 
+    function isStudentPractice(studentId) {
+      return isSignedIn()
+        && request.auth.uid == studentId
+        && request.auth.token.practice == true
+        && request.auth.token.studentId == studentId;
+    }
+
+    function ownsStudent(studentId) {
+      return isActiveAdult()
+        && get(/databases/$(database)/documents/students/$(studentId)).data.ownerId == request.auth.uid;
+    }
+
     function isAdmin() {
       return isSignedIn() && (
         exists(adultPath(request.auth.uid))
@@ -89,5 +101,15 @@ service cloud.firestore {
         || request.resource.data.diff(resource.data).affectedKeys().hasOnly(["failCount", "locked"]);
       allow delete: if false;
     }
+    match /students/{studentId}/multiplicationFacts/{factKey} {
+      allow read: if ownsStudent(studentId) || isStudentPractice(studentId);
+      allow write: if false;
+    }
+
+    match /students/{studentId}/multiplicationSessions/{sessionId} {
+      allow read: if ownsStudent(studentId) || isStudentPractice(studentId);
+      allow write: if false;
+    }
+
   }
 }

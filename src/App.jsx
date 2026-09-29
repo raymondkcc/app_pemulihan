@@ -3,6 +3,7 @@ import AdditionRegroupGame from "./games/additionRegroup/AdditionRegroupGame.jsx
 import KvSoundPondGame from "./games/kvSoundPond/KvSoundPondGame.jsx";
 import MinusRegroupGame from "./games/minusRegroup/MinusRegroupGame.jsx";
 import MosquitoSplatGame from "./games/mosquitoSplat/MosquitoSplatGame.jsx";
+import MultiplicationZombieGame from "./games/multiplicationZombie/MultiplicationZombieGame.jsx";
 import HomeLanding from "./components/home/HomeLanding.jsx";
 import RoleChooser from "./components/home/RoleChooser.jsx";
 import StudentDashboard from "./components/home/StudentDashboard.jsx";
@@ -113,11 +114,33 @@ function RouteView() {
     if (student.isGuest) return <GuestDemoGate />;
     return <MinusRegroupGame />;
   }
-  if (path === "/mosquito-splat") {
+  if (path === "/zombie-defense" || path === "/multiplication-zombie") {
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get("mode") === "teacher" ? "teacher" : "student";
+    const initialOperation = params.get("op") || "darab";
+    if (mode === "teacher") return <MultiplicationZombieGame initialMode="teacher" initialOperation={initialOperation} />;
     const student = studentPath(path);
     if (!student || student.$$typeof) return student;
     if (student.isGuest) return <GuestDemoGate />;
-    return <MosquitoSplatGame initialOp={new URLSearchParams(window.location.search).get("op")} />;
+    return <MultiplicationZombieGame initialMode="student" initialOperation={initialOperation} />;
+  }
+  if (path === "/mosquito-splat") {
+    const params = new URLSearchParams(window.location.search);
+    const initialOp = params.get("op");
+    const mode = params.get("mode") === "teacher" ? "teacher" : "student";
+    if (mode === "teacher") return <MosquitoSplatGame initialMode="teacher" initialOp={initialOp} />;
+    // Old links keep the Darab-to-Zombie compatibility alias; the explicit
+    // chooser must be able to launch the real multiplication mosquito game.
+    if (initialOp === "darab" && params.get("game") !== "mosquito") {
+      const student = studentPath(path);
+      if (!student || student.$$typeof) return student;
+      if (student.isGuest) return <GuestDemoGate />;
+      return <MultiplicationZombieGame initialMode="student" initialOperation="darab" />;
+    }
+    const student = studentPath(path);
+    if (!student || student.$$typeof) return student;
+    if (student.isGuest) return <GuestDemoGate />;
+    return <MosquitoSplatGame initialOp={initialOp} />;
   }
   return <HomeLanding />;
 }

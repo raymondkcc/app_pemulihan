@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { ArrowRight, Check, LogOut, Presentation, UserRound } from "lucide-react";
+import { ArrowRight, BarChart3, Check, LogOut, Presentation, UserRound } from "lucide-react";
 import { AVATARS } from "../../data/appAssets.js";
+import MultiplicationReportPanel from "./MultiplicationReportPanel.jsx";
+import { loadMultiplicationReport } from "../../games/multiplicationZombie/multiplicationPersistence.js";
 import { FREE_STUDENT_LIMIT, TRACKS, WHATSAPP_LINK, trackLabel } from "../../data/kembara.js";
 import {
   addStudent,
@@ -28,6 +30,9 @@ export default function AdultDashboard() {
   const [lockStudent, setLockStudent] = useState(null);
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [reportStudent, setReportStudent] = useState(null);
+  const [reportRows, setReportRows] = useState([]);
+  const [reportBusy, setReportBusy] = useState(false);
 
   async function refresh(currentAdult) {
     const actor = currentAdult || getActiveAdult();
@@ -61,6 +66,23 @@ export default function AdultDashboard() {
 
   if (!ready || !adult || !classRecord) {
     return <LoadingScreen variant="dashboard" />;
+  }
+
+  async function showMultiplicationReport(student) {
+    setReportStudent(student);
+    setReportRows([]);
+    setReportBusy(true);
+    try {
+      const rows = await loadMultiplicationReport(student.id);
+      setReportRows(rows);
+    } finally {
+      setReportBusy(false);
+    }
+  }
+
+  function closeMultiplicationReport() {
+    setReportStudent(null);
+    setReportRows([]);
   }
 
   async function submit(event) {
@@ -137,14 +159,17 @@ export default function AdultDashboard() {
                   </span>
                   <span className="student-manage-actions">
                     <button type="button" onClick={() => setLockStudent(student)}>{student.hasLock ? "Tukar kunci" : "Buat kunci"}</button>
+                    <button type="button" onClick={() => showMultiplicationReport(student)}><BarChart3 size={14} /> Analisis darab</button>
                     {student.hasLock && <button type="button" onClick={async () => { await resetStudentLock(student.id); await refresh(adult); }}>Reset</button>}
-                    <button type="button" onClick={async () => { await archiveStudent(student.id); await refresh(adult); }}>Padam</button>
+                    <button type="button" onClick={async () => { await archiveStudent(student.id); if (reportStudent?.id === student.id) closeMultiplicationReport(); await refresh(adult); }}>Padam</button>
                   </span>
                 </div>
               );
             })}
           </div>
         </section>
+
+        {reportStudent && <MultiplicationReportPanel student={reportStudent} rows={reportRows} busy={reportBusy} onClose={closeMultiplicationReport} />}
 
         <section className="dashboard-section">
           <div className="section-heading-row">

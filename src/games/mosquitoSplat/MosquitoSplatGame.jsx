@@ -20,8 +20,9 @@ const SOUNDS = {
 
 const OP_INFO = {
   tambah: { label: "Tambah", symbol: "+", color: "coral", english: "Addition" },
-  tolak: { label: "Tolak", symbol: "-", color: "mint", english: "Subtraction" },
-  darab: { label: "Darab", symbol: "x", color: "lemon", english: "Multiplication" }
+  tolak: { label: "Tolak", symbol: "−", color: "mint", english: "Subtraction" },
+  darab: { label: "Darab", symbol: "×", color: "lemon", english: "Multiplication" },
+  bahagi: { label: "Bahagi", symbol: "÷", color: "blue", english: "Division" }
 };
 
 const LEVELS = {
@@ -51,6 +52,12 @@ function makeQuestion(op, level) {
     a = easy ? rand(5, 15) : hard ? rand(30, 99) : rand(12, 40);
     b = rand(1, a);
     answer = a - b;
+  } else if (op === "bahagi") {
+    const divisor = easy ? rand(1, 5) : hard ? rand(1, 12) : rand(1, 9);
+    const quotient = easy ? rand(1, 5) : hard ? rand(1, 12) : rand(1, 9);
+    a = divisor * quotient;
+    b = divisor;
+    answer = quotient;
   } else {
     a = easy ? rand(2, 5) : hard ? rand(6, 12) : rand(3, 9);
     b = easy ? rand(2, 5) : hard ? rand(3, 12) : rand(3, 9);
@@ -199,7 +206,8 @@ function Floater({ floater }) {
     </span>
   );
 }
-export default function MosquitoSplatGame({ initialOp = null }) {
+export default function MosquitoSplatGame({ initialOp = null, initialMode = "student" }) {
+  const teacherMode = initialMode === "teacher";
   const [phase, setPhase] = useState("loading");
   const [loadProgress, setLoadProgress] = useState(0);
   const [op, setOp] = useState(initialOp && OP_INFO[initialOp] ? initialOp : "tambah");
@@ -486,7 +494,7 @@ export default function MosquitoSplatGame({ initialOp = null }) {
   return (
     <main className="mos-app">
       <header className="mos-topbar">
-            <a className="mos-home-link" href="/murid/ruang" aria-label="Kembali ke ruang belajar">
+            <a className="mos-home-link" href={teacherMode ? "/cikgu/mengajar" : "/murid/ruang"} aria-label={teacherMode ? "Kembali ke mod mengajar" : "Kembali ke ruang belajar"}>
           <ArrowLeft size={17} /> <span>Ruang</span>
         </a>
         <div className="mos-brand">
