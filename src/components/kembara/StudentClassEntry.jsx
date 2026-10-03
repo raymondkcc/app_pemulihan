@@ -45,7 +45,7 @@ export default function StudentClassEntry() {
       <section className="profile-content">
         <div className="portal-intro">
           <h1>Kod murid anda</h1>
-          <p>Masukkan kod murid yang diberi oleh cikgu, contohnya <strong>JC75-1</strong>.</p>
+          <p>Masukkan kod murid yang diberi oleh cikgu untuk log masuk.</p>
         </div>
 
         <form className="profile-form" onSubmit={submit}>
