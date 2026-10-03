@@ -4557,15 +4557,23 @@ body:has(.role-chooser-page) {
 .mission-map-header h2 { margin: .35rem 0 0; color: #19384a; font-family: "Baloo 2", sans-serif; font-size: clamp(2rem, 5vw, 3.35rem); line-height: .98; }
 .mission-map-header p { max-width: 580px; margin: .45rem 0 0; color: #285f55; font-size: .82rem; font-weight: 800; line-height: 1.4; }
 .mission-map-count { display: inline-flex; align-items: center; gap: .3rem; flex: none; border: 2px solid #19384a; border-radius: 999px; padding: .45rem .6rem; color: #19384a; background: #f4ca47; font-size: .68rem; font-weight: 900; white-space: nowrap; }
+.mission-map-theme-picker { position: relative; z-index: 2; display: flex; align-items: center; gap: .8rem; margin-top: 1.1rem; }
+.mission-map-theme-label { color: #285f55; font-size: .68rem; font-weight: 900; white-space: nowrap; }
+.mission-map-theme-options { display: flex; gap: .45rem; min-width: 0; overflow-x: auto; padding: .2rem .2rem .35rem; }
+.mission-map-theme-option { display: grid; width: 88px; flex: 0 0 88px; gap: .25rem; border: 2px solid rgba(25,56,74,.35); border-radius: 7px; padding: .18rem; color: #19384a; background: rgba(255,255,255,.78); cursor: pointer; text-align: left; }
+.mission-map-theme-option img { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 4px; object-fit: cover; }
+.mission-map-theme-option span { overflow: hidden; font-size: .58rem; font-weight: 900; line-height: 1.1; text-overflow: ellipsis; white-space: nowrap; }
+.mission-map-theme-option:hover, .mission-map-theme-option:focus-visible { border-color: #19384a; background: white; }
+.mission-map-theme-option.is-selected { border-color: #bd4e40; box-shadow: 0 0 0 2px #f4ca47; }
 .mission-map-legend { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: .7rem 1rem; margin-top: 1.1rem; color: #285f55; font-size: .65rem; font-weight: 900; }
 .mission-map-legend > span { display: inline-flex; align-items: center; gap: .3rem; }
 .legend-dot { display: inline-block; width: 10px; height: 10px; border: 2px solid #19384a; border-radius: 50%; }
 .legend-dot-current { background: #bd4e40; }
 .legend-dot-complete { background: #167764; }
 .legend-dot-locked { background: #aebbb3; }
-.mission-map-path { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.2rem; margin: 1.55rem 0 .2rem; padding: 1rem .35rem .7rem; list-style: none; }
-.mission-map-path::before { position: absolute; top: 6.2rem; right: 7%; left: 7%; height: 34px; border-top: 9px solid rgba(120, 104, 55, .52); border-bottom: 3px dashed rgba(255,255,255,.72); border-radius: 50%; content: ""; transform: rotate(-2deg); pointer-events: none; }
-.mission-map-stop { position: relative; min-width: 0; z-index: 1; }
+.mission-map-path { position: relative; z-index: 1; display: block; min-height: clamp(360px, 43vw, 600px); margin: 1.2rem 0 .2rem; overflow: hidden; border: 3px solid #19384a; border-radius: 8px; padding: 0; background-color: #92c97f; background-image: linear-gradient(rgba(255,255,255,.05), rgba(255,255,255,.05)), var(--map-background); background-position: center; background-size: cover; list-style: none; }
+.mission-map-path::before { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(25,56,74,.05), transparent 40%, rgba(25,56,74,.1)); content: ""; pointer-events: none; }
+.mission-map-stop { position: absolute; top: var(--map-y); left: var(--map-x); z-index: 1; width: min(23%, 180px); min-width: 112px; transform: translate(-50%, -50%); }
 .mission-map-stop > a { color: inherit; text-decoration: none; }
 .mission-map-landmark { position: relative; display: block; width: 112px; min-height: 116px; color: #19384a; filter: drop-shadow(3px 4px 0 rgba(25,56,74,.15)); transition: transform .16s ease, filter .16s ease; }
 .mission-map-stop > a:hover .mission-map-landmark, .mission-map-stop > a:focus-visible .mission-map-landmark { filter: drop-shadow(4px 6px 0 rgba(25,56,74,.2)); transform: translateY(-4px); }
@@ -4578,10 +4586,10 @@ body:has(.role-chooser-page) {
 .mission-map-landmark-locked .mission-map-landmark-node { color: #64727b; background: #dce4de; }
 .mission-map-node-number { position: absolute; right: -8px; bottom: -6px; display: grid; width: 25px; height: 25px; place-items: center; border: 2px solid #19384a; border-radius: 50%; color: #19384a; background: #f4ca47; font-size: .58rem; font-weight: 900; }
 .mission-map-fog { position: absolute; inset: -3px; display: grid; place-items: center; border: 3px solid rgba(100,114,123,.5); border-radius: inherit; color: #64727b; background: rgba(232, 237, 232, .74); backdrop-filter: grayscale(1) blur(1px); }
-.mission-map-trail { position: absolute; top: 5.8rem; left: -1.2rem; width: calc(100% + 1.2rem); border-top: 3px dashed rgba(22,119,100,.75); pointer-events: none; }
+.mission-map-trail { display: none; }
 .mission-map-trail-current { border-color: rgba(189,78,64,.8); }
 .mission-map-trail-locked { border-color: rgba(100,114,123,.5); }
-.mission-map-stop-copy { display: grid; gap: .12rem; margin-top: .75rem; }
+.mission-map-stop-copy { display: grid; gap: .12rem; margin: .35rem 0 0; border: 2px solid #19384a; border-radius: 6px; padding: .4rem .48rem; background: rgba(255,250,240,.92); box-shadow: 3px 3px 0 rgba(25,56,74,.17); }
 .mission-map-stop-kicker { color: #bd4e40; font-size: .62rem; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; }
 .mission-map-stop-complete .mission-map-stop-kicker { color: #167764; }
 .mission-map-stop-locked .mission-map-stop-kicker, .mission-map-stop-locked .mission-map-requirement { color: #64727b; }
@@ -4600,15 +4608,14 @@ body:has(.role-chooser-page) {
 @media (max-width: 760px) {
   .mission-map-header { display: grid; }
   .mission-map-count { width: max-content; }
-  .mission-map-path { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 1.35rem; }
-  .mission-map-path::before { display: none; }
-  .mission-map-trail { display: none; }
+  .mission-map-theme-picker { display: grid; align-items: start; gap: .35rem; }
+  .mission-map-path { min-height: 420px; }
   .mission-map-stop-copy small { min-height: 0; }
 }
 @media (max-width: 420px) {
-  .mission-map-path { grid-template-columns: 1fr; }
-  .mission-map-stop { display: grid; grid-template-columns: auto 1fr; column-gap: .8rem; align-items: center; }
-  .mission-map-stop-copy { margin-top: 0; }
+  .mission-map-path { min-height: 500px; }
+  .mission-map-stop { width: 43%; min-width: 96px; }
+  .mission-map-stop-copy { margin-top: .25rem; padding: .32rem .38rem; }
   .mission-map-stop-copy small { max-width: none; }
   .mission-map-landmark { width: 96px; min-height: 92px; }
   .mission-map-landmark-art { width: 70px; height: 70px; }
