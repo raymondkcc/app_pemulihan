@@ -18,14 +18,17 @@ export default function StudentQrDialog({ student, onClose }) {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const result = await createStudentQrCode(student.id);
-      if (cancelled) return;
-      if (!result.ok) {
-        setError(result.error);
-        setBusy(false);
-        return;
-      }
       try {
+        const result = await createStudentQrCode(student.id);
+        if (cancelled) return;
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
+        if (!result.token) {
+          setError("Firebase Functions tidak memulangkan token QR. Deploy semula Functions dan cuba lagi.");
+          return;
+        }
         const url = `${window.location.origin}/murid?qr=${encodeURIComponent(result.token)}`;
         const dataUrl = await QRCode.toDataURL(url, {
           width: 720,
@@ -36,7 +39,9 @@ export default function StudentQrDialog({ student, onClose }) {
         if (cancelled) return;
         setImage(dataUrl);
         setExpiresAt(result.expiresAt);
-      } catch {
+      } catch (error) {
+        if (cancelled) return;
+        console.error("Student QR generation failed", error);
         setError("QR tidak dapat dijana. Cuba lagi.");
       } finally {
         if (!cancelled) setBusy(false);
@@ -94,7 +99,7 @@ export default function StudentQrDialog({ student, onClose }) {
     <div className="student-qr-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <section className="student-qr-dialog" role="dialog" aria-modal="true" aria-labelledby="student-qr-title">
         <div className="student-qr-heading">
-          <div><span className="section-kicker"><ShieldCheck size={14} /> QR disahkan</span><h2 id="student-qr-title">Kad masuk murid</h2></div>
+          <div><span className="section-kicker"><ShieldCheck size={14} /> {image ? "QR disahkan" : error ? "QR tidak tersedia" : "Menjana QR selamat"}</span><h2 id="student-qr-title">Kad masuk murid</h2></div>
           <button className="icon-button" type="button" onClick={onClose} aria-label="Tutup"><X size={19} /></button>
         </div>
         {busy && <div className="student-qr-loading"><LoaderCircle className="spin" size={28} /><span>Menjana QR selamat...</span></div>}

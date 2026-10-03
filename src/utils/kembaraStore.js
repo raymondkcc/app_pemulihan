@@ -210,6 +210,20 @@ function authMessage(error) {
   return error?.message || "Tidak berjaya. Cuba lagi.";
 }
 
+function callableErrorMessage(error) {
+  const code = String(error?.code || "").replace(/^functions\//, "");
+  const message = String(error?.message || "").trim();
+  if (code === "not-found") return "Fungsi Firebase belum tersedia. Deploy Firebase Functions dahulu.";
+  if (code === "unauthenticated") return "Sesi log masuk tamat. Log masuk semula dan cuba lagi.";
+  if (code === "permission-denied") return "Akses ditolak. Pastikan akaun aktif dan mempunyai kebenaran.";
+  if (code === "deadline-exceeded") return "Permintaan mengambil masa terlalu lama. Muat semula senarai sebelum mencuba lagi.";
+  if (code === "unavailable" || code === "network-request-failed") return "Tidak dapat menghubungi Firebase. Semak sambungan internet.";
+  if (code === "internal" || !message || /^(internal|unknown)(\s+\[\d+\])?$/i.test(message)) {
+    return "Firebase Functions gagal memproses permintaan. Semak log Functions untuk butiran.";
+  }
+  return message;
+}
+
 function notifyAuthWaiters() {
   const waiters = authWaiters.splice(0);
   waiters.forEach((resolve) => resolve(currentUser));
@@ -592,13 +606,13 @@ export async function setAdultActive(adultId, active) {
   });
 }
 
-async function callAccountFunction(name, data) {
+async function callAccountFunction(name, data, timeout = 10000) {
   try {
-    const callable = httpsCallable(getFunctions(firebaseApp), name, { timeout: 10000 });
+    const callable = httpsCallable(getFunctions(firebaseApp), name, { timeout });
     const response = await callable(data);
     return { ok: true, data: response.data || {} };
   } catch (error) {
-    return { ok: false, error: authMessage(error) };
+    return { ok: false, error: callableErrorMessage(error) };
   }
 }
 
@@ -629,7 +643,7 @@ export async function deleteAdultAccount(adultId) {
   const actor = getActiveAdult();
   if (!actor || actor.role !== "admin") return { ok: false, error: "Hanya admin boleh padam akaun." };
   if (actor.id === adultId) return { ok: false, error: "Admin yang sedang digunakan tidak boleh dipadam." };
-  const result = await callAccountFunction("deleteAdultAccount", { adultId });
+  const result = await callAccountFunction("deleteAdultAccount", { adultId }, 120000);
   if (!result.ok) return result;
   cachedStore = {
     ...cachedStore,
@@ -783,7 +797,7 @@ export async function createStudentQrCode(studentId) {
   if (!adult || !student || (adult.role !== "admin" && student.ownerId !== adult.id)) {
     return { ok: false, error: "Anda tidak boleh jana QR murid ini." };
   }
-  const result = await callAccountFunction("createStudentQrCode", { studentId });
+  const result = await callAccountFunction("createStudentQrCode", { studentId }, 60000);
   if (!result.ok) return result;
   return {
     ok: true,

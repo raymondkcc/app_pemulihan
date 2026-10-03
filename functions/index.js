@@ -327,7 +327,7 @@ exports.updateAdultAccount = onCall(async (request) => {
   return { ok: true, adult: safeAdult(adultId, next) };
 });
 
-exports.deleteAdultAccount = onCall(async (request) => {
+exports.deleteAdultAccount = onCall({ timeoutSeconds: 300 }, async (request) => {
   await assertAdmin(request);
   const adultId = text(request.data?.adultId, 128);
   if (!adultId || adultId.includes("/") || adultId === request.auth.uid) {

@@ -118,6 +118,8 @@ function AdminHome({ adult }) {
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(null);
   const [qrStudent, setQrStudent] = useState(null);
+  const [deletingAdultId, setDeletingAdultId] = useState("");
+  const [accountFeedback, setAccountFeedback] = useState(null);
   const adults = useMemo(() => store.adults, [store]);
   const students = useMemo(() => store.students.filter((student) => !student.archived), [store]);
 
@@ -187,14 +189,25 @@ function AdminHome({ adult }) {
 
   async function removeAccount(item) {
     if (!window.confirm(`Padam akaun ${item.name}? Semua kelas dan murid akaun ini akan dipadam.`)) return;
-    const result = await deleteAdultAccount(item.id);
-    if (!result.ok) {
-      setError(result.error);
-      return;
+    setDeletingAdultId(item.id);
+    setAccountFeedback(null);
+    try {
+      const result = await deleteAdultAccount(item.id);
+      if (!result.ok) {
+        setAccountFeedback({ error: true, message: result.error });
+        return;
+      }
+      setAccountFeedback({ error: false, message: `Akaun ${item.email} telah dipadam.` });
+      try {
+        await load();
+      } catch {
+        setAccountFeedback({ error: true, message: "Akaun telah dipadam, tetapi senarai gagal dimuat semula. Tekan Muat semula." });
+      }
+    } catch (error) {
+      setAccountFeedback({ error: true, message: error?.message || "Akaun tidak dapat dipadam. Cuba lagi." });
+    } finally {
+      setDeletingAdultId("");
     }
-    setError("");
-    setNotice(`Akaun ${item.email} telah dipadam.`);
-    await load();
   }
 
   return (
@@ -244,6 +257,7 @@ function AdminHome({ adult }) {
           <div className="section-heading-row">
             <div><span className="section-kicker">Senarai</span><h2><GraduationCap size={18} /> Akaun dewasa</h2></div>
           </div>
+          {accountFeedback && <p className={accountFeedback.error ? "form-error" : "form-notice"} role={accountFeedback.error ? "alert" : "status"}>{accountFeedback.message}</p>}
           <div className="admin-adult-list">
             {adults.map((item) => {
               const seats = listStudentsForAdult(item.id).length;
@@ -261,7 +275,9 @@ function AdminHome({ adult }) {
                     {item.role !== "admin" && <button type="button" onClick={() => promote(item.id)}>Jadikan admin</button>}
                     <button type="button" onClick={() => setEditing(item)}><Pencil size={13} /> Edit</button>
                     <button type="button" onClick={() => toggleActive(item)}>{item.active ? "Tutup" : "Buka"}</button>
-                    {item.id !== adult.id && <button type="button" className="danger-button" onClick={() => removeAccount(item)}><Trash2 size={13} /> Padam</button>}
+                    {item.id !== adult.id && <button type="button" className="danger-button" onClick={() => removeAccount(item)} disabled={Boolean(deletingAdultId)}>
+                      {deletingAdultId === item.id ? "Memadam..." : <><Trash2 size={13} /> Padam</>}
+                    </button>}
                   </div>
                 </article>
               );
