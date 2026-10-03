@@ -12,6 +12,7 @@ import PerkataanQuizGame from "./PerkataanQuizGame.jsx";
 import SpeechSyllableQuiz from "./SpeechSyllableQuiz.jsx";
 import SyllableLearningChoice from "./SyllableLearningChoice.jsx";
 import LetterLearningChoice from "./LetterLearningChoice.jsx";
+import BMAssessment from "./BMAssessment.jsx";
 
 const LetterCaseGame = lazy(() => import("../../games/letterCase/LetterCaseGame.jsx"));
 
@@ -135,12 +136,12 @@ export default function BahasaMelayuHub({ onBack, onComingSoon, notice, initialM
     if (category === "huruf") {
       if (subCategory === "baca" || subCategory === "tulis") return <HurufModule mode={subCategory} onBack={goBack} />;
       if (subCategory === "main") return <MainHuruf onBack={goBack} onMissionComplete={onMissionComplete} />;
-      if (subCategory === "ujian") return <ComingSoon onBack={goBack} title="Ujian Huruf" description="Uji diri anda" />;
+      if (subCategory === "ujian") return <BMAssessment type="huruf" onBack={goBack} />;
     }
     if (category === "vokal") {
       if (subCategory === "belajar") return <VokalModule onBack={goBack} />;
       if (subCategory === "main") return <MainVokal onBack={goBack} />;
-      if (subCategory === "ujian") return <ComingSoon onBack={goBack} title="Ujian Vokal" description="Uji sebutan vokal" />;
+      if (subCategory === "ujian") return <BMAssessment type="vokal" onBack={goBack} />;
     }
     if (category === "suku-kata") {
       if (subCategory === "kv") return <KVModule onBack={goBack} />;

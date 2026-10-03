@@ -19,8 +19,9 @@ import {
   updateDoc,
   where
 } from "firebase/firestore";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { CLASS_CODE_ALPHABET, CLASS_CODE_DIGITS, FREE_STUDENT_LIMIT, GUEST_DEMO_PATHS } from "../data/kembara.js";
-import { auth, db, secondaryAuth } from "./firebase.js";
+import { auth, db, firebaseApp, secondaryAuth } from "./firebase.js";
 import { establishStudentPracticeSession } from "../games/multiplicationZombie/multiplicationPersistence.js";
 
 const SESSION_KEY = "kembara-pintar-session-v1";
@@ -579,14 +580,62 @@ export async function setAdultLimit(adultId, studentLimit) {
 export async function setAdultActive(adultId, active) {
   const actor = getActiveAdult();
   if (!actor || actor.role !== "admin") return { ok: false, error: "Hanya admin boleh ubah akaun." };
+  if (actor.id === adultId && !active) return { ok: false, error: "Admin semasa mesti kekal aktif." };
+  const adult = cachedStore.adults.find((item) => item.id === adultId);
+  if (!adult) return { ok: false, error: "Akaun tidak jumpa." };
+  return updateAdultAccount(adultId, {
+    name: adult.name,
+    email: adult.email,
+    role: adult.role,
+    active: Boolean(active),
+    studentLimit: adult.studentLimit
+  });
+}
+
+async function callAccountFunction(name, data) {
   try {
-    await updateDoc(doc(db, "adults", adultId), { active: Boolean(active) });
+    const callable = httpsCallable(getFunctions(firebaseApp), name, { timeout: 10000 });
+    const response = await callable(data);
+    return { ok: true, data: response.data || {} };
   } catch (error) {
     return { ok: false, error: authMessage(error) };
   }
+}
+
+export async function updateAdultAccount(adultId, { name, email, password, role, active, studentLimit }) {
+  const actor = getActiveAdult();
+  if (!actor || actor.role !== "admin") return { ok: false, error: "Hanya admin boleh ubah akaun." };
+  const result = await callAccountFunction("updateAdultAccount", {
+    adultId,
+    name: String(name || "").trim(),
+    email: String(email || "").trim().toLowerCase(),
+    password: String(password || ""),
+    role: role === "parent" ? "parent" : role === "admin" ? "admin" : "teacher",
+    active: Boolean(active),
+    studentLimit: Number(studentLimit) || FREE_STUDENT_LIMIT
+  });
+  if (!result.ok) return result;
+  const updated = adultFromDoc(adultId, result.data.adult || {});
   cachedStore = {
     ...cachedStore,
-    adults: cachedStore.adults.map((adult) => adult.id === adultId ? { ...adult, active: Boolean(active) } : adult)
+    adults: cachedStore.adults.map((adult) => adult.id === adultId ? updated : adult)
+  };
+  if (cachedAdult?.id === adultId) cachedAdult = updated;
+  cachedHasAdmin = cachedStore.adults.some((adult) => adult.role === "admin" && adult.active) || cachedHasAdmin;
+  return { ok: true, adult: updated };
+}
+
+export async function deleteAdultAccount(adultId) {
+  const actor = getActiveAdult();
+  if (!actor || actor.role !== "admin") return { ok: false, error: "Hanya admin boleh padam akaun." };
+  if (actor.id === adultId) return { ok: false, error: "Admin yang sedang digunakan tidak boleh dipadam." };
+  const result = await callAccountFunction("deleteAdultAccount", { adultId });
+  if (!result.ok) return result;
+  cachedStore = {
+    ...cachedStore,
+    adults: cachedStore.adults.filter((adult) => adult.id !== adultId),
+    classes: cachedStore.classes.filter((item) => item.ownerId !== adultId),
+    students: cachedStore.students.filter((student) => student.ownerId !== adultId)
   };
   return { ok: true };
 }
@@ -704,6 +753,46 @@ export async function archiveStudent(studentId) {
   return { ok: true };
 }
 
+export async function updateStudentProfile(studentId, { nickname, avatarId, track }) {
+  const adult = getActiveAdult();
+  const student = cachedStore.students.find((item) => item.id === studentId);
+  if (!adult || !student || (adult.role !== "admin" && student.ownerId !== adult.id)) {
+    return { ok: false, error: "Anda tidak boleh ubah murid ini." };
+  }
+  const patch = {
+    nickname: String(nickname || "").trim().slice(0, 18),
+    avatarId: String(avatarId || "bintang"),
+    track: track === "bm" || track === "math" ? track : "both"
+  };
+  if (!patch.nickname) return { ok: false, error: "Nama murid diperlukan." };
+  try {
+    await updateDoc(doc(db, "students", studentId), patch);
+  } catch (error) {
+    return { ok: false, error: authMessage(error) };
+  }
+  cachedStore = {
+    ...cachedStore,
+    students: cachedStore.students.map((item) => item.id === studentId ? { ...item, ...patch } : item)
+  };
+  return { ok: true, student: { ...student, ...patch } };
+}
+
+export async function createStudentQrCode(studentId) {
+  const adult = getActiveAdult();
+  const student = cachedStore.students.find((item) => item.id === studentId);
+  if (!adult || !student || (adult.role !== "admin" && student.ownerId !== adult.id)) {
+    return { ok: false, error: "Anda tidak boleh jana QR murid ini." };
+  }
+  const result = await callAccountFunction("createStudentQrCode", { studentId });
+  if (!result.ok) return result;
+  return {
+    ok: true,
+    token: result.data.token,
+    expiresAt: result.data.expiresAt,
+    student: studentFromDoc(student.id, result.data.student || student)
+  };
+}
+
 export async function findClassByCode(code) {
   const normalised = String(code || "").trim().toUpperCase();
   if (!normalised) return null;
@@ -799,6 +888,27 @@ export async function loginStudentWithCode(studentCode) {
   };
   writeSession({ ...readSession(), studentId: student.id, guest: false, classCode: null, student });
   await establishStudentPracticeSession({ studentId: student.id, studentCode: String(student.studentCode || student.kadCode || studentCode || "").trim().toUpperCase() }).catch(() => {});
+  return { ok: true, student };
+}
+
+export async function loginStudentWithQrToken(token) {
+  const value = String(token || "").trim();
+  if (!value) return { ok: false, error: "Kod QR tidak sah." };
+  const result = await callAccountFunction("loginStudentWithQr", { token: value });
+  if (!result.ok) return { ok: false, error: "Kod QR tidak sah atau telah tamat." };
+  const data = result.data || {};
+  const student = studentFromDoc(data.studentId, data.student || {});
+  if (!student.id || student.archived) return { ok: false, error: "Murid tidak jumpa." };
+  if (student.locked) return { ok: false, error: "locked" };
+  cachedStore = {
+    ...cachedStore,
+    students: [...cachedStore.students.filter((item) => item.id !== student.id), student]
+  };
+  writeSession({ ...readSession(), studentId: student.id, guest: false, classCode: null, student });
+  await establishStudentPracticeSession({
+    studentId: student.id,
+    studentCode: String(student.studentCode || student.kadCode || "").trim().toUpperCase()
+  }).catch(() => {});
   return { ok: true, student };
 }
 

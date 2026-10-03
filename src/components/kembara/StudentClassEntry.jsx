@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, ChevronLeft } from "lucide-react";
 import AdventureLogo from "../home/AdventureLogo.jsx";
-import { continueAsGuest, loginStudentWithCode } from "../../utils/kembaraStore.js";
+import { continueAsGuest, loginStudentWithCode, loginStudentWithQrToken } from "../../utils/kembaraStore.js";
 import { canRun, tooFrequent } from "../../utils/rateLimit.js";
 
 function formatStudentCode(value) {
@@ -14,6 +14,24 @@ export default function StudentClassEntry() {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get("qr");
+    if (!token) return;
+    let cancelled = false;
+    setBusy(true);
+    (async () => {
+      const result = await loginStudentWithQrToken(token);
+      if (cancelled) return;
+      setBusy(false);
+      if (!result.ok) {
+        setError(result.error === "locked" ? "Kunci dikunci. Cikgu perlu reset." : result.error);
+        return;
+      }
+      window.location.replace("/murid/ruang");
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   async function submit(event) {
     event.preventDefault();
@@ -45,8 +63,8 @@ export default function StudentClassEntry() {
       </header>
       <section className="profile-content">
         <div className="portal-intro">
-          <h1>Kod murid anda</h1>
-          <p>Masukkan kod murid yang diberi oleh cikgu untuk log masuk.</p>
+          <h1>{busy && new URLSearchParams(window.location.search).has("qr") ? "Membuka permainan..." : "Kod murid anda"}</h1>
+          <p>{busy && new URLSearchParams(window.location.search).has("qr") ? "QR disahkan. Sila tunggu sebentar." : "Masukkan kod murid yang diberi oleh cikgu untuk log masuk."}</p>
         </div>
 
         <form className="profile-form" onSubmit={submit}>

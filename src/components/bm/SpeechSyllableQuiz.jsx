@@ -3,8 +3,11 @@ import { ArrowLeft, CheckCircle2, LoaderCircle, Mic, RefreshCcw, Volume2, XCircl
 import { createKvRows, loadKvkPack } from "../../data/syllablePack.js";
 import { normalizeSyllableTranscript, getSpeechRecognitionConstructor, requestMicrophonePermission } from "../../utils/speechRecognition.js";
 import { playSyllableAudio, stopSyllableAudio } from "../../utils/syllableAudio.js";
+import { getActiveStudent } from "../../utils/kembaraStore.js";
+import { persistStudentAssessment } from "../../utils/studentAssessments.js";
 
 const MODES = { kv: "KV", kvk: "KVK" };
+const QUESTIONS_PER_TEST = 10;
 const KV_QUESTIONS = createKvRows("e-pepet").flat().filter((item) => item.syllable.length === 2 && !["we", "ye"].includes(item.syllable));
 
 function nextRandom(items, previous) {
@@ -23,9 +26,11 @@ export default function SpeechSyllableQuiz({ onBack }) {
   const [question, setQuestion] = useState(KV_QUESTIONS[0]);
   const [questionNumber, setQuestionNumber] = useState(1);
   const [score, setScore] = useState({ correct: 0, retry: 0 });
+  const [testComplete, setTestComplete] = useState(false);
   const [status, setStatus] = useState({ type: "idle", text: "Tekan dan tahan butang untuk menyebut." });
   const recognitionRef = useRef(null);
   const pressedRef = useRef(false);
+  const answeredRef = useRef(false);
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -45,6 +50,7 @@ export default function SpeechSyllableQuiz({ onBack }) {
     recognitionRef.current?.abort();
     pressedRef.current = false;
     setStatus({ type: "idle", text: "Tekan dan tahan butang untuk menyebut." });
+    answeredRef.current = false;
     setQuestion((current) => nextRandom(questions, current?.syllable));
   }, [mode, questions]);
 
@@ -54,14 +60,28 @@ export default function SpeechSyllableQuiz({ onBack }) {
     setMode(nextMode);
     setQuestionNumber(1);
     setScore({ correct: 0, retry: 0 });
+    setTestComplete(false);
+    answeredRef.current = false;
   }
 
   function nextQuestion() {
+    if (testComplete) {
+      setQuestionNumber(1);
+      setScore({ correct: 0, retry: 0 });
+      setTestComplete(false);
+      recognitionRef.current?.abort();
+      pressedRef.current = false;
+      setQuestion((current) => nextRandom(questions, current?.syllable));
+      setStatus({ type: "idle", text: "Tekan dan tahan butang untuk menyebut." });
+      answeredRef.current = false;
+      return;
+    }
     recognitionRef.current?.abort();
     pressedRef.current = false;
     setQuestion((current) => nextRandom(questions, current?.syllable));
     setQuestionNumber((number) => number + 1);
     setStatus({ type: "idle", text: "Tekan dan tahan butang untuk menyebut." });
+    answeredRef.current = false;
   }
 
   function listenExample() {
@@ -70,7 +90,7 @@ export default function SpeechSyllableQuiz({ onBack }) {
   }
 
   async function startListening() {
-    if (pressedRef.current || status.type === "requesting" || status.type === "listening") return;
+    if (pressedRef.current || answeredRef.current || testComplete || status.type === "requesting" || status.type === "listening") return;
     const Recognition = getSpeechRecognitionConstructor();
     if (!Recognition) {
       setStatus({ type: "unsupported", text: "Pengecaman suara tidak disokong oleh pelayar ini." });
@@ -95,11 +115,25 @@ export default function SpeechSyllableQuiz({ onBack }) {
     recognition.maxAlternatives = 1;
     recognition.onstart = () => mountedRef.current && setStatus({ type: "listening", text: `Sebut ${question?.syllable || "suku kata"}...` });
     recognition.onresult = (event) => {
+      if (answeredRef.current) return;
+      answeredRef.current = true;
       const transcript = event.results[0]?.[0]?.transcript || "";
       const normalized = normalizeSyllableTranscript(transcript);
       const correct = normalized === questionAnswer(question);
-      setScore((current) => ({ ...current, [correct ? "correct" : "retry"]: current[correct ? "correct" : "retry"] + 1 }));
-      setStatus(correct ? { type: "correct", text: `Betul! Saya dengar “${transcript}”.` } : { type: "incorrect", text: `Saya dengar “${transcript}”. Cuba sebut ${question.syllable}.` });
+      const nextScore = { ...score, [correct ? "correct" : "retry"]: score[correct ? "correct" : "retry"] + 1 };
+      setScore(nextScore);
+      if (questionNumber >= QUESTIONS_PER_TEST) {
+        setTestComplete(true);
+        const student = getActiveStudent();
+        void persistStudentAssessment({
+          studentId: student?.id,
+          subject: "bm",
+          skillId: mode === "kv" ? "suku-kata-kv" : "suku-kata-kvk",
+          score: nextScore.correct,
+          total: QUESTIONS_PER_TEST
+        });
+      }
+      setStatus(correct ? { type: "correct", text: `Betul! Saya dengar “${transcript}”.${questionNumber >= QUESTIONS_PER_TEST ? " Ujian selesai." : ""}` } : { type: "incorrect", text: `Saya dengar “${transcript}”.${questionNumber >= QUESTIONS_PER_TEST ? " Ujian selesai." : ` Cuba sebut ${question.syllable}.`}` });
     };
     recognition.onerror = (event) => {
       if (!mountedRef.current) return;
@@ -158,7 +192,7 @@ export default function SpeechSyllableQuiz({ onBack }) {
         <div className="section-heading-row"><div><span className="section-kicker">Ujian 01 / Suku kata</span><h2 id="speech-quiz-title">Uji sebutan</h2><p>Markah hanya betul apabila perkataan yang didengar sama tepat dengan sasaran.</p></div><span className="skill-count"><Volume2 size={15} /> Soalan {questionNumber}</span></div>
         <div className="speech-mode-toggle" role="tablist" aria-label="Pilih mod ujian"><span>Mod</span>{Object.entries(MODES).map(([id, label]) => <button key={id} className={mode === id ? "is-selected" : ""} type="button" role="tab" aria-selected={mode === id} onClick={() => selectMode(id)}>{label}</button>)}</div>
         <div className="speech-quiz-card">
-          {loadingKvk ? <p className="kvk-load-status" role="status"><LoaderCircle size={16} /> Memuatkan soalan KVK...</p> : question ? <><span className="speech-quiz-label">Sebut ini</span><div className="speech-target-syllable" aria-live="polite">{question.syllable}</div><button className="speech-example-button" type="button" onClick={listenExample} disabled={status.type === "listening" || status.type === "requesting"}><Volume2 size={17} /> Dengar contoh</button><button className={`push-to-talk ${status.type === "listening" ? "is-listening" : ""}`} type="button" onPointerDown={handlePointerDown} onPointerUp={handlePointerUp} onPointerCancel={stopListening} onLostPointerCapture={stopListening} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} onBlur={stopListening} aria-pressed={status.type === "listening"} aria-label="Tekan dan tahan untuk bercakap"><Mic size={25} /><span>{status.type === "listening" ? "Lepaskan untuk semak" : status.type === "requesting" ? "Minta izin..." : "Tekan dan tahan"}</span></button><p className={`speech-feedback ${status.type}`} role="status">{status.type === "correct" && <CheckCircle2 size={17} />}{status.type === "incorrect" && <XCircle size={17} />}{status.type === "error" && <XCircle size={17} />}{status.text}</p><div className="speech-quiz-actions"><button className="secondary-action" type="button" onClick={nextQuestion}><RefreshCcw size={16} /> Soalan baharu</button><span className="speech-score">Betul <strong>{score.correct}</strong> · Cuba lagi <strong>{score.retry}</strong></span></div></> : <p className="kvk-empty-state">Soalan belum sedia.</p>}
+          {loadingKvk ? <p className="kvk-load-status" role="status"><LoaderCircle size={16} /> Memuatkan soalan KVK...</p> : question ? <><span className="speech-quiz-label">Sebut ini</span><div className="speech-target-syllable" aria-live="polite">{question.syllable}</div><button className="speech-example-button" type="button" onClick={listenExample} disabled={status.type === "listening" || status.type === "requesting" || testComplete}><Volume2 size={17} /> Dengar contoh</button><button className={`push-to-talk ${status.type === "listening" ? "is-listening" : ""}`} type="button" disabled={testComplete} onPointerDown={handlePointerDown} onPointerUp={handlePointerUp} onPointerCancel={stopListening} onLostPointerCapture={stopListening} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} onBlur={stopListening} aria-pressed={status.type === "listening"} aria-label="Tekan dan tahan untuk bercakap"><Mic size={25} /><span>{testComplete ? "Ujian selesai" : status.type === "listening" ? "Lepaskan untuk semak" : status.type === "requesting" ? "Minta izin..." : "Tekan dan tahan"}</span></button><p className={`speech-feedback ${status.type}`} role="status">{status.type === "correct" && <CheckCircle2 size={17} />}{status.type === "incorrect" && <XCircle size={17} />}{status.type === "error" && <XCircle size={17} />}{status.text}</p><div className="speech-quiz-actions"><button className="secondary-action" type="button" onClick={nextQuestion}><RefreshCcw size={16} /> {testComplete ? "Ulang ujian" : "Soalan baharu"}</button><span className="speech-score">Soalan <strong>{Math.min(questionNumber, QUESTIONS_PER_TEST)}/{QUESTIONS_PER_TEST}</strong> · Betul <strong>{score.correct}</strong></span></div></> : <p className="kvk-empty-state">Soalan belum sedia.</p>}
         </div>
       </section>
     </div>

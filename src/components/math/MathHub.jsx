@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, BookOpen, Calculator, Gamepad2, Minus, Plus, Sparkles, Star, X, Bug, Shield } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Calculator, ClipboardCheck, Gamepad2, Minus, Plus, Sparkles, Star, X, Bug, Shield } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const MATH_OPERATIONS = [
@@ -32,6 +32,10 @@ export default function MathHub({ onBack, onComingSoon, notice }) {
     window.location.href = game === "zombie"
       ? `/zombie-defense?op=${operation}`
       : `/mosquito-splat?op=${operation}&game=mosquito`;
+  };
+  const openAssessment = () => {
+    const operation = selectedOperation?.id;
+    if (operation) window.location.href = `/zombie-defense?op=${operation}&assessment=1`;
   };
 
   return (
@@ -87,6 +91,7 @@ export default function MathHub({ onBack, onComingSoon, notice }) {
                 <p>Pilih cara untuk latihan operasi ini.</p>
                 <div className="math-game-choice-grid math-mode-choice-grid">
                   <button type="button" className="math-game-choice math-game-choice-learn" onClick={openLearning} disabled={!selectedOperation.learningHref}><span><BookOpen size={25} /></span><strong>Belajar</strong><small>{selectedOperation.learningHref ? "Latihan langkah demi langkah." : "Modul belajar untuk operasi ini akan datang."}</small>{selectedOperation.learningHref ? <ArrowRight size={17} /> : <span className="math-choice-badge">Akan datang</span>}</button>
+                  <button type="button" className="math-game-choice math-game-choice-assessment" onClick={openAssessment}><span><ClipboardCheck size={25} /></span><strong>Ujian</strong><small>15 soalan. Lulus apabila semua jawapan betul.</small><ArrowRight size={17} /></button>
                   <button type="button" className="math-game-choice math-game-choice-play" onClick={openPlayChoices}><span><Gamepad2 size={25} /></span><strong>Bermain</strong><small>Pilih Hempaplah Nyamuk atau Zombie Defense.</small><ArrowRight size={17} /></button>
                 </div>
               </>

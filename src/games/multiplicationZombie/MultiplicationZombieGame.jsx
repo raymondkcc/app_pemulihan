@@ -18,6 +18,7 @@ import {
   mergeMultiplicationProgress,
   persistMultiplicationSession
 } from "./multiplicationPersistence.js";
+import { persistStudentAssessment } from "../../utils/studentAssessments.js";
 import {
   loadZombieDefenseProgress,
   saveZombieDefenseSession
@@ -228,7 +229,7 @@ function GameSummary({ mode, operationInfo, summary, weakFacts, saveState, onRep
   );
 }
 
-export default function MultiplicationZombieGame({ initialMode = "student", initialOperation = "darab", onComplete }) {
+export default function MultiplicationZombieGame({ initialMode = "student", initialOperation = "darab", assessmentMode = false, onComplete }) {
   const mode = initialMode === "teacher" ? "teacher" : "student";
   const operation = OPERATION_KEYS.includes(initialOperation) ? initialOperation : "darab";
   const engine = useMemo(() => createOperationEngine(operation), [operation]);
@@ -375,6 +376,15 @@ export default function MultiplicationZombieGame({ initialMode = "student", init
       sessionId: session.sessionId
     };
     setSummary(sessionSummary);
+    if (assessmentMode && mode === "student" && studentId) {
+      void persistStudentAssessment({
+        studentId,
+        subject: "math",
+        skillId: operation,
+        score: session.correct,
+        total: sessionSummary.questionCount
+      });
+    }
     const notifyMissionComplete = () => {
       if (mode === "student" && operation === "darab" && reason === "complete") onComplete?.();
     };

@@ -101,12 +101,20 @@ service cloud.firestore {
         || request.resource.data.diff(resource.data).affectedKeys().hasOnly(["failCount", "locked"]);
       allow delete: if false;
     }
+    match /studentQrTokens/{tokenHash} {
+      allow read, write: if false;
+    }
     match /students/{studentId}/multiplicationFacts/{factKey} {
       allow read: if ownsStudent(studentId) || isStudentPractice(studentId);
       allow write: if false;
     }
 
     match /students/{studentId}/multiplicationSessions/{sessionId} {
+      allow read: if ownsStudent(studentId) || isStudentPractice(studentId);
+      allow write: if false;
+    }
+
+    match /students/{studentId}/assessmentResults/{resultId} {
       allow read: if ownsStudent(studentId) || isStudentPractice(studentId);
       allow write: if false;
     }

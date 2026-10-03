@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { ArrowRight, Check } from "lucide-react";
 import { LOCK_PICTURES } from "../../data/kembara.js";
-import { speakMalayText, speakWithBrowser } from "../../utils/malaySpeech.js";
 
 const STEPS = ["show", "pick1", "pick2", "practice", "confirm"];
 
@@ -9,7 +8,7 @@ function pictureById(id) {
   return LOCK_PICTURES.find((item) => item.id === id);
 }
 
-export default function PictureLockSetup({ studentName, onCancel, onSave }) {
+export default function PictureLockSetup({ setupRef, studentName, onCancel, onSave }) {
   const [step, setStep] = useState("show");
   const [picked, setPicked] = useState([]);
   const [practice, setPractice] = useState([]);
@@ -17,14 +16,8 @@ export default function PictureLockSetup({ studentName, onCancel, onSave }) {
   const [error, setError] = useState("");
   const [adultHere, setAdultHere] = useState(false);
   const [practiceNoticeOpen, setPracticeNoticeOpen] = useState(false);
+  const [firstSuccessNoticeOpen, setFirstSuccessNoticeOpen] = useState(false);
 
-  function speak(word) {
-    speakMalayText(word);
-  }
-
-  function prompt(text) {
-    speakWithBrowser(text);
-  }
 
   function choose(id) {
     const picture = pictureById(id);
@@ -32,9 +25,7 @@ export default function PictureLockSetup({ studentName, onCancel, onSave }) {
 
     if (step === "pick1") {
       setPicked([id]);
-      speak(picture.word);
       setStep("pick2");
-      prompt("Tekan gambar kedua.");
       return;
     }
 
@@ -45,19 +36,16 @@ export default function PictureLockSetup({ studentName, onCancel, onSave }) {
       }
       const next = [picked[0], id];
       setPicked(next);
-      speak(picture.word);
       setError("");
       setPractice([]);
       setPracticeWins(0);
       setStep("practice");
       setPracticeNoticeOpen(true);
-      prompt("Kunci gambar disimpan. Sila ulang kunci gambar 2 kali lagi untuk pengesahan.");
       return;
     }
 
     if (step === "practice") {
       const next = [...practice, id];
-      speak(picture.word);
       if (next.length < 2) {
         setPractice(next);
         return;
@@ -66,7 +54,6 @@ export default function PictureLockSetup({ studentName, onCancel, onSave }) {
       setPractice([]);
       if (!ok) {
         setError("Belum tepat. Tengok semula.");
-        prompt("Belum tepat. Tengok semula.");
         return;
       }
       const wins = practiceWins + 1;
@@ -74,10 +61,9 @@ export default function PictureLockSetup({ studentName, onCancel, onSave }) {
       setError("");
       if (wins >= 2) {
         setStep("confirm");
-        prompt("Ibu bapa atau cikgu, nampak dua gambar ini?");
         return;
       }
-      prompt("Bagus. Cuba sekali lagi.");
+      setFirstSuccessNoticeOpen(true);
     }
   }
 
@@ -87,7 +73,7 @@ export default function PictureLockSetup({ studentName, onCancel, onSave }) {
   const secondSlot = step === "practice" ? pictureById(practice[1]) : second;
 
   return (
-    <section className="lock-setup">
+    <section ref={setupRef} className="lock-setup" data-silent-interface>
       <div className="section-heading-row">
         <div>
           <span className="section-kicker">Kunci gambar / Picture lock</span>
@@ -100,7 +86,7 @@ export default function PictureLockSetup({ studentName, onCancel, onSave }) {
       {step === "show" && (
         <div className="lock-copy-card">
           <p>Cikgu atau ibu bapa mesti ada bersama. Anak tekan, orang dewasa tengok.</p>
-          <button className="profile-submit" type="button" onClick={() => { setStep("pick1"); prompt("Tekan gambar pertama."); }}>Mula pilih / Start <ArrowRight size={16} /></button>
+          <button className="profile-submit" type="button" onClick={() => setStep("pick1")}>Mula pilih / Start <ArrowRight size={16} /></button>
         </div>
       )}
 
@@ -127,8 +113,19 @@ export default function PictureLockSetup({ studentName, onCancel, onSave }) {
           <div className="lock-practice-dialog" role="dialog" aria-modal="true" aria-labelledby="lock-practice-title">
             <span className="section-kicker">Pengesahan kunci</span>
             <h3 id="lock-practice-title">Cuba sendiri</h3>
-            <p>Kunci gambar disimpan. Sila ulang kunci gambar 2 kali lagi untuk pengesahan.</p>
+            <p>Kunci gambar disimpan. Sila masukkan password sekali lagi untuk pengesahan.</p>
             <button className="profile-submit" type="button" autoFocus onClick={() => setPracticeNoticeOpen(false)}>OK</button>
+          </div>
+        </div>
+      )}
+
+      {step === "practice" && firstSuccessNoticeOpen && (
+        <div className="lock-practice-dialog-backdrop">
+          <div className="lock-practice-dialog" role="dialog" aria-modal="true" aria-labelledby="lock-success-title">
+            <span className="section-kicker">Pengesahan kunci</span>
+            <h3 id="lock-success-title">Berjaya</h3>
+            <p>Berjaya, sila masukkan password sekali lagi!</p>
+            <button className="profile-submit" type="button" autoFocus onClick={() => setFirstSuccessNoticeOpen(false)}>OK</button>
           </div>
         </div>
       )}

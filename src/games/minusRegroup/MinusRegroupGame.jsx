@@ -82,8 +82,12 @@ function expectedAnswers(problem) {
   const { H: h2, T: t2, O: o2 } = getDigits(problem.n2);
 
   if (o1 < o2) {
-    o1 += 10;
+    if (t1 === 0) {
+      h1 -= 1;
+      t1 += 10;
+    }
     t1 -= 1;
+    o1 += 10;
   }
   const answerO = o1 - o2;
 
@@ -325,18 +329,41 @@ function MinusRegroupGame() {
     if (phase === "solve" && targetRow === "build") return;
 
     if (source === "bank") {
-      if (phase !== "build" || targetRow !== "build" || item !== targetCol) return;
+      if (phase !== "build" || targetRow !== "build") return;
+      if (item !== targetCol) {
+        triggerError("Put Hundreds, Tens and Ones in their own places.");
+        return;
+      }
       addBankBlock(item, targetCol);
       return;
     }
 
     const block = item;
     if (!block || block.row === targetRow && block.col === targetCol) return;
-    if (phase === "solve" && targetRow === "trash" && isTrashingOutOfOrder(block.type)) {
-      triggerError();
+
+    if (phase === "build") {
+      if (block.type !== targetCol) {
+        triggerError("Put Hundreds, Tens and Ones in their own places.");
+        return;
+      }
+      saveState();
+      setBlocks((current) => current.map((entry) => entry.id === block.id ? { ...entry, row: targetRow, col: targetCol } : entry));
+      playSound("drop");
       return;
     }
-    if (phase === "solve" && targetRow === "borrow") {
+
+    if (targetRow === "trash") {
+      if (isTrashingOutOfOrder(block.type)) {
+        triggerError();
+        return;
+      }
+      saveState();
+      setBlocks((current) => current.map((entry) => entry.id === block.id ? { ...entry, row: "trash", col: "all" } : entry));
+      playSound("trash");
+      return;
+    }
+
+    if (targetRow === "borrow") {
       if (block.type === "H" && targetCol === "T") {
         shatterBlock(block, "H", "T", "T");
         return;
@@ -345,11 +372,12 @@ function MinusRegroupGame() {
         shatterBlock(block, "T", "O", "O");
         return;
       }
+      if (block.type === "H" && targetCol === "O") {
+        triggerError("Hundreds cannot go in the Ones place. Shatter a Hundred into Tens first.");
+        return;
+      }
+      triggerError("Shatter a Hundred into Tens, or a Ten into Ones.");
     }
-
-    saveState();
-    setBlocks((current) => current.map((entry) => entry.id === block.id ? { ...entry, row: targetRow, col: targetCol } : entry));
-    playSound(targetRow === "trash" ? "trash" : "drop");
   }
 
   function shatterBlock(block, sourceType, sourceCol, outputType) {
@@ -366,17 +394,28 @@ function MinusRegroupGame() {
   function handleBorrowClick(targetCol) {
     if (phase !== "solve") return;
 
-    const sourceBlock = targetCol === "T"
-      ? blocks.find((block) => block.row === "build" && block.col === "H")
-      : blocks.find((block) => block.row === "borrow" && block.col === "T")
-        || blocks.find((block) => block.row === "build" && block.col === "T");
+    if (targetCol === "T") {
+      const hundredBlock = blocks.find((block) => block.type === "H" && block.row !== "trash");
+      if (!hundredBlock) return;
+      shatterBlock(hundredBlock, "H", "T", "T");
+      return;
+    }
 
-    if (!sourceBlock) return;
-    shatterBlock(sourceBlock, sourceBlock.type, targetCol, targetCol === "T" ? "T" : "O");
+    const tenBlock = blocks.find((block) => block.type === "T" && block.row === "borrow")
+      || blocks.find((block) => block.type === "T" && block.row === "build");
+    if (tenBlock) {
+      shatterBlock(tenBlock, "T", "O", "O");
+      return;
+    }
+
+    if (blocks.some((block) => block.type === "H" && block.row !== "trash")) {
+      triggerError("Tens is 0. Shatter a Hundred into Tens first.");
+    }
   }
 
   function addBankBlock(type, targetCol = type) {
     if (phase !== "build") return;
+    if (type !== targetCol) return;
     if (blocks.filter((block) => block.row === "build" && block.col === targetCol).length >= 9) return;
     saveState();
     setBlocks((current) => [...current, makeBlock(type, "build", targetCol)]);
@@ -466,7 +505,7 @@ function MinusRegroupGame() {
     if (phase !== "build") return undefined;
     const counts = { H: 0, T: 0, O: 0 };
     blocks.forEach((block) => {
-      if (block.row === "build") counts[block.type] += 1;
+      if (block.row === "build" && block.col === block.type) counts[block.type] += 1;
     });
     const total = counts.H * 100 + counts.T * 10 + counts.O;
     if (total !== problem.n1) return undefined;
@@ -480,25 +519,26 @@ function MinusRegroupGame() {
 
   const counts = { H: 0, T: 0, O: 0 };
   blocks.forEach((block) => {
-    if (block.row === "build") counts[block.type] += 1;
+    if (block.row === "build" && block.col === block.type) counts[block.type] += 1;
   });
 
-  const displayH1 = phase === "build" ? counts.H || "" : getDigits(problem.n1).H || "";
-  const displayT1 = phase === "build" ? counts.T || (counts.H > 0 ? "0" : "") : getDigits(problem.n1).T;
-  const displayO1 = phase === "build" ? counts.O : getDigits(problem.n1).O;
-  const displayH2 = phase === "build" ? "" : getDigits(problem.n2).H || "";
-  const displayT2 = phase === "build" ? "" : getDigits(problem.n2).T;
-  const displayO2 = phase === "build" ? "" : getDigits(problem.n2).O;
+  const firstDigits = getDigits(problem.n1);
+  const secondDigits = getDigits(problem.n2);
+  const displayH1 = phase === "build" ? counts.H || "" : firstDigits.H || "";
+  const displayT1 = phase === "build" ? counts.T || (counts.H > 0 ? "0" : "") : firstDigits.T;
+  const displayO1 = phase === "build" ? counts.O : firstDigits.O;
+  const displayH2 = phase === "build" ? "" : secondDigits.H || "";
+  const displayT2 = phase === "build" ? "" : secondDigits.T;
+  const displayO2 = phase === "build" ? "" : secondDigits.O;
   const topBoxes = { H: "", T: "", O: "" };
-  const isShatteredH = regroupValues.H > 0;
-  const isShatteredT = regroupValues.T > 0;
-  if (isShatteredH) {
-    topBoxes.H = displayH1 - regroupValues.H;
-    topBoxes.T = 10;
+  if (regroupValues.H > 0) {
+    topBoxes.H = firstDigits.H - regroupValues.H;
   }
-  if (isShatteredT) {
-    topBoxes.T = isShatteredH ? 10 - regroupValues.T : displayT1 - regroupValues.T;
-    topBoxes.O = 10;
+  if (regroupValues.H > 0 || regroupValues.T > 0) {
+    topBoxes.T = firstDigits.T + 10 * regroupValues.H - regroupValues.T;
+  }
+  if (regroupValues.T > 0) {
+    topBoxes.O = firstDigits.O + 10 * regroupValues.T;
   }
 
   function renderBlock(block) {
@@ -522,25 +562,32 @@ function MinusRegroupGame() {
     const zoneBlocks = blocks.filter((block) => block.row === row && (row === "trash" || block.col === col));
     const isBuildTarget = phase === "build" && row === "build";
     const isTrashTarget = phase === "solve" && row === "trash";
+    const hasHundred = blocks.some((block) => block.type === "H" && block.row !== "trash");
+    const hasTen = blocks.some((block) => block.type === "T" && (block.row === "borrow" || block.row === "build"));
     const isShatterTarget = phase === "solve" && row === "borrow" && (
-      col === "T" && blocks.some((block) => block.row === "build" && block.col === "H")
-      || col === "O" && blocks.some((block) => (block.row === "borrow" || block.row === "build") && block.col === "T")
+      col === "T" && hasHundred
+      || col === "O" && hasTen
     );
+    const needsDoubleBorrow = phase === "solve" && row === "borrow" && col === "O" && !hasTen && hasHundred;
+    const isClickableBorrow = isShatterTarget || needsDoubleBorrow;
     return (
       <div
         className={`mrg-zone mrg-zone-${row} mrg-zone-${toneName} ${isBuildTarget || isTrashTarget || isShatterTarget ? "is-target" : ""}`}
         onDragOver={(event) => event.preventDefault()}
         onDrop={(event) => handleDrop(event, row, col)}
-        onClick={() => isShatterTarget && handleBorrowClick(col)}
-        onKeyDown={(event) => {
-          if (isShatterTarget && (event.key === "Enter" || event.key === " ")) {
-            event.preventDefault();
-            handleBorrowClick(col);
-          }
+        onClick={() => {
+          if (isShatterTarget) handleBorrowClick(col);
+          else if (needsDoubleBorrow) triggerError("Tens is 0. Shatter a Hundred into Tens first.");
         }}
-        role={isShatterTarget ? "button" : undefined}
-        tabIndex={isShatterTarget ? 0 : -1}
-        aria-label={isShatterTarget ? `${title}. Click to shatter a block` : undefined}
+        onKeyDown={(event) => {
+          if (!isClickableBorrow || (event.key !== "Enter" && event.key !== " ")) return;
+          event.preventDefault();
+          if (isShatterTarget) handleBorrowClick(col);
+          else triggerError("Tens is 0. Shatter a Hundred into Tens first.");
+        }}
+        role={isClickableBorrow ? "button" : undefined}
+        tabIndex={isClickableBorrow ? 0 : -1}
+        aria-label={isShatterTarget ? `${title}. Click to shatter a block` : needsDoubleBorrow ? "Tens is 0. Shatter a Hundred into Tens first." : undefined}
       >
         <span className="mrg-zone-label">{row === "trash" ? <><Trash2 size={13} /> {title}</> : title}</span>
         <div className="mrg-zone-blocks">{zoneBlocks.map(renderBlock)}</div>

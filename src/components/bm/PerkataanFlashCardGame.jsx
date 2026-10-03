@@ -12,6 +12,8 @@ import {
   X
 } from "lucide-react";
 import { PERKATAAN_SKILLS } from "../../data/perkataan.js";
+import { getActiveStudent } from "../../utils/kembaraStore.js";
+import { persistStudentAssessment } from "../../utils/studentAssessments.js";
 
 const MODES = {
   wordToImage: {
@@ -118,12 +120,21 @@ export default function PerkataanFlashCardGame({ onBack }) {
   function moveToNextCard(result) {
     if (!isFlipped || isAdvancing) return;
 
-    setScores((current) => ({ ...current, [result]: current[result] + 1 }));
+    const nextScores = { ...scores, [result]: scores[result] + 1 };
+    setScores(nextScores);
     setIsFlipped(false);
     setIsAdvancing(true);
 
     advanceTimer.current = window.setTimeout(() => {
       if (cardIndex === deck.length - 1) {
+        const student = getActiveStudent();
+        void persistStudentAssessment({
+          studentId: student?.id,
+          subject: "bm",
+          skillId: "perkataan",
+          score: nextScores.remembered,
+          total: deck.length
+        });
         setDeck(shuffle(allWords));
         setCardIndex(0);
         setRound((current) => current + 1);

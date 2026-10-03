@@ -18,6 +18,7 @@
     "firebase": "^12.19.0",
     "lucide-react": "latest",
     "phaser": "^4.2.1",
+    "qrcode": "^1.5.4",
     "react": "latest",
     "react-dom": "latest",
     "vite": "latest"

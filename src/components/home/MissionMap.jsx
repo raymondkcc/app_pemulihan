@@ -1,26 +1,30 @@
-import { ArrowRight, Check, LockKeyhole, Map, Sparkles } from "lucide-react";
+import { ArrowRight, Castle, Check, Home, LockKeyhole, Map, Mountain, Sparkles, TreePine, Waves } from "lucide-react";
 import { getMissionsForTrack, missionIconForState } from "../../data/missions.js";
 import { getMissionProgress, isMissionUnlocked, subscribeToMissionProgress } from "../../utils/missionProgress.js";
 import { useEffect, useState } from "react";
 
+const LANDMARKS = [Home, Waves, TreePine, Mountain, Castle];
+
 function MissionNode({ mission, state, index, href }) {
   const Icon = state === "complete" ? Check : state === "locked" ? LockKeyhole : missionIconForState(state);
+  const Landmark = LANDMARKS[index % LANDMARKS.length];
   const node = (
-    <span className={`mission-map-node mission-map-node-${state}`}>
-      <span className="mission-map-node-icon"><Icon size={21} strokeWidth={2.7} /></span>
+    <span className={`mission-map-landmark mission-map-landmark-${state}`}>
+      <span className="mission-map-landmark-art"><Landmark size={54} strokeWidth={1.7} /><span className="mission-map-landmark-node"><Icon size={18} strokeWidth={2.8} /></span></span>
       <span className="mission-map-node-number">{String(index + 1).padStart(2, "0")}</span>
+      {state === "locked" && <span className="mission-map-fog" aria-hidden="true"><LockKeyhole size={24} /></span>}
     </span>
   );
 
   return (
     <li className={`mission-map-stop mission-map-stop-${state}`}>
-      {index > 0 && <span className="mission-map-trail" aria-hidden="true" />}
+      {index > 0 && <span className={`mission-map-trail mission-map-trail-${state}`} aria-hidden="true" />}
       {state === "locked" ? node : <a href={href} aria-label={`${mission.title}, ${state === "complete" ? "selesai" : "mula misi"}`}>{node}</a>}
       <span className="mission-map-stop-copy">
-        <span className="mission-map-stop-kicker">{state === "complete" ? "Misi selesai" : state === "locked" ? "Terkunci" : "Misi seterusnya"}</span>
+        <span className="mission-map-stop-kicker">{state === "complete" ? "Boleh ulang" : state === "locked" ? "Belum terbuka" : "Checkpoint seterusnya"}</span>
         <strong>{mission.title}</strong>
         <small>{mission.description}</small>
-        {state === "current" && <span className="mission-map-start"><span>Mula misi</span><ArrowRight size={15} /></span>}
+        {state !== "locked" && <span className="mission-map-start"><span>{state === "complete" ? "Main semula" : "Mula checkpoint"}</span><ArrowRight size={15} /></span>}
         {state === "locked" && <span className="mission-map-requirement">Selesaikan misi sebelumnya</span>}
       </span>
     </li>
@@ -51,12 +55,13 @@ export default function MissionMap({ student }) {
       <div className="mission-map-header">
         <div>
           <span className="section-kicker"><Map size={15} /> Peta kembara</span>
-          <h2 id="mission-map-title">Jejak misi kamu</h2>
-          <p>{isGuest ? "Demo membuka langkah pertama sahaja." : journeyFinished ? "Semua pintu kembara sudah terbuka!" : "Selesaikan satu misi untuk membuka laluan seterusnya."}</p>
+          <h2 id="mission-map-title">Hai, {student.nickname || "kembara"}!</h2>
+          <p>{isGuest ? "Demo membuka checkpoint pertama sahaja." : journeyFinished ? "Semua checkpoint sudah terbuka. Pilih mana-mana untuk bermain semula." : "Teruskan perjalanan untuk membuka kawasan berkabus seterusnya."}</p>
         </div>
-        <span className="mission-map-count"><Sparkles size={15} /> {completedCount}/{missions.length} selesai</span>
+        <span className="mission-map-count"><Sparkles size={15} /> {completedCount}/{missions.length} checkpoint</span>
       </div>
 
+      <div className="mission-map-legend" aria-label="Petunjuk peta"><span><span className="legend-dot legend-dot-current" /> Sekarang</span><span><span className="legend-dot legend-dot-complete" /> Boleh ulang</span><span><span className="legend-dot legend-dot-locked" /> Berkabus</span></div>
       <ol className="mission-map-path">
         {visibleMissions.map((mission) => {
           const index = missions.findIndex((item) => item.id === mission.id);

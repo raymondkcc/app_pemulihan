@@ -30,6 +30,7 @@ function useInterfaceClickSound() {
     const handleDocumentActivation = (event) => {
       const control = isInteractiveTarget(event.target);
       if (!control || control.disabled || control.getAttribute("aria-disabled") === "true") return;
+      if (control.closest("[data-silent-interface]")) return;
       if (event.type === "keydown" && event.key !== "Enter" && event.key !== " ") return;
       playInterfaceClick();
     };
@@ -156,7 +157,7 @@ function RouteView() {
     const missionId = params.get("mission");
     const access = missionAccess(student, missionId);
     if (access.blocked) return <MissionAccessRequired />;
-    return <MultiplicationZombieGame initialMode="student" initialOperation={initialOperation} onComplete={access.onComplete} />;
+    return <MultiplicationZombieGame initialMode="student" initialOperation={initialOperation} assessmentMode={params.get("assessment") === "1"} onComplete={access.onComplete} />;
   }
   if (path === "/mosquito-splat") {
     const params = new URLSearchParams(window.location.search);
