@@ -1,6 +1,7 @@
 import { ArrowRight, Check, ChevronLeft, UserRound } from "lucide-react";
 import { useState } from "react";
 import { AVATARS } from "../../data/appAssets.js";
+import AdventureLogo from "./AdventureLogo.jsx";
 import { continueAsGuest, createProfile, getProfileStore, setActiveProfile } from "../../utils/profileStore.js";
 
 export default function StudentEntry() {
@@ -13,7 +14,7 @@ export default function StudentEntry() {
   function enterWithoutName() { continueAsGuest(); window.location.href = "/murid/ruang"; }
   function submit(event) { event.preventDefault(); if (!name.trim()) return; const next = createProfile(name, avatar); setStore(next); enter(next.activeProfileId); }
 
-  return <main className="portal-page student-entry-page"><header className="portal-header"><a className="portal-back" href="/" aria-label="Kembali / Back"><ChevronLeft size={19} /></a><div className="portal-logo"><span>A</span><span>1</span><span>*</span></div><div><span className="portal-kicker">Ruang murid / Student space</span><strong>Pilih nama anda</strong></div></header><section className="profile-content">
+  return <main className="portal-page student-entry-page"><header className="portal-header"><a className="portal-back" href="/" aria-label="Kembali / Back"><ChevronLeft size={19} /></a><AdventureLogo /><div><span className="portal-kicker">Ruang murid / Student space</span><strong>Pilih nama anda</strong></div></header><section className="profile-content">
     <div className="portal-intro"><span className="portal-eyebrow"><UserRound size={16} /> Selamat datang, murid!</span><h1>Siapa nama anda?</h1><p>Pilih profil anda atau cipta profil baharu.</p></div>
     {store.profiles.length > 0 && <div className="profile-list">{store.profiles.map((profile) => { const item = AVATARS.find((entry) => entry.id === profile.avatarId) || AVATARS[0]; return <button className="profile-card" key={profile.id} type="button" onClick={() => enter(profile.id)}><span className={`avatar avatar-${item.color}`}><img src={item.image} alt="" onError={(event) => { event.currentTarget.hidden = true; }} /><span>{item.mark}</span></span><span><strong>{profile.nickname}</strong><small>{item.label}</small></span><ArrowRight size={19} /></button>; })}</div>}
     {!creating && <button className="new-profile-button" type="button" onClick={() => setCreating(true)}>+ Cipta profil baharu / New profile</button>}

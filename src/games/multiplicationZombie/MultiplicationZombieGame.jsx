@@ -228,7 +228,7 @@ function GameSummary({ mode, operationInfo, summary, weakFacts, saveState, onRep
   );
 }
 
-export default function MultiplicationZombieGame({ initialMode = "student", initialOperation = "darab" }) {
+export default function MultiplicationZombieGame({ initialMode = "student", initialOperation = "darab", onComplete }) {
   const mode = initialMode === "teacher" ? "teacher" : "student";
   const operation = OPERATION_KEYS.includes(initialOperation) ? initialOperation : "darab";
   const engine = useMemo(() => createOperationEngine(operation), [operation]);
@@ -375,9 +375,13 @@ export default function MultiplicationZombieGame({ initialMode = "student", init
       sessionId: session.sessionId
     };
     setSummary(sessionSummary);
+    const notifyMissionComplete = () => {
+      if (mode === "student" && operation === "darab" && reason === "complete") onComplete?.();
+    };
     if (!studentId) {
       setPendingSave(null);
       setSaveState({ kind: "local", text: "Sesi ini sudah selesai. / Session complete." });
+      notifyMissionComplete();
       return;
     }
     const savePayload = {
@@ -394,6 +398,7 @@ export default function MultiplicationZombieGame({ initialMode = "student", init
       saveZombieDefenseSession({ engine, studentId, operation, progress: finalProgress, outcomes: session.outcomes, summary: sessionSummary });
       setPendingSave(null);
       setSaveState({ kind: "local", text: "Analisis disimpan pada peranti ini. / Analysis saved on this device." });
+      notifyMissionComplete();
       return;
     }
     setSaveState({ kind: "saving", text: "Menyimpan analisis fakta... / Saving fact analysis..." });
@@ -405,7 +410,8 @@ export default function MultiplicationZombieGame({ initialMode = "student", init
     } else {
       setSaveState({ kind: "offline", text: "Disimpan pada peranti ini. / Saved on this device for now." });
     }
-  }, [difficulty, engine, mode, operation, questionCount, soundOn, studentId]);
+    notifyMissionComplete();
+  }, [difficulty, engine, mode, onComplete, operation, questionCount, soundOn, studentId]);
 
   const retrySave = useCallback(async () => {
     if (!pendingSave) return;

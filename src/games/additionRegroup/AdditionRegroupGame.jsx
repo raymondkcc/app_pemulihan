@@ -193,7 +193,7 @@ function tone(context, frequency, duration, type = "sine", volume = 0.12) {
   oscillator.stop(context.currentTime + duration);
 }
 
-function AdditionRegroupGame() {
+function AdditionRegroupGame({ onComplete }) {
   const [level, setLevel] = useState("100");
   const [groupingMode, setGroupingMode] = useState("mixed");
   const [problem, setProblem] = useState(DEFAULT_PROBLEM);
@@ -211,6 +211,7 @@ function AdditionRegroupGame() {
   const audioContextRef = useRef(null);
   const errorTimerRef = useRef(null);
   const musicTimerRef = useRef(null);
+  const completionNotifiedRef = useRef(false);
 
   const firstTarget = useMemo(() => getDigits(problem.n1), [problem.n1]);
   const secondTarget = useMemo(() => getDigits(problem.n2), [problem.n2]);
@@ -275,8 +276,15 @@ function AdditionRegroupGame() {
     setFocusedCell(null);
     setShowCarryReminder(false);
     setErrorMsg("");
+    completionNotifiedRef.current = false;
     setRound((current) => current + 1);
   }
+
+  useEffect(() => {
+    if (phase !== "success" || completionNotifiedRef.current) return;
+    completionNotifiedRef.current = true;
+    onComplete?.();
+  }, [onComplete, phase]);
 
   function saveState() {
     setHistory((current) => [...current, { blocks: [...blocks], carryValues: { ...carryValues } }]);

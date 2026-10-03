@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ArrowRight, ChevronLeft } from "lucide-react";
+import AdventureLogo from "../home/AdventureLogo.jsx";
 import { hasAdmin, loginAdult, refreshAppMeta, whenAuthReady, getActiveAdult } from "../../utils/kembaraStore.js";
 import { canRun, tooFrequent } from "../../utils/rateLimit.js";
 import WhatsAppCta from "./WhatsAppCta.jsx";
@@ -61,7 +62,7 @@ export default function AdultLogin() {
     <main className="portal-page student-entry-page">
       <header className="portal-header">
         <a className="portal-back" href="/" aria-label="Kembali / Back"><ChevronLeft size={19} /></a>
-        <div className="portal-logo"><span>A</span><span>1</span><span>*</span></div>
+        <AdventureLogo />
         <div><span className="portal-kicker">Cikgu & ibu bapa</span><strong>Log masuk</strong></div>
       </header>
       <section className="profile-content">

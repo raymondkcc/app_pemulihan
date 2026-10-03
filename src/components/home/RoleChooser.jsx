@@ -1,5 +1,6 @@
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Compass, Sparkles } from "lucide-react";
 import { APP_IMAGES } from "../../data/appAssets.js";
+import AdventureLogo from "./AdventureLogo.jsx";
 import HomeImage from "./HomeImage.jsx";
 
 function RoleCard({ image, imageAlt, title, english, color, href }) {
@@ -12,14 +13,14 @@ function RoleCard({ image, imageAlt, title, english, color, href }) {
 
 export default function RoleChooser() {
   return <main className="portal-page role-chooser-page">
-    <header className="portal-header"><div className="portal-logo"><span>A</span><span>1</span><span>*</span></div><div><strong>Kembara Pintar</strong><span className="portal-kicker">Ruang belajar</span></div><span className="portal-status"><Sparkles size={15} /> Jom mula!</span></header>
+    <header className="portal-header"><AdventureLogo /><div><strong>Kembara Pintar</strong><span className="portal-kicker">Peta belajar</span></div><span className="portal-status"><Compass size={15} /> Jom mula!</span></header>
     <section className="portal-content">
-      <div className="portal-intro"><h1>Saya adalah...</h1><p>Pilih satu / Choose one</p></div>
+      <div className="portal-intro"><span className="portal-eyebrow"><Compass size={15} /> Kembara pembelajaran</span><h1>Siapa pengembara hari ini?</h1><p>Pilih laluan anda untuk memulakan kembara.</p></div>
       <div className="role-grid">
         <RoleCard image={APP_IMAGES.studentWelcome} imageAlt="Murid sedang membaca buku" color="coral" title="Murid" english="Student" href="/murid" />
         <RoleCard image={APP_IMAGES.teacherWelcome} imageAlt="Ibu belajar bersama anak" color="blue" title="Cikgu & ibu bapa" english="Teacher & parent" href="/cikgu" />
       </div>
-      <p className="portal-note"><Sparkles size={15} /> Terus pilih dan mula</p>
+      <p className="portal-note"><Sparkles size={15} /> Lengkapkan misi untuk membuka laluan seterusnya</p>
     </section>
   </main>;
 }

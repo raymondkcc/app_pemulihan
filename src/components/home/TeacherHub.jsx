@@ -1,6 +1,7 @@
 import { ArrowLeft, ArrowRight, BookOpen, Bug, Calculator, ChevronLeft, Gamepad2, GraduationCap, LockKeyhole, Play, Presentation, Shield, Target, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import LoadingScreen from "../kembara/LoadingScreen.jsx";
+import AdventureLogo from "./AdventureLogo.jsx";
 import { getActiveAdult, whenAuthReady } from "../../utils/kembaraStore.js";
 
 const SUBJECTS = {
@@ -53,7 +54,7 @@ function TeacherHeader({ children }) {
   return (
     <header className="teacher-header">
       <a href="/akaun" className="portal-back" aria-label="Kembali / Back"><ChevronLeft size={20} /></a>
-      <div className="portal-logo"><span>A</span><span>1</span><span>*</span></div>
+      <AdventureLogo />
       <div><span className="portal-kicker">Ruang cikgu / Teacher space</span><strong>{children}</strong></div>
       <span className="teacher-badge"><GraduationCap size={16} /> Teacher / Parent</span>
     </header>

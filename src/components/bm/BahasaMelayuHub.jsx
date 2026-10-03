@@ -79,17 +79,19 @@ function MainVokal({ onBack }) {
   return <div className="home-content hub-content"><div className="hub-hero"><button className="back-button" type="button" onClick={onBack}><ArrowLeft size={18} /> <span>Vokal</span></button><div className="hub-title-block"><span className="hub-eyebrow"><Volume2 size={15} /> Vokal</span><h1>Main Vokal</h1><p>Permainan bunyi haiwan</p></div></div><ScreamAnimalCard /></div>;
 }
 
-function MainHuruf({ onBack }) {
-  return <div className="home-content hub-content"><div className="hub-hero"><button className="back-button" type="button" onClick={onBack}><ArrowLeft size={18} /> <span>Huruf</span></button><div className="hub-title-block"><span className="hub-eyebrow"><PenLine size={15} /> Huruf</span><h1>Main Huruf</h1><p>Permainan huruf besar dan kecil</p></div></div><Suspense fallback={<p className="home-notice" role="status">Menyediakan permainan huruf...</p>}><LetterCaseGame letters={HURUF} onPlayLetter={playLetterAudio} /></Suspense></div>;
+function MainHuruf({ onBack, onMissionComplete }) {
+  return <div className="home-content hub-content"><div className="hub-hero"><button className="back-button" type="button" onClick={onBack}><ArrowLeft size={18} /> <span>Huruf</span></button><div className="hub-title-block"><span className="hub-eyebrow"><PenLine size={15} /> Huruf</span><h1>Main Huruf</h1><p>Permainan huruf besar dan kecil</p></div></div><Suspense fallback={<p className="home-notice" role="status">Menyediakan permainan huruf...</p>}><LetterCaseGame letters={HURUF} onPlayLetter={playLetterAudio} onComplete={onMissionComplete} /></Suspense></div>;
 }
 
 function CategoryHeader({ onBack, cat }) {
   return <div className="hub-hero"><button className="back-button" type="button" onClick={onBack}><ArrowLeft size={18} /> <span>Bahasa Melayu</span></button><div className="hub-title-block"><span className="hub-eyebrow"><BookOpen size={15} /> Bahasa Melayu</span><h1>{cat.title}</h1><p>{cat.description}</p></div></div>;
 }
 
-export default function BahasaMelayuHub({ onBack, onComingSoon, notice }) {
-  const [category, setCategory] = useState(null);
-  const [subCategory, setSubCategory] = useState(null);
+export default function BahasaMelayuHub({ onBack, onComingSoon, notice, initialMission, onMissionComplete }) {
+  const startsHurufMission = initialMission === "huruf";
+  const startsSyllableMission = initialMission === "suku-kata";
+  const [category, setCategory] = useState(startsHurufMission ? "huruf" : startsSyllableMission ? "suku-kata" : null);
+  const [subCategory, setSubCategory] = useState(startsHurufMission || startsSyllableMission ? "main" : null);
   const [learningChoiceOpen, setLearningChoiceOpen] = useState(false);
   const student = getActiveStudent();
   const guestDemo = Boolean(student?.isGuest);
@@ -132,7 +134,7 @@ export default function BahasaMelayuHub({ onBack, onComingSoon, notice }) {
   if (category && subCategory) {
     if (category === "huruf") {
       if (subCategory === "baca" || subCategory === "tulis") return <HurufModule mode={subCategory} onBack={goBack} />;
-      if (subCategory === "main") return <MainHuruf onBack={goBack} />;
+      if (subCategory === "main") return <MainHuruf onBack={goBack} onMissionComplete={onMissionComplete} />;
       if (subCategory === "ujian") return <ComingSoon onBack={goBack} title="Ujian Huruf" description="Uji diri anda" />;
     }
     if (category === "vokal") {
@@ -143,7 +145,7 @@ export default function BahasaMelayuHub({ onBack, onComingSoon, notice }) {
     if (category === "suku-kata") {
       if (subCategory === "kv") return <KVModule onBack={goBack} />;
       if (subCategory === "kvk") return <KVKLearning onBack={goBack} />;
-      if (subCategory === "main") return <div className="home-content hub-content"><CategoryHeader onBack={goBack} cat={BM_CATEGORIES.find((item) => item.id === category)} /><a className="kv-pond-launch" href="/kv-sound-pond"><span><strong>Lompat Si Katak Lompat</strong><p>Dengar bunyi KV, kemudian pilih gema yang sama.</p></span><span>Main sekarang <ArrowLeft size={17} /></span></a></div>;
+      if (subCategory === "main") return <div className="home-content hub-content"><CategoryHeader onBack={goBack} cat={BM_CATEGORIES.find((item) => item.id === category)} /><a className="kv-pond-launch" href={initialMission === "suku-kata" ? "/kv-sound-pond?mission=suku-kata" : "/kv-sound-pond"}><span><strong>Lompat Si Katak Lompat</strong><p>Dengar bunyi KV, kemudian pilih gema yang sama.</p></span><span>Main sekarang <ArrowLeft size={17} /></span></a></div>;
       if (subCategory === "ujian") return <SpeechSyllableQuiz onBack={goBack} />;
     }
     if (category === "perkataan") {

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ArrowRight, ChevronLeft } from "lucide-react";
+import AdventureLogo from "../home/AdventureLogo.jsx";
 import { continueAsGuest, loginStudentWithCode } from "../../utils/kembaraStore.js";
 import { canRun, tooFrequent } from "../../utils/rateLimit.js";
 
@@ -39,7 +40,7 @@ export default function StudentClassEntry() {
     <main className="portal-page student-entry-page">
       <header className="portal-header">
         <a className="portal-back" href="/" aria-label="Kembali / Back"><ChevronLeft size={19} /></a>
-        <div className="portal-logo"><span>A</span><span>1</span><span>*</span></div>
+        <AdventureLogo />
         <div><span className="portal-kicker">Ruang murid</span><strong>Log masuk murid</strong></div>
       </header>
       <section className="profile-content">

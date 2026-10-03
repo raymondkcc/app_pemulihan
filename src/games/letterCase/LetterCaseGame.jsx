@@ -64,13 +64,20 @@ function PhaserLetterBoard({ onReady }) {
   return <div className="letter-case-phaser" ref={mountRef} aria-hidden="true" />;
 }
 
-export default function LetterCaseGame({ letters, onPlayLetter }) {
+export default function LetterCaseGame({ letters, onPlayLetter, onComplete }) {
   const [gameState, setGameState] = useState(() => createLetterCaseState(letters));
   const [hintVisible, setHintVisible] = useState(false);
   const [scene, setScene] = useState(null);
   const timerRef = useRef(null);
+  const completionNotifiedRef = useRef(false);
 
   useEffect(() => () => window.clearTimeout(timerRef.current), []);
+
+  useEffect(() => {
+    if (gameState.status !== "complete" || completionNotifiedRef.current) return;
+    completionNotifiedRef.current = true;
+    onComplete?.();
+  }, [gameState.status, onComplete]);
 
   useEffect(() => {
     if (scene && gameState.lastResult) {
@@ -85,6 +92,7 @@ export default function LetterCaseGame({ letters, onPlayLetter }) {
 
   function startGame() {
     window.clearTimeout(timerRef.current);
+    completionNotifiedRef.current = false;
     setHintVisible(false);
     const nextState = startLetterCaseSession(letters);
     setGameState(nextState);

@@ -1,8 +1,10 @@
-import { ArrowRight, CheckCircle2, LogOut, RotateCcw, Star, UserRound } from "lucide-react";
+import { ArrowRight, CheckCircle2, LogOut, Star, UserRound } from "lucide-react";
 import { APP_IMAGES, AVATARS } from "../../data/appAssets.js";
 import { demoHrefForTrack, trackLabel } from "../../data/kembara.js";
 import { getActiveStudent, logoutStudent } from "../../utils/kembaraStore.js";
+import AdventureLogo from "./AdventureLogo.jsx";
 import HomeImage from "./HomeImage.jsx";
+import MissionMap from "./MissionMap.jsx";
 
 const cards = [
   { title: "Belajar", english: "Learn", text: "Kenal bunyi dan bina asas.", image: APP_IMAGES.belajar, color: "mint" },
@@ -17,13 +19,12 @@ export default function StudentDashboard() {
   const track = trackLabel(profile.track);
   const showBm = profile.track !== "math";
   const showMath = profile.track !== "bm";
-  const missionHref = profile.isGuest ? demoHrefForTrack(profile.track) : (showBm ? "/murid/bahasa-melayu" : "/murid/matematik");
   const cardHref = profile.isGuest ? demoHrefForTrack(profile.track) : (showBm ? "/murid/bahasa-melayu" : "/murid/matematik");
 
   return (
     <main className="dashboard-page">
       <header className="dashboard-header">
-        <a className="dashboard-brand" href="/"><span>A</span><strong>Kembara Pintar</strong></a>
+        <a className="dashboard-brand" href="/"><AdventureLogo /><strong>Kembara Pintar</strong></a>
         <div className="dashboard-actions">
           <a href="/murid" title="Tukar profil / Switch profile" onClick={() => logoutStudent()}>
             <span className={`avatar avatar-small avatar-${avatar.color}`}>
@@ -49,14 +50,7 @@ export default function StudentDashboard() {
             <span>{avatar.mark}</span>
           </div>
         </div>
-        <section className="mission-strip">
-          <div className="mission-icon"><RotateCcw size={23} /></div>
-          <div>
-            <span>Teruskan belajar / Continue learning</span>
-            <strong>{profile.isGuest ? "Demo: mula dengan satu langkah" : "Mulakan dengan bunyi, perkataan atau kira"}</strong>
-          </div>
-          <a href={missionHref}>Mula / Start <ArrowRight size={17} /></a>
-        </section>
+        <MissionMap student={profile} />
         <section className="dashboard-section">
           <div className="section-heading-row">
             <div><span className="section-kicker">Pilih cara / Choose a way</span><h2>Bagaimana mahu belajar?</h2></div>

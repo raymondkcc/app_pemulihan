@@ -7,6 +7,7 @@ import MultiplicationZombieGame from "./games/multiplicationZombie/Multiplicatio
 import HomeLanding from "./components/home/HomeLanding.jsx";
 import RoleChooser from "./components/home/RoleChooser.jsx";
 import StudentDashboard from "./components/home/StudentDashboard.jsx";
+import MissionAccessRequired from "./components/home/MissionAccessRequired.jsx";
 import TeacherHub from "./components/home/TeacherHub.jsx";
 import BahasaMelayuHub from "./components/bm/BahasaMelayuHub.jsx";
 import MathHub from "./components/math/MathHub.jsx";
@@ -20,6 +21,8 @@ import RateLimitToast from "./components/kembara/RateLimitToast.jsx";
 import LoadingScreen from "./components/kembara/LoadingScreen.jsx";
 import { isInteractiveTarget, playInterfaceClick } from "./utils/interfaceAudio.js";
 import { getActiveAdult, getActiveStudent, isGuestPathAllowed, startKembaraAuth, whenAuthReady } from "./utils/kembaraStore.js";
+import { getMissionById, getMissionsForTrack } from "./data/missions.js";
+import { completeMission, getMissionProgress, isMissionUnlocked } from "./utils/missionProgress.js";
 import "./styles.css";
 
 function useInterfaceClickSound() {
@@ -52,6 +55,25 @@ function studentPath(path) {
   return student;
 }
 
+function missionAccess(student, missionId) {
+  if (!missionId) return { mission: null, onComplete: undefined };
+  const mission = getMissionById(missionId);
+  if (!mission) return { mission: null, onComplete: undefined };
+  const missions = getMissionsForTrack(student.track);
+  const missionIndex = missions.findIndex((item) => item.id === missionId);
+  const progress = getMissionProgress(student.id);
+  if (missionIndex < 0 || (student.isGuest && missionIndex > 0) || !isMissionUnlocked(missionIndex, missions, progress.completedIds)) {
+    return { blocked: true };
+  }
+  return {
+    mission,
+    onComplete: () => {
+      completeMission(student.id, missionId);
+      window.location.href = "/murid/ruang";
+    }
+  };
+}
+
 function RouteView() {
   const path = window.location.pathname.replace(/\/+$/, "") || "/";
   if (path === "/") return <RoleChooser />;
@@ -78,7 +100,10 @@ function RouteView() {
       window.location.replace("/murid/matematik");
       return null;
     }
-    return <BahasaMelayuHub onBack={() => { window.location.href = "/murid/ruang"; }} onComingSoon={() => {}} notice="" />;
+    const missionId = new URLSearchParams(window.location.search).get("mission");
+    const access = missionAccess(student, missionId);
+    if (access.blocked) return <MissionAccessRequired />;
+    return <BahasaMelayuHub initialMission={missionId} onMissionComplete={access.onComplete} onBack={() => { window.location.href = "/murid/ruang"; }} onComingSoon={() => {}} notice="" />;
   }
 
   if (path === "/murid/matematik") {
@@ -101,12 +126,18 @@ function RouteView() {
     const student = studentPath(path);
     if (!student || student.$$typeof) return student;
     if (student.isGuest) return <GuestDemoGate />;
-    return <KvSoundPondGame />;
+    const missionId = new URLSearchParams(window.location.search).get("mission");
+    const access = missionAccess(student, missionId);
+    if (access.blocked) return <MissionAccessRequired />;
+    return <KvSoundPondGame onComplete={access.onComplete} />;
   }
   if (path === "/addition-regroup") {
     const student = studentPath(path);
     if (!student || student.$$typeof) return student;
-    return <AdditionRegroupGame />;
+    const missionId = new URLSearchParams(window.location.search).get("mission");
+    const access = missionAccess(student, missionId);
+    if (access.blocked) return <MissionAccessRequired />;
+    return <AdditionRegroupGame onComplete={access.onComplete} />;
   }
   if (path === "/minus-regroup") {
     const student = studentPath(path);
@@ -122,7 +153,10 @@ function RouteView() {
     const student = studentPath(path);
     if (!student || student.$$typeof) return student;
     if (student.isGuest) return <GuestDemoGate />;
-    return <MultiplicationZombieGame initialMode="student" initialOperation={initialOperation} />;
+    const missionId = params.get("mission");
+    const access = missionAccess(student, missionId);
+    if (access.blocked) return <MissionAccessRequired />;
+    return <MultiplicationZombieGame initialMode="student" initialOperation={initialOperation} onComplete={access.onComplete} />;
   }
   if (path === "/mosquito-splat") {
     const params = new URLSearchParams(window.location.search);

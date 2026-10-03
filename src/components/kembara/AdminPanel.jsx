@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, GraduationCap, LogOut, Plus, Presentation, Shield } from "lucide-react";
 import { FREE_STUDENT_LIMIT } from "../../data/kembara.js";
+import AdventureLogo from "../home/AdventureLogo.jsx";
 import {
   bootstrapAdmin,
   createAdult,
@@ -79,7 +80,7 @@ function BootstrapAdmin() {
     <main className="portal-page">
       <header className="portal-header">
         <a className="portal-back" href="/" aria-label="Kembali / Back"><ChevronLeft size={19} /></a>
-        <div className="portal-logo"><span>A</span><span>1</span><span>*</span></div>
+        <AdventureLogo />
         <div><span className="portal-kicker">Admin pertama</span><strong>Kembara Pintar</strong></div>
       </header>
       <section className="profile-content">
@@ -172,7 +173,7 @@ function AdminHome({ adult }) {
     <main className="teacher-page admin-page">
       <header className="teacher-header">
         <a className="portal-back" href="/" aria-label="Kembali / Back"><ChevronLeft size={20} /></a>
-        <div className="portal-logo"><span>A</span><span>1</span><span>*</span></div>
+        <AdventureLogo />
         <div><span className="portal-kicker">Admin</span><strong>Panel Kembara</strong></div>
         <span className="teacher-badge"><Shield size={16} /> {adult.name}</span>
         <a className="teacher-mode-link" href="/cikgu/mengajar"><Presentation size={16} /> Mod mengajar</a>

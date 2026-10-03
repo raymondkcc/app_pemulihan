@@ -1,7 +1,8 @@
 // Generated image slots are kept in one place so the visual asset pack can be swapped in later.
 export const APP_IMAGES = {
-  studentWelcome: "/images/home/student-welcome.webp",
-  teacherWelcome: "/images/home/teacher-welcome.webp",
+  logo: "/images/home/kembara-pintar-logo.png",
+  studentWelcome: "/images/home/student-adventure.webp",
+  teacherWelcome: "/images/home/teacher-parent-adventure.webp",
   bahasaMelayu: "/images/home/bahasa-melayu.webp",
   matematik: "/images/home/matematik.webp",
   bahasaMelayu3d: "/images/home/bahasa-melayu-3d.jpg",

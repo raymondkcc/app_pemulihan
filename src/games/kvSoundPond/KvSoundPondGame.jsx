@@ -438,7 +438,7 @@ function PondCanvas({ round, feedback, phase, onChoice, onReplay, onCorrectLandi
   return <div className="pond-canvas" ref={hostRef} aria-label="Lompat Si Katak Lompat" />;
 }
 
-export default function KvSoundPondGame() {
+export default function KvSoundPondGame({ onComplete }) {
   const [setId, setSetId] = useState("a");
   const [questionCount, setQuestionCount] = useState(10);
   const [phase, setPhase] = useState("setup");
@@ -459,6 +459,7 @@ export default function KvSoundPondGame() {
   const bgmRestoreTimer = useRef(null);
   const nextTimer = useRef(null);
   const lastTarget = useRef("");
+  const completionNotifiedRef = useRef(false);
 
   const activeSet = KV_SETS.find((set) => set.id === setId) || KV_SETS[0];
 
@@ -655,10 +656,17 @@ export default function KvSoundPondGame() {
     stopGameOverSound();
     startBgm();
     lastTarget.current = "";
+    completionNotifiedRef.current = false;
     setCorrect(0);
     setLives(INITIAL_LIVES);
     openRound(1, activeSet);
   }
+
+  useEffect(() => {
+    if (phase !== "complete" || completionNotifiedRef.current) return;
+    completionNotifiedRef.current = true;
+    onComplete?.();
+  }, [onComplete, phase]);
 
   function chooseAnswer(choice) {
     if (phase !== "playing" || !round) return;
