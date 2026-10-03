@@ -10,8 +10,7 @@
     "remotion:studio": "remotion studio remotion/index.jsx",
     "remotion:render": "remotion render remotion/index.jsx FiveBarChart remotion/out/five-bar-chart.mp4",
     "remotion:still": "remotion still remotion/index.jsx FiveBarChart remotion/out/five-bar-chart.png --frame=90",
-    "test": "node --test src/games/multiplicationZombie/multiplicationFacts.test.js src/games/multiplicationZombie/zombieDefenseFacts.test.js",
-    "test:firebase": "node --test test/multiplicationProgress.emulator.test.js"
+    "test": "node --test src/games/multiplicationZombie/multiplicationFacts.test.js src/games/multiplicationZombie/zombieDefenseFacts.test.js"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",

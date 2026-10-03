@@ -16,12 +16,12 @@ export default function StudentClassEntry() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    const token = new URLSearchParams(window.location.search).get("qr");
-    if (!token) return;
+    const codeFromQr = new URLSearchParams(window.location.search).get("qr");
+    if (!codeFromQr) return;
     let cancelled = false;
     setBusy(true);
     (async () => {
-      const result = await loginStudentWithQrToken(token);
+      const result = await loginStudentWithQrToken(codeFromQr);
       if (cancelled) return;
       setBusy(false);
       if (!result.ok) {
@@ -64,7 +64,7 @@ export default function StudentClassEntry() {
       <section className="profile-content">
         <div className="portal-intro">
           <h1>{busy && new URLSearchParams(window.location.search).has("qr") ? "Membuka permainan..." : "Kod murid anda"}</h1>
-          <p>{busy && new URLSearchParams(window.location.search).has("qr") ? "QR disahkan. Sila tunggu sebentar." : "Masukkan kod murid yang diberi oleh cikgu untuk log masuk."}</p>
+          <p>{busy && new URLSearchParams(window.location.search).has("qr") ? "Kod login dibaca. Sila tunggu sebentar." : "Masukkan kod murid yang diberi oleh cikgu untuk log masuk."}</p>
         </div>
 
         <form className="profile-form" onSubmit={submit}>

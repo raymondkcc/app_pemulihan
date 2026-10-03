@@ -19,10 +19,8 @@ import {
   updateDoc,
   where
 } from "firebase/firestore";
-import { getFunctions, httpsCallable } from "firebase/functions";
 import { CLASS_CODE_ALPHABET, CLASS_CODE_DIGITS, FREE_STUDENT_LIMIT, GUEST_DEMO_PATHS } from "../data/kembara.js";
-import { auth, db, firebaseApp, secondaryAuth } from "./firebase.js";
-import { establishStudentPracticeSession } from "../games/multiplicationZombie/multiplicationPersistence.js";
+import { auth, db, secondaryAuth } from "./firebase.js";
 
 const SESSION_KEY = "kembara-pintar-session-v1";
 
@@ -210,20 +208,6 @@ function authMessage(error) {
   return error?.message || "Tidak berjaya. Cuba lagi.";
 }
 
-function callableErrorMessage(error) {
-  const code = String(error?.code || "").replace(/^functions\//, "");
-  const message = String(error?.message || "").trim();
-  if (code === "not-found") return "Fungsi Firebase belum tersedia. Deploy Firebase Functions dahulu.";
-  if (code === "unauthenticated") return "Sesi log masuk tamat. Log masuk semula dan cuba lagi.";
-  if (code === "permission-denied") return "Akses ditolak. Pastikan akaun aktif dan mempunyai kebenaran.";
-  if (code === "deadline-exceeded") return "Permintaan mengambil masa terlalu lama. Muat semula senarai sebelum mencuba lagi.";
-  if (code === "unavailable" || code === "network-request-failed") return "Tidak dapat menghubungi Firebase. Semak sambungan internet.";
-  if (code === "internal" || !message || /^(internal|unknown)(\s+\[\d+\])?$/i.test(message)) {
-    return "Firebase Functions gagal memproses permintaan. Semak log Functions untuk butiran.";
-  }
-  return message;
-}
-
 function notifyAuthWaiters() {
   const waiters = authWaiters.splice(0);
   waiters.forEach((resolve) => resolve(currentUser));
@@ -232,13 +216,6 @@ function notifyAuthWaiters() {
 export function startKembaraAuth() {
   if (authStarted || typeof window === "undefined") return;
   authStarted = true;
-  const restoredSession = readSession();
-  if (restoredSession.studentId && !restoredSession.guest && restoredSession.student?.studentCode) {
-    void establishStudentPracticeSession({
-      studentId: restoredSession.studentId,
-      studentCode: String(restoredSession.student.studentCode).trim().toUpperCase()
-    }).catch(() => {});
-  }
   onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     if (!user) {
@@ -330,10 +307,6 @@ export async function logoutAdult() {
 export function logoutStudent() {
   const session = readSession();
   writeSession({ ...session, studentId: null, guest: false, demoComplete: false, student: null });
-  // The practice token lives in the secondary Firebase app. Clear it when a
-  // learner changes profile so a later session cannot reuse another learner's
-  // scoped credentials.
-  void signOut(secondaryAuth).catch(() => {});
 }
 
 export function clearClassSession() {
@@ -606,30 +579,42 @@ export async function setAdultActive(adultId, active) {
   });
 }
 
-async function callAccountFunction(name, data, timeout = 10000) {
-  try {
-    const callable = httpsCallable(getFunctions(firebaseApp), name, { timeout });
-    const response = await callable(data);
-    return { ok: true, data: response.data || {} };
-  } catch (error) {
-    return { ok: false, error: callableErrorMessage(error) };
-  }
-}
-
 export async function updateAdultAccount(adultId, { name, email, password, role, active, studentLimit }) {
   const actor = getActiveAdult();
   if (!actor || actor.role !== "admin") return { ok: false, error: "Hanya admin boleh ubah akaun." };
-  const result = await callAccountFunction("updateAdultAccount", {
-    adultId,
-    name: String(name || "").trim(),
-    email: String(email || "").trim().toLowerCase(),
-    password: String(password || ""),
-    role: role === "parent" ? "parent" : role === "admin" ? "admin" : "teacher",
-    active: Boolean(active),
-    studentLimit: Number(studentLimit) || FREE_STUDENT_LIMIT
-  });
-  if (!result.ok) return result;
-  const updated = adultFromDoc(adultId, result.data.adult || {});
+  const existing = cachedStore.adults.find((adult) => adult.id === adultId);
+  if (!existing) return { ok: false, error: "Akaun tidak jumpa." };
+  const nextName = String(name || "").trim().slice(0, 40);
+  const nextEmail = String(email || "").trim().toLowerCase();
+  const nextRole = role === "parent" ? "parent" : role === "admin" ? "admin" : "teacher";
+  const nextActive = Boolean(active);
+  const nextLimit = Math.max(1, Number(studentLimit) || FREE_STUDENT_LIMIT);
+  if (!nextName || !nextEmail || !nextEmail.includes("@")) {
+    return { ok: false, error: "Nama dan e-mel diperlukan." };
+  }
+  if (nextEmail !== existing.email) {
+    return { ok: false, error: "E-mel log masuk tidak boleh ditukar dari panel ini. Kekalkan e-mel asal." };
+  }
+  if (password) {
+    return { ok: false, error: "Kata laluan perlu ditukar dalam Firebase Authentication." };
+  }
+  if (actor.id === adultId && (!nextActive || nextRole !== "admin")) {
+    return { ok: false, error: "Admin semasa mesti kekal aktif sebagai admin." };
+  }
+  const patch = {
+    name: nextName,
+    role: nextRole,
+    active: nextActive,
+    studentLimit: nextLimit,
+    plan: nextLimit > FREE_STUDENT_LIMIT ? "plus" : "free",
+    updatedAt: nowIso()
+  };
+  try {
+    await updateDoc(doc(db, "adults", adultId), patch);
+  } catch (error) {
+    return { ok: false, error: authMessage(error) };
+  }
+  const updated = adultFromDoc(adultId, { ...existing, ...patch });
   cachedStore = {
     ...cachedStore,
     adults: cachedStore.adults.map((adult) => adult.id === adultId ? updated : adult)
@@ -641,17 +626,17 @@ export async function updateAdultAccount(adultId, { name, email, password, role,
 
 export async function deleteAdultAccount(adultId) {
   const actor = getActiveAdult();
-  if (!actor || actor.role !== "admin") return { ok: false, error: "Hanya admin boleh padam akaun." };
-  if (actor.id === adultId) return { ok: false, error: "Admin yang sedang digunakan tidak boleh dipadam." };
-  const result = await callAccountFunction("deleteAdultAccount", { adultId }, 120000);
-  if (!result.ok) return result;
-  cachedStore = {
-    ...cachedStore,
-    adults: cachedStore.adults.filter((adult) => adult.id !== adultId),
-    classes: cachedStore.classes.filter((item) => item.ownerId !== adultId),
-    students: cachedStore.students.filter((student) => student.ownerId !== adultId)
-  };
-  return { ok: true };
+  if (!actor || actor.role !== "admin") return { ok: false, error: "Hanya admin boleh nyahaktifkan akaun." };
+  if (actor.id === adultId) return { ok: false, error: "Admin semasa tidak boleh dinyahaktifkan." };
+  const adult = cachedStore.adults.find((item) => item.id === adultId);
+  if (!adult) return { ok: false, error: "Akaun tidak jumpa." };
+  return updateAdultAccount(adultId, {
+    name: adult.name,
+    email: adult.email,
+    role: adult.role,
+    active: false,
+    studentLimit: adult.studentLimit
+  });
 }
 
 export async function makeAdmin(adultId) {
@@ -797,13 +782,12 @@ export async function createStudentQrCode(studentId) {
   if (!adult || !student || (adult.role !== "admin" && student.ownerId !== adult.id)) {
     return { ok: false, error: "Anda tidak boleh jana QR murid ini." };
   }
-  const result = await callAccountFunction("createStudentQrCode", { studentId }, 60000);
-  if (!result.ok) return result;
+  const token = String(student.studentCode || student.kadCode || "").trim().toUpperCase();
+  if (!token) return { ok: false, error: "Kod login murid tidak tersedia." };
   return {
     ok: true,
-    token: result.data.token,
-    expiresAt: result.data.expiresAt,
-    student: studentFromDoc(student.id, result.data.student || student)
+    token,
+    student
   };
 }
 
@@ -888,7 +872,6 @@ export async function loginStudentWithPictures(studentId, pictureIds) {
     students: cachedStore.students.map((item) => item.id === studentId ? unlocked : item)
   };
   writeSession({ ...readSession(), studentId, guest: false, demoComplete: false, student: unlocked });
-  await establishStudentPracticeSession({ studentId, pictureIds }).catch(() => {});
   return { ok: true, student: unlocked };
 }
 
@@ -901,29 +884,13 @@ export async function loginStudentWithCode(studentCode) {
     students: [...cachedStore.students.filter((item) => item.id !== student.id), student]
   };
   writeSession({ ...readSession(), studentId: student.id, guest: false, classCode: null, student });
-  await establishStudentPracticeSession({ studentId: student.id, studentCode: String(student.studentCode || student.kadCode || studentCode || "").trim().toUpperCase() }).catch(() => {});
   return { ok: true, student };
 }
 
 export async function loginStudentWithQrToken(token) {
   const value = String(token || "").trim();
   if (!value) return { ok: false, error: "Kod QR tidak sah." };
-  const result = await callAccountFunction("loginStudentWithQr", { token: value });
-  if (!result.ok) return { ok: false, error: "Kod QR tidak sah atau telah tamat." };
-  const data = result.data || {};
-  const student = studentFromDoc(data.studentId, data.student || {});
-  if (!student.id || student.archived) return { ok: false, error: "Murid tidak jumpa." };
-  if (student.locked) return { ok: false, error: "locked" };
-  cachedStore = {
-    ...cachedStore,
-    students: [...cachedStore.students.filter((item) => item.id !== student.id), student]
-  };
-  writeSession({ ...readSession(), studentId: student.id, guest: false, classCode: null, student });
-  await establishStudentPracticeSession({
-    studentId: student.id,
-    studentCode: String(student.studentCode || student.kadCode || "").trim().toUpperCase()
-  }).catch(() => {});
-  return { ok: true, student };
+  return loginStudentWithCode(value);
 }
 
 export function continueAsGuest() {

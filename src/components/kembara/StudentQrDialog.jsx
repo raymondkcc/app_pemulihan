@@ -3,14 +3,8 @@ import { Check, Download, LoaderCircle, Printer, QrCode, ShieldCheck, X } from "
 import QRCode from "qrcode";
 import { createStudentQrCode } from "../../utils/kembaraStore.js";
 
-function formatExpiry(value) {
-  if (!value) return "";
-  return new Intl.DateTimeFormat("ms-MY", { dateStyle: "medium" }).format(new Date(value));
-}
-
 export default function StudentQrDialog({ student, onClose }) {
   const [image, setImage] = useState("");
-  const [expiresAt, setExpiresAt] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -26,7 +20,7 @@ export default function StudentQrDialog({ student, onClose }) {
           return;
         }
         if (!result.token) {
-          setError("Firebase Functions tidak memulangkan token QR. Deploy semula Functions dan cuba lagi.");
+          setError("Kod login murid tidak tersedia. Jana semula profil murid.");
           return;
         }
         const url = `${window.location.origin}/murid?qr=${encodeURIComponent(result.token)}`;
@@ -38,7 +32,6 @@ export default function StudentQrDialog({ student, onClose }) {
         });
         if (cancelled) return;
         setImage(dataUrl);
-        setExpiresAt(result.expiresAt);
       } catch (error) {
         if (cancelled) return;
         console.error("Student QR generation failed", error);
@@ -99,10 +92,10 @@ export default function StudentQrDialog({ student, onClose }) {
     <div className="student-qr-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <section className="student-qr-dialog" role="dialog" aria-modal="true" aria-labelledby="student-qr-title">
         <div className="student-qr-heading">
-          <div><span className="section-kicker"><ShieldCheck size={14} /> {image ? "QR disahkan" : error ? "QR tidak tersedia" : "Menjana QR selamat"}</span><h2 id="student-qr-title">Kad masuk murid</h2></div>
+          <div><span className="section-kicker"><ShieldCheck size={14} /> {image ? "QR kod login" : error ? "QR tidak tersedia" : "Menjana QR kod"}</span><h2 id="student-qr-title">Kad masuk murid</h2></div>
           <button className="icon-button" type="button" onClick={onClose} aria-label="Tutup"><X size={19} /></button>
         </div>
-        {busy && <div className="student-qr-loading"><LoaderCircle className="spin" size={28} /><span>Menjana QR selamat...</span></div>}
+        {busy && <div className="student-qr-loading"><LoaderCircle className="spin" size={28} /><span>Menjana QR kod...</span></div>}
         {error && <p className="form-error" role="alert">{error}</p>}
         {image && <>
           <div className="student-qr-print-card">
@@ -110,7 +103,7 @@ export default function StudentQrDialog({ student, onClose }) {
             <div className="student-qr-label"><span>Nama murid / Student name</span><strong>{student.nickname}</strong></div>
             <div className="student-qr-label"><span>Kod login sebenar / Actual login code</span><strong>{student.studentCode || "-"}</strong></div>
           </div>
-          <p className="student-qr-meta">Kod ini aktif hingga {formatExpiry(expiresAt)}. Jana semula untuk membatalkan QR yang lama.</p>
+          <p className="student-qr-meta">QR ini membuka log masuk menggunakan kod murid yang tertera. Sesiapa yang mempunyai kad ini boleh menggunakannya.</p>
           <div className="student-qr-actions">
             <button className="student-qr-action" type="button" onClick={download}><Download size={16} /> Muat turun</button>
             <button className="student-qr-action" type="button" onClick={() => window.print()}><Printer size={16} /> Cetak</button>

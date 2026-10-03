@@ -199,7 +199,7 @@ function SetupPanel({ mode, engine, selectedNumbers, difficulty, questionCount, 
   );
 }
 
-function GameSummary({ mode, operationInfo, summary, weakFacts, saveState, onReplay, onBack, onRetrySave }) {
+function GameSummary({ mode, operationInfo, summary, weakFacts, saveState, onReplay, onBack }) {
   const accuracy = summary.answered ? Math.round((summary.correct / summary.answered) * 100) : 0;
   return (
     <main className="mz-page mz-summary-page">
@@ -220,7 +220,6 @@ function GameSummary({ mode, operationInfo, summary, weakFacts, saveState, onRep
         </div>
         <p className={`mz-save-status ${saveState.kind}`} role="status">{saveState.text}</p>
         <div className="mz-summary-actions">
-          {saveState.kind === "offline" && onRetrySave && <button className="mz-secondary-button" type="button" onClick={onRetrySave}><RotateCcw size={18} /> Cuba simpan semula</button>}
           <button className="mz-start-button" type="button" onClick={onReplay}><RotateCcw size={20} /> Main lagi</button>
           <button className="mz-secondary-button" type="button" onClick={onBack}><ArrowLeft size={18} /> Kembali</button>
         </div>
@@ -251,7 +250,6 @@ export default function MultiplicationZombieGame({ initialMode = "student", init
   const [lastAction, setLastAction] = useState(null);
   const [error, setError] = useState("");
   const [saveState, setSaveState] = useState({ kind: "pending", text: "" });
-  const [pendingSave, setPendingSave] = useState(null);
   const [summary, setSummary] = useState(null);
   const [progress, setProgress] = useState(() => operation === "darab"
     ? loadMultiplicationProgress(student)
@@ -267,7 +265,6 @@ export default function MultiplicationZombieGame({ initialMode = "student", init
   const actionIdRef = useRef(0);
   const toneAudioRef = useRef(null);
   const bgmRef = useRef(null);
-  const saveSessionIdRef = useRef(null);
   const studentId = student?.id || null;
 
   phaseRef.current = phase;
@@ -389,7 +386,6 @@ export default function MultiplicationZombieGame({ initialMode = "student", init
       if (mode === "student" && operation === "darab" && reason === "complete") onComplete?.();
     };
     if (!studentId) {
-      setPendingSave(null);
       setSaveState({ kind: "local", text: "Sesi ini sudah selesai. / Session complete." });
       notifyMissionComplete();
       return;
@@ -402,39 +398,21 @@ export default function MultiplicationZombieGame({ initialMode = "student", init
       outcomes: session.outcomes,
       summary: sessionSummary
     };
-    saveSessionIdRef.current = sessionSummary.sessionId;
-    setPendingSave(savePayload);
     if (operation !== "darab") {
       saveZombieDefenseSession({ engine, studentId, operation, progress: finalProgress, outcomes: session.outcomes, summary: sessionSummary });
-      setPendingSave(null);
       setSaveState({ kind: "local", text: "Analisis disimpan pada peranti ini. / Analysis saved on this device." });
       notifyMissionComplete();
       return;
     }
-    setSaveState({ kind: "saving", text: "Menyimpan analisis fakta... / Saving fact analysis..." });
+    setSaveState({ kind: "saving", text: "Menyimpan analisis fakta pada peranti... / Saving fact analysis on this device..." });
     const result = await persistMultiplicationSession(savePayload);
-    if (saveSessionIdRef.current !== sessionSummary.sessionId) return;
-    if (result.ok && !result.localOnly) {
-      setPendingSave(null);
-      setSaveState({ kind: "saved", text: "Analisis disimpan untuk latihan seterusnya. / Analysis saved." });
+    if (!result.ok) {
+      setSaveState({ kind: "offline", text: "Tidak dapat menyimpan pada peranti ini. / Could not save on this device." });
     } else {
-      setSaveState({ kind: "offline", text: "Disimpan pada peranti ini. / Saved on this device for now." });
+      setSaveState({ kind: "saved", text: "Analisis disimpan pada peranti ini. / Analysis saved on this device." });
     }
     notifyMissionComplete();
   }, [difficulty, engine, mode, onComplete, operation, questionCount, soundOn, studentId]);
-
-  const retrySave = useCallback(async () => {
-    if (!pendingSave) return;
-    if (operation !== "darab") return;
-    setSaveState({ kind: "saving", text: "Cuba menyimpan semula... / Retrying save..." });
-    const result = await persistMultiplicationSession(pendingSave);
-    if (result.ok && !result.localOnly) {
-      setPendingSave(null);
-      setSaveState({ kind: "saved", text: "Analisis disimpan untuk latihan seterusnya. / Analysis saved." });
-    } else {
-      setSaveState({ kind: "offline", text: "Masih disimpan pada peranti ini. / Still saved on this device." });
-    }
-  }, [operation, pendingSave]);
 
   const startSession = useCallback(() => {
     if (mode === "student" && !progressReady) return;
@@ -465,8 +443,6 @@ export default function MultiplicationZombieGame({ initialMode = "student", init
     setWrong(0);
     setLastAction(null);
     setSummary(null);
-    saveSessionIdRef.current = null;
-    setPendingSave(null);
     setSaveState({ kind: "pending", text: "" });
     setError("");
     setPhase("playing");
@@ -578,7 +554,7 @@ export default function MultiplicationZombieGame({ initialMode = "student", init
   }
 
   if (phase === "summary" && summary) {
-    return <GameSummary mode={mode} operationInfo={operationInfo} summary={summary} weakFacts={weakFacts} saveState={saveState} onReplay={startSession} onBack={() => setPhase("setup")} onRetrySave={mode === "student" && operation === "darab" ? retrySave : null} />;
+    return <GameSummary mode={mode} operationInfo={operationInfo} summary={summary} weakFacts={weakFacts} saveState={saveState} onReplay={startSession} onBack={() => setPhase("setup")} />;
   }
 
   return (
