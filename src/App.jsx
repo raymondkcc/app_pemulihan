@@ -22,7 +22,9 @@ import LoadingScreen from "./components/kembara/LoadingScreen.jsx";
 import { isInteractiveTarget, playInterfaceClick } from "./utils/interfaceAudio.js";
 import { getActiveAdult, getActiveStudent, isGuestPathAllowed, startKembaraAuth, whenAuthReady } from "./utils/kembaraStore.js";
 import { getMissionById, getMissionsForTrack } from "./data/missions.js";
+import { MAP_THEMES } from "./data/mapThemes.js";
 import { completeMission, getMissionProgress, isMissionUnlocked } from "./utils/missionProgress.js";
+import { discoverCollectible } from "./utils/collectibleProgress.js";
 import "./styles.css";
 
 function useInterfaceClickSound() {
@@ -70,6 +72,8 @@ function missionAccess(student, missionId) {
     mission,
     onComplete: () => {
       completeMission(student.id, missionId);
+      const theme = MAP_THEMES[Math.min(MAP_THEMES.length - 1, Math.max(0, missionIndex))];
+      discoverCollectible(student.id, theme.id);
       window.location.href = "/murid/ruang";
     }
   };

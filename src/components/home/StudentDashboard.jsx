@@ -1,13 +1,28 @@
-import { LogOut, UserRound } from "lucide-react";
+import { Check, Gift, LogOut, Sparkles, UserRound, X } from "lucide-react";
 import { AVATARS } from "../../data/appAssets.js";
+import { getMapTheme } from "../../data/mapThemes.js";
+import { clearPendingCollectible, readPendingCollectible } from "../../utils/collectibleProgress.js";
 import { getActiveStudent, logoutStudent } from "../../utils/kembaraStore.js";
 import AdventureLogo from "./AdventureLogo.jsx";
+import CollectibleSprite from "./CollectibleSprite.jsx";
 import MissionMap from "./MissionMap.jsx";
+import { useEffect, useState } from "react";
 
 export default function StudentDashboard() {
   const profile = getActiveStudent();
+  const [discovery, setDiscovery] = useState(null);
+
+  useEffect(() => {
+    if (profile?.id) setDiscovery(readPendingCollectible(profile.id));
+  }, [profile?.id]);
+
   if (!profile) { window.location.replace("/murid"); return null; }
   const avatar = AVATARS.find((item) => item.id === profile.avatarId) || AVATARS[0];
+
+  function closeDiscovery() {
+    clearPendingCollectible(profile.id);
+    setDiscovery(null);
+  }
 
   return (
     <main className="dashboard-page">
@@ -29,6 +44,20 @@ export default function StudentDashboard() {
         {profile.isGuest && <p className="guest-banner">Demo tahap 1 sahaja. Simpan kembara dengan akaun percuma.</p>}
         <MissionMap student={profile} />
       </section>
+      {discovery && (
+        <div className="collectible-discovery" role="dialog" aria-modal="true" aria-labelledby="collectible-discovery-title">
+          <section className="collectible-discovery-card">
+            <button className="collectible-discovery-close" type="button" onClick={closeDiscovery} aria-label="Tutup"><X size={19} /></button>
+            <span className="collectible-discovery-sparkles" aria-hidden="true"><Sparkles size={17} /><Sparkles size={12} /><Sparkles size={14} /></span>
+            <CollectibleSprite item={discovery.item} size="discovery" className="collectible-discovery-mark" />
+            <span className="section-kicker"><Gift size={15} /> Jumpaan baharu</span>
+            <h2 id="collectible-discovery-title">Hebat, {profile.nickname || "kembara"}!</h2>
+            <p>Awak menjumpai <strong>{discovery.item.name}</strong> di {getMapTheme(discovery.mapId).title}.</p>
+            <span className="collectible-discovery-count"><Check size={14} /> {discovery.foundCount} daripada {discovery.total} koleksi ditemui</span>
+            <button className="collectible-discovery-action" type="button" onClick={closeDiscovery}>Simpan dalam koleksi</button>
+          </section>
+        </div>
+      )}
     </main>
   );
 }
