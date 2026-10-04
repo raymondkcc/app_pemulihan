@@ -120,7 +120,10 @@ function AdminHome({ adult }) {
   const [qrStudent, setQrStudent] = useState(null);
   const [deletingAdultId, setDeletingAdultId] = useState("");
   const [accountFeedback, setAccountFeedback] = useState(null);
+  const [showArchivedAccounts, setShowArchivedAccounts] = useState(false);
   const adults = useMemo(() => store.adults, [store]);
+  const activeAdults = useMemo(() => adults.filter((item) => item.active), [adults]);
+  const archivedAdults = useMemo(() => adults.filter((item) => !item.active), [adults]);
   const students = useMemo(() => store.students.filter((student) => !student.archived), [store]);
 
   async function load() {
@@ -259,7 +262,7 @@ function AdminHome({ adult }) {
           </div>
           {accountFeedback && <p className={accountFeedback.error ? "form-error" : "form-notice"} role={accountFeedback.error ? "alert" : "status"}>{accountFeedback.message}</p>}
           <div className="admin-adult-list">
-            {adults.map((item) => {
+            {activeAdults.map((item) => {
               const seats = listStudentsForAdult(item.id).length;
               const classRecord = store.classes.find((entry) => entry.ownerId === item.id);
               return (
@@ -274,7 +277,7 @@ function AdminHome({ adult }) {
                     <button type="button" onClick={() => changeLimit(item.id, 80)}>Had 80</button>
                     {item.role !== "admin" && <button type="button" onClick={() => promote(item.id)}>Jadikan admin</button>}
                     <button type="button" onClick={() => setEditing(item)}><Pencil size={13} /> Edit</button>
-                    <button type="button" onClick={() => toggleActive(item)}>{item.active ? "Tutup" : "Buka"}</button>
+                    <button type="button" onClick={() => toggleActive(item)}>Tutup</button>
                     {item.id !== adult.id && <button type="button" className="danger-button" onClick={() => removeAccount(item)} disabled={Boolean(deletingAdultId) || !item.active}>
                       {deletingAdultId === item.id ? "Menyimpan..." : <><Archive size={13} /> Nyahaktifkan</>}
                     </button>}
@@ -283,6 +286,41 @@ function AdminHome({ adult }) {
               );
             })}
           </div>
+          {archivedAdults.length > 0 && (
+            <div className="admin-account-archive">
+              <button
+                className="archive-toggle"
+                type="button"
+                aria-expanded={showArchivedAccounts}
+                onClick={() => setShowArchivedAccounts((visible) => !visible)}
+              >
+                <Archive size={16} />
+                <span>Akaun diarkibkan ({archivedAdults.length})</span>
+                <span aria-hidden="true">{showArchivedAccounts ? "−" : "+"}</span>
+              </button>
+              {showArchivedAccounts && (
+                <div className="admin-adult-list admin-archived-list">
+                  {archivedAdults.map((item) => {
+                    const seats = listStudentsForAdult(item.id).length;
+                    const classRecord = store.classes.find((entry) => entry.ownerId === item.id);
+                    return (
+                      <article className="admin-adult-row is-disabled" key={item.id}>
+                        <div>
+                          <strong>{item.name}</strong>
+                          <span>{item.email} · {item.role} · Akaun ditutup</span>
+                          <small>Kod {classRecord?.code || "-"} · Murid {seats}/{item.studentLimit || FREE_STUDENT_LIMIT}</small>
+                        </div>
+                        <div className="admin-adult-actions">
+                          <button type="button" onClick={() => setEditing(item)}><Pencil size={13} /> Edit</button>
+                          <button type="button" onClick={() => toggleActive(item)}>Buka semula</button>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </section>
         <section className="admin-panel-card">
           <div className="section-heading-row">

@@ -5048,6 +5048,10 @@ body:has(.role-chooser-page) {
 .admin-adult-row span, .admin-adult-row small { display: block; color: #64727b; font-size: .72rem; font-weight: 700; }
 .admin-adult-row.is-disabled { opacity: .55; }
 .admin-adult-actions { display: flex; flex-wrap: wrap; gap: .35rem; align-content: start; }
+.admin-account-archive { margin-top: 1rem; border-top: 1px solid #dce4de; padding-top: .75rem; }
+.archive-toggle { display: inline-flex; align-items: center; gap: .45rem; border: 0; padding: .35rem 0; color: #64727b; background: transparent; font-size: .75rem; font-weight: 900; cursor: pointer; }
+.archive-toggle span:last-child { min-width: 1rem; color: #19384a; font-size: 1rem; text-align: center; }
+.admin-archived-list { margin-top: .65rem; }
 .admin-student-list { display: grid; gap: .55rem; margin-top: 1rem; }
 .admin-student-row { display: flex; align-items: center; justify-content: space-between; gap: .8rem; border: 1px solid #dce4de; border-radius: 8px; padding: .7rem .8rem; background: #fffaf0; }
 .admin-student-row strong, .admin-student-row span { display: block; }
