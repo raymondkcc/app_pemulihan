@@ -15,6 +15,12 @@ import { HURUF } from "../../data/bm.js";
 
 const SOUND_ROUNDS = HURUF.length;
 const PAIR_ROUNDS = 3;
+const PAIR_AUDIO = {
+  lobby: "/audio/huruf/lobby-bgm.mp3",
+  pop: "/audio/huruf/pop.mp3",
+  mistake: "/audio/huruf/mistake.mp3",
+  yay: "/audio/huruf/yay.mp3"
+};
 
 const ANIMAL_PAIRS = [
   { id: "bear", mother: "Ibu beruang", cub: "Anak beruang", motherImage: "/images/huruf/animals/bear-mother.png", cubImage: "/images/huruf/animals/bear-cub.png", letter: "B", prompt: "B untuk beruang" },
@@ -41,6 +47,12 @@ function playLetterAudio(letter, audioRef) {
   audioRef.current = { source, audio };
   audio.pause();
   audio.currentTime = 0;
+  audio.play().catch(() => {});
+}
+
+function playPairEffect(source) {
+  const audio = new window.Audio(source);
+  audio.volume = 0.85;
   audio.play().catch(() => {});
 }
 
@@ -155,6 +167,7 @@ function makePairChoices(target) {
 
 function PairingGame({ onComplete }) {
   const timerRef = useRef(null);
+  const lobbyBgmRef = useRef(null);
   const [status, setStatus] = useState("ready");
   const [round, setRound] = useState(0);
   const [score, setScore] = useState(0);
@@ -166,6 +179,29 @@ function PairingGame({ onComplete }) {
   const choices = useMemo(() => (status === "answering" ? makePairChoices(target) : []), [status, round, target]);
 
   useEffect(() => () => window.clearTimeout(timerRef.current), []);
+
+  useEffect(() => {
+    if (status !== "ready") {
+      if (lobbyBgmRef.current) {
+        lobbyBgmRef.current.pause();
+        lobbyBgmRef.current.currentTime = 0;
+        lobbyBgmRef.current = null;
+      }
+      return undefined;
+    }
+
+    const audio = new window.Audio(PAIR_AUDIO.lobby);
+    audio.loop = true;
+    audio.volume = 0.16;
+    lobbyBgmRef.current = audio;
+    audio.play().catch(() => {});
+
+    return () => {
+      audio.pause();
+      audio.currentTime = 0;
+      if (lobbyBgmRef.current === audio) lobbyBgmRef.current = null;
+    };
+  }, [status]);
 
   function startGame() {
     const nextPairs = shuffle(ANIMAL_PAIRS).slice(0, PAIR_ROUNDS);
@@ -180,12 +216,15 @@ function PairingGame({ onComplete }) {
   function deliver(letter) {
     if (status !== "answering" || feedback?.type === "correct") return;
     setSelectedLetter(letter);
+    playPairEffect(PAIR_AUDIO.pop);
     if (letter !== pair.letter) {
+      playPairEffect(PAIR_AUDIO.mistake);
       setFeedback({ type: "wrong", text: "Belum tepat. Pilih huruf kecil yang sepadan." });
       return;
     }
     const nextScore = score + 1;
     setScore(nextScore);
+    playPairEffect(PAIR_AUDIO.yay);
     setFeedback({ type: "correct", text: `Betul! Beri ${letter.toLowerCase()} kepada anak ${pair.cub}.` });
     if (round === PAIR_ROUNDS - 1) {
       setStatus("complete");
