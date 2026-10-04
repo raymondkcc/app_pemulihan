@@ -613,6 +613,86 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .home-notice { position: fixed; z-index: 10; right: 1rem; bottom: 1rem; left: 1rem; display: flex; width: fit-content; max-width: min(560px, calc(100% - 2rem)); align-items: center; gap: .55rem; margin: auto; border: 2px solid var(--home-ink); border-radius: 8px; padding: .75rem 1rem; color: white; background: var(--home-ink); box-shadow: 5px 5px 0 rgba(25,56,74,.2); font-size: .78rem; font-weight: 800; animation: notice-in .25s ease both; }
 .home-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0 0 1.2rem; color: var(--home-muted); font-size: .7rem; font-weight: 900; }
 
+/* Huruf games */
+.huruf-games { margin-top: 3.5rem; padding-top: 1.2rem; border-top: 2px solid var(--home-line); }
+.huruf-games-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.huruf-games-heading h2 { margin: .35rem 0 0; color: var(--home-ink); font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 2.25rem; font-weight: 800; line-height: .95; }
+.huruf-games-heading p { margin: .45rem 0 0; color: var(--home-muted); font-size: .88rem; font-weight: 700; }
+.huruf-games-back { flex: none; }
+.huruf-game-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; margin-top: 1.2rem; }
+.huruf-game-tabs button { display: flex; min-height: 68px; align-items: center; gap: .65rem; border: 2px solid var(--home-ink); border-radius: 8px; padding: .7rem .85rem; color: var(--home-ink); background: rgba(255,255,255,.7); text-align: left; box-shadow: 3px 4px 0 rgba(25,56,74,.08); transition: transform .16s ease, background .16s ease, box-shadow .16s ease; }
+.huruf-game-tabs button:first-child { background: #dff5ef; }
+.huruf-game-tabs button:last-child { background: #fff0b1; }
+.huruf-game-tabs button.is-selected { box-shadow: 5px 6px 0 rgba(25,56,74,.13); transform: translateY(-2px); }
+.huruf-game-tabs button svg { flex: none; color: var(--home-coral-dark); }
+.huruf-game-tabs button span { display: flex; min-width: 0; flex-direction: column; gap: .15rem; }
+.huruf-game-tabs strong { font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.12rem; line-height: 1; }
+.huruf-game-tabs small { color: var(--home-muted); font-size: .7rem; font-weight: 800; }
+.huruf-game-board { min-height: 440px; margin-top: .8rem; overflow: hidden; border: 2px solid var(--home-ink); border-radius: 10px; background: #f8fbf6; box-shadow: 6px 7px 0 rgba(25,56,74,.1); }
+.huruf-game-intro, .huruf-game-result { display: flex; min-height: 440px; align-items: center; flex-direction: column; justify-content: center; padding: 2rem; color: var(--home-ink); text-align: center; }
+.huruf-game-intro-icon, .huruf-game-result-icon { display: grid; width: 58px; height: 58px; place-items: center; border: 2px solid var(--home-ink); border-radius: 50%; color: var(--home-coral-dark); background: var(--home-lemon); box-shadow: 4px 4px 0 rgba(25,56,74,.1); }
+.huruf-game-intro .section-kicker, .huruf-game-result .section-kicker { margin-top: 1rem; }
+.huruf-game-intro h3, .huruf-game-result h3 { margin: .35rem 0 0; font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 2rem; line-height: 1; }
+.huruf-game-intro p, .huruf-game-result p { max-width: 40ch; margin: .55rem 0 1.1rem; color: var(--home-muted); font-size: .84rem; font-weight: 700; line-height: 1.45; }
+.huruf-game-result p strong { color: var(--home-coral-dark); font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.45rem; }
+.huruf-sound-stage, .huruf-pair-stage { min-height: 440px; padding: 1.1rem 1.2rem 1rem; background: linear-gradient(135deg, #f8fbf6 0%, #e7f6ef 100%); }
+.huruf-game-score { display: flex; align-items: center; justify-content: space-between; gap: 1rem; color: var(--home-muted); font-size: .72rem; font-weight: 900; }
+.huruf-game-score strong { color: var(--home-ink); font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.15rem; }
+.huruf-sound-prompt { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .7rem; width: min(100%, 520px); margin: 2.2rem auto 1.45rem; }
+.huruf-sound-wave { display: grid; width: 58px; height: 58px; place-items: center; border: 2px solid var(--home-ink); border-radius: 50%; color: white; background: var(--home-coral); box-shadow: 4px 4px 0 rgba(25,56,74,.1); }
+.huruf-sound-prompt div { display: flex; flex-direction: column; gap: .15rem; }
+.huruf-sound-prompt strong { font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.45rem; line-height: 1; }
+.huruf-sound-prompt div span { color: var(--home-muted); font-size: .72rem; font-weight: 800; }
+.icon-game-button { display: grid; width: 43px; height: 43px; place-items: center; border: 2px solid var(--home-ink); border-radius: 7px; color: var(--home-ink); background: var(--home-lemon); transition: transform .15s ease, background .15s ease; }
+.icon-game-button:hover { transform: translateY(-2px); background: white; }
+.huruf-alphabet-row { display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: .42rem; width: min(100%, 760px); margin: 0 auto; }
+.huruf-alphabet-choice { display: grid; min-height: 45px; place-items: center; border: 2px solid var(--home-ink); border-radius: 6px; color: var(--home-ink); background: white; font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.15rem; font-weight: 800; transition: transform .14s ease, background .14s ease, box-shadow .14s ease; }
+.huruf-alphabet-choice:hover { z-index: 1; background: var(--home-lemon); box-shadow: 3px 4px 0 rgba(25,56,74,.12); transform: translateY(-3px) rotate(-2deg); }
+.huruf-alphabet-choice.is-correct { border-color: var(--home-mint-dark); background: var(--home-mint); }
+.huruf-game-feedback { display: flex; min-height: 35px; align-items: center; justify-content: center; gap: .35rem; margin: 1.2rem 0 0; color: var(--home-blue-dark); font-size: .78rem; font-weight: 900; text-align: center; }
+.huruf-game-feedback.correct { color: var(--home-mint-dark); }
+.huruf-game-feedback.wrong { color: var(--home-coral-dark); }
+.huruf-pair-scene { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: .8rem; width: min(100%, 680px); margin: 1.35rem auto 1rem; }
+.huruf-animal-card { position: relative; display: flex; min-height: 184px; align-items: center; flex-direction: column; justify-content: center; border: 2px solid var(--home-ink); border-radius: 9px; padding: .8rem; text-align: center; box-shadow: 4px 5px 0 rgba(25,56,74,.1); }
+.huruf-mother-card { background: #fff0e9; }
+.huruf-cub-card { border-style: dashed; background: #fffbed; transition: background .18s ease, transform .18s ease; }
+.huruf-cub-card.is-happy { border-style: solid; background: var(--home-mint); transform: scale(1.02); }
+.huruf-animal-image { display: block; width: min(100%, 145px); height: 112px; object-fit: contain; }
+.huruf-animal-card strong { margin-top: .35rem; font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1rem; line-height: 1; }
+.huruf-animal-card small { margin-top: .3rem; color: var(--home-muted); font-size: .63rem; font-weight: 800; }
+.huruf-held-letter, .huruf-drop-slot { display: grid; width: 31px; height: 31px; place-items: center; margin-top: .3rem; border: 2px solid var(--home-ink); border-radius: 6px; color: var(--home-ink); background: var(--home-lemon); font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.1rem; font-weight: 900; line-height: 1; }
+.huruf-drop-slot { color: var(--home-coral-dark); background: white; }
+.huruf-pair-arrow { display: flex; align-items: center; flex-direction: column; gap: .1rem; color: var(--home-coral-dark); font-size: .62rem; font-weight: 900; text-transform: uppercase; }
+.huruf-pair-arrow svg { transform: rotate(180deg); }
+.huruf-pair-choices { display: grid; grid-template-columns: repeat(4, minmax(70px, 1fr)); gap: .6rem; width: min(100%, 520px); margin: 0 auto; }
+.huruf-pair-choice { display: flex; min-height: 72px; align-items: center; justify-content: center; gap: .1rem; border: 2px solid var(--home-ink); border-radius: 8px; color: var(--home-ink); background: white; box-shadow: 3px 4px 0 rgba(25,56,74,.1); transition: transform .15s ease, background .15s ease, box-shadow .15s ease; }
+.huruf-pair-choice svg { color: var(--home-muted); }
+.huruf-pair-choice strong { font-family: "Comic Sans MS", "Comic Neue", cursive; font-size: 2.2rem; line-height: 1; }
+.huruf-pair-choice:hover, .huruf-pair-choice.is-selected { background: var(--home-lemon); box-shadow: 4px 5px 0 rgba(25,56,74,.14); transform: translateY(-3px); }
+.huruf-pair-choice.is-correct { border-color: var(--home-mint-dark); background: var(--home-mint); }
+
+@media (max-width: 620px) {
+  .huruf-games-heading { align-items: flex-start; flex-direction: column-reverse; gap: .75rem; }
+  .huruf-games-heading h2 { font-size: 2rem; }
+  .huruf-games-back { align-self: flex-start; }
+  .huruf-game-tabs { grid-template-columns: 1fr; }
+  .huruf-game-board, .huruf-game-intro, .huruf-game-result, .huruf-sound-stage, .huruf-pair-stage { min-height: 510px; }
+  .huruf-game-intro, .huruf-game-result { padding: 1.3rem; }
+  .huruf-sound-stage, .huruf-pair-stage { padding: .9rem .7rem .8rem; }
+  .huruf-sound-prompt { margin-top: 1.65rem; }
+  .huruf-alphabet-row { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .35rem; }
+  .huruf-alphabet-choice { min-height: 44px; }
+  .huruf-pair-scene { grid-template-columns: 1fr 1fr; gap: .45rem; }
+  .huruf-pair-arrow { grid-column: 1 / -1; grid-row: 2; flex-direction: row; justify-content: center; }
+  .huruf-pair-arrow svg { transform: rotate(270deg); }
+  .huruf-mother-card { grid-column: 1; grid-row: 1; }
+  .huruf-cub-card { grid-column: 2; grid-row: 1; }
+  .huruf-animal-card { min-height: 172px; }
+  .huruf-animal-image { width: min(100%, 125px); height: 96px; }
+  .huruf-pair-choices { gap: .4rem; }
+  .huruf-pair-choice { min-height: 66px; }
+}
+
 @media (hover: hover) {
   .subject-card:hover { box-shadow: 11px 12px 0 rgba(25,56,74,.14); transform: translateY(-5px) rotate(-.35deg); }
   .subject-card-blue:hover { transform: translateY(-5px) rotate(.35deg); }

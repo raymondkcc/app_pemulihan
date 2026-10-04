@@ -1,6 +1,6 @@
-import { lazy, Suspense, useState } from "react";
+import { useState } from "react";
 import { ArrowLeft, ArrowRight, BookOpen, PenLine, Sparkles, Volume2 } from "lucide-react";
-import { BM_CATEGORIES, HURUF } from "../../data/bm.js";
+import { BM_CATEGORIES } from "../../data/bm.js";
 import { getActiveStudent } from "../../utils/kembaraStore.js";
 import HurufModule from "./HurufModule.jsx";
 import VokalModule from "./VokalModule.jsx";
@@ -13,28 +13,7 @@ import SpeechSyllableQuiz from "./SpeechSyllableQuiz.jsx";
 import SyllableLearningChoice from "./SyllableLearningChoice.jsx";
 import LetterLearningChoice from "./LetterLearningChoice.jsx";
 import BMAssessment from "./BMAssessment.jsx";
-
-const LetterCaseGame = lazy(() => import("../../games/letterCase/LetterCaseGame.jsx"));
-
-const letterAudioCache = new Map();
-let activeLetterAudio = null;
-
-function playLetterAudio(letter) {
-  if (!window.Audio) return;
-  const source = `/audio/letters/${letter.letter.toLowerCase()}.mp3`;
-  const audio = letterAudioCache.get(source) || new window.Audio(source);
-  letterAudioCache.set(source, audio);
-  if (activeLetterAudio && activeLetterAudio !== audio) {
-    activeLetterAudio.pause();
-    activeLetterAudio.currentTime = 0;
-  }
-  activeLetterAudio = audio;
-  audio.pause();
-  audio.currentTime = 0;
-  audio.play().catch(() => {
-    if (activeLetterAudio === audio) activeLetterAudio = null;
-  });
-}
+import HurufGames from "../../games/huruf/HurufGames.jsx";
 
 function ScreamAnimalCard() {
   const [playing, setPlaying] = useState(false);
@@ -81,7 +60,7 @@ function MainVokal({ onBack }) {
 }
 
 function MainHuruf({ onBack, onMissionComplete }) {
-  return <div className="home-content hub-content"><div className="hub-hero"><button className="back-button" type="button" onClick={onBack}><ArrowLeft size={18} /> <span>Huruf</span></button><div className="hub-title-block"><span className="hub-eyebrow"><PenLine size={15} /> Huruf</span><h1>Main Huruf</h1><p>Permainan huruf besar dan kecil</p></div></div><Suspense fallback={<p className="home-notice" role="status">Menyediakan permainan huruf...</p>}><LetterCaseGame letters={HURUF} onPlayLetter={playLetterAudio} onComplete={onMissionComplete} /></Suspense></div>;
+  return <div className="home-content hub-content"><div className="hub-hero"><button className="back-button" type="button" onClick={onBack}><ArrowLeft size={18} /> <span>Huruf</span></button><div className="hub-title-block"><span className="hub-eyebrow"><PenLine size={15} /> Huruf</span><h1>Main Huruf</h1><p>Dengar bunyi dan padankan huruf dengan keluarga haiwan.</p></div></div><HurufGames onBack={onBack} onComplete={onMissionComplete} /></div>;
 }
 
 function CategoryHeader({ onBack, cat }) {
@@ -92,12 +71,14 @@ export default function BahasaMelayuHub({ onBack, onComingSoon, notice, initialM
   const startsHurufMission = initialMission === "huruf";
   const startsSyllableMission = initialMission === "suku-kata";
   const [category, setCategory] = useState(startsHurufMission ? "huruf" : startsSyllableMission ? "suku-kata" : null);
-  const [subCategory, setSubCategory] = useState(startsHurufMission || startsSyllableMission ? "main" : null);
+  const [subCategory, setSubCategory] = useState(startsSyllableMission ? "main" : null);
   const [learningChoiceOpen, setLearningChoiceOpen] = useState(false);
   const student = getActiveStudent();
   const guestDemo = Boolean(student?.isGuest);
+  const missionLockedToHuruf = startsHurufMission;
 
   function selectCategory(catId) {
+    if (missionLockedToHuruf && catId !== "huruf") return;
     if (guestDemo && catId !== "huruf") {
       window.location.href = "/murid/demo-tamat";
       return;
@@ -125,6 +106,10 @@ export default function BahasaMelayuHub({ onBack, onComingSoon, notice, initialM
     if (subCategory) {
       setSubCategory(null);
     } else if (category) {
+      if (missionLockedToHuruf) {
+        onBack();
+        return;
+      }
       setCategory(null);
       setLearningChoiceOpen(false);
     } else {
@@ -198,7 +183,7 @@ export default function BahasaMelayuHub({ onBack, onComingSoon, notice, initialM
         </div>
       </div>
       <div className="bm-categories-grid">
-        {(guestDemo ? BM_CATEGORIES.filter((item) => item.id === "huruf") : BM_CATEGORIES).map(cat => (
+        {(missionLockedToHuruf || guestDemo ? BM_CATEGORIES.filter((item) => item.id === "huruf") : BM_CATEGORIES).map(cat => (
           <button
             key={cat.id}
             className={`bm-category-card bm-category-${cat.color}`}
