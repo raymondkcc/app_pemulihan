@@ -628,6 +628,22 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .huruf-game-tabs button span { display: flex; min-width: 0; flex-direction: column; gap: .15rem; }
 .huruf-game-tabs strong { font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.12rem; line-height: 1; }
 .huruf-game-tabs small { color: var(--home-muted); font-size: .7rem; font-weight: 800; }
+.huruf-game-lobby { display: flex; min-height: 440px; align-items: center; flex-direction: column; justify-content: center; padding: 2rem clamp(1rem, 5vw, 4rem); color: var(--home-ink); }
+.huruf-game-lobby-prompt { margin: 0 0 1rem; color: var(--home-muted); font-size: .95rem; font-weight: 800; text-align: center; }
+.huruf-game-choices { display: grid; gap: .75rem; width: min(100%, 720px); }
+.huruf-game-choice { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 1rem; min-height: 104px; border: 2px solid var(--home-ink); border-radius: 8px; padding: 1rem 1.15rem; color: var(--home-ink); text-align: left; box-shadow: 4px 5px 0 rgba(25,56,74,.1); transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease; }
+.huruf-game-choice-sound { background: #d8f2ec; }
+.huruf-game-choice-pair { background: #fff0b1; }
+.huruf-game-choice:hover { box-shadow: 6px 7px 0 rgba(25,56,74,.14); transform: translateY(-2px); }
+.huruf-game-choice.is-selected { border-width: 3px; box-shadow: 6px 7px 0 rgba(25,56,74,.16); transform: translateX(5px); }
+.huruf-game-choice-icon { display: grid; width: 58px; height: 58px; place-items: center; border: 2px solid var(--home-ink); border-radius: 8px; color: var(--home-ink); background: rgba(255,255,255,.78); }
+.huruf-game-choice > span:last-child { display: flex; min-width: 0; flex-direction: column; gap: .25rem; }
+.huruf-game-choice strong { font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.45rem; line-height: 1; }
+.huruf-game-choice small { max-width: 58ch; color: var(--home-muted); font-size: .82rem; font-weight: 800; line-height: 1.35; }
+.huruf-game-enter { margin-top: 1.15rem; min-height: 46px; padding-inline: 1.1rem; font-size: .86rem; }
+.huruf-game-enter:disabled { cursor: not-allowed; filter: grayscale(.2); opacity: .5; transform: none; }
+.huruf-game-switch { display: inline-flex; align-items: center; gap: .3rem; margin: .8rem 1.2rem 0; border: 0; padding: .2rem 0; color: var(--home-muted); background: transparent; font-size: .74rem; font-weight: 900; }
+.huruf-game-switch:hover { color: var(--home-ink); }
 .huruf-game-board { min-height: 440px; margin-top: .8rem; overflow: hidden; border: 2px solid var(--home-ink); border-radius: 10px; background: #f8fbf6; box-shadow: 6px 7px 0 rgba(25,56,74,.1); }
 .huruf-game-intro, .huruf-game-result { display: flex; min-height: 440px; align-items: center; flex-direction: column; justify-content: center; padding: 2rem; color: var(--home-ink); text-align: center; }
 .huruf-game-intro-icon, .huruf-game-result-icon { display: grid; width: 58px; height: 58px; place-items: center; border: 2px solid var(--home-ink); border-radius: 50%; color: var(--home-coral-dark); background: var(--home-lemon); box-shadow: 4px 4px 0 rgba(25,56,74,.1); }
@@ -638,18 +654,19 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .huruf-sound-stage, .huruf-pair-stage { min-height: 440px; padding: 1.1rem 1.2rem 1rem; background: linear-gradient(135deg, #f8fbf6 0%, #e7f6ef 100%); }
 .huruf-game-score { display: flex; align-items: center; justify-content: space-between; gap: 1rem; color: var(--home-muted); font-size: .72rem; font-weight: 900; }
 .huruf-game-score strong { color: var(--home-ink); font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.15rem; }
-.huruf-sound-prompt { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .7rem; width: min(100%, 520px); margin: 2.2rem auto 1.45rem; }
-.huruf-sound-wave { display: grid; width: 58px; height: 58px; place-items: center; border: 2px solid var(--home-ink); border-radius: 50%; color: white; background: var(--home-coral); box-shadow: 4px 4px 0 rgba(25,56,74,.1); }
+.huruf-sound-prompt { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .85rem; width: min(100%, 580px); margin: 2.2rem auto 1.45rem; }
+.huruf-sound-wave { display: grid; width: 76px; height: 76px; place-items: center; border: 3px solid var(--home-ink); border-radius: 50%; color: var(--home-ink); background: var(--home-lemon); box-shadow: 5px 6px 0 rgba(25,56,74,.13); transition: transform .18s ease; }
+.huruf-sound-wave.is-retry { animation: huruf-speaker-retry .85s ease-in-out infinite; }
 .huruf-sound-prompt div { display: flex; flex-direction: column; gap: .15rem; }
-.huruf-sound-prompt strong { font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.45rem; line-height: 1; }
-.huruf-sound-prompt div span { color: var(--home-muted); font-size: .72rem; font-weight: 800; }
-.icon-game-button { display: grid; width: 43px; height: 43px; place-items: center; border: 2px solid var(--home-ink); border-radius: 7px; color: var(--home-ink); background: var(--home-lemon); transition: transform .15s ease, background .15s ease; }
+.huruf-sound-prompt strong { font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.75rem; line-height: 1; }
+.huruf-sound-prompt div span { color: var(--home-muted); font-size: .82rem; font-weight: 800; }
+.icon-game-button { display: grid; width: 50px; height: 50px; place-items: center; border: 2px solid var(--home-ink); border-radius: 7px; color: var(--home-ink); background: white; transition: transform .15s ease, background .15s ease; }
 .icon-game-button:hover { transform: translateY(-2px); background: white; }
 .huruf-alphabet-row { display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: .42rem; width: min(100%, 760px); margin: 0 auto; }
 .huruf-alphabet-choice { display: grid; min-height: 45px; place-items: center; border: 2px solid var(--home-ink); border-radius: 6px; color: var(--home-ink); background: white; font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.15rem; font-weight: 800; transition: transform .14s ease, background .14s ease, box-shadow .14s ease; }
 .huruf-alphabet-choice:hover { z-index: 1; background: var(--home-lemon); box-shadow: 3px 4px 0 rgba(25,56,74,.12); transform: translateY(-3px) rotate(-2deg); }
 .huruf-alphabet-choice.is-correct { border-color: var(--home-mint-dark); background: var(--home-mint); }
-.huruf-game-feedback { display: flex; min-height: 35px; align-items: center; justify-content: center; gap: .35rem; margin: 1.2rem 0 0; color: var(--home-blue-dark); font-size: .78rem; font-weight: 900; text-align: center; }
+.huruf-game-feedback { display: flex; min-height: 35px; align-items: center; justify-content: center; gap: .35rem; margin: 1.2rem 0 0; color: var(--home-blue-dark); font-size: .88rem; font-weight: 900; text-align: center; }
 .huruf-game-feedback.correct { color: var(--home-mint-dark); }
 .huruf-game-feedback.wrong { color: var(--home-coral-dark); }
 .huruf-pair-scene { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: .8rem; width: min(100%, 680px); margin: 1.35rem auto 1rem; }
@@ -677,9 +694,17 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
   .huruf-games-back { align-self: flex-start; }
   .huruf-game-tabs { grid-template-columns: 1fr; }
   .huruf-game-board, .huruf-game-intro, .huruf-game-result, .huruf-sound-stage, .huruf-pair-stage { min-height: 510px; }
+  .huruf-game-lobby { min-height: 510px; padding: 1.2rem .8rem; }
+  .huruf-game-choice { grid-template-columns: auto 1fr; min-height: 112px; padding: .85rem; }
+  .huruf-game-choice strong { font-size: 1.2rem; }
+  .huruf-game-choice small { font-size: .74rem; }
+  .huruf-game-switch { margin-left: .7rem; }
   .huruf-game-intro, .huruf-game-result { padding: 1.3rem; }
   .huruf-sound-stage, .huruf-pair-stage { padding: .9rem .7rem .8rem; }
   .huruf-sound-prompt { margin-top: 1.65rem; }
+  .huruf-sound-wave { width: 64px; height: 64px; }
+  .huruf-sound-prompt strong { font-size: 1.4rem; }
+  .huruf-sound-prompt div span { font-size: .72rem; }
   .huruf-alphabet-row { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .35rem; }
   .huruf-alphabet-choice { min-height: 44px; }
   .huruf-pair-scene { grid-template-columns: 1fr 1fr; gap: .45rem; }
@@ -691,6 +716,15 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
   .huruf-animal-image { width: min(100%, 125px); height: 96px; }
   .huruf-pair-choices { gap: .4rem; }
   .huruf-pair-choice { min-height: 66px; }
+}
+
+@keyframes huruf-speaker-retry {
+  0%, 100% { box-shadow: 5px 6px 0 rgba(25,56,74,.13); transform: scale(1); }
+  45% { box-shadow: 0 0 0 9px rgba(241,120,93,.2), 5px 6px 0 rgba(25,56,74,.13); transform: scale(1.16); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .huruf-sound-wave.is-retry { animation: none; transform: scale(1.1); }
 }
 
 @media (hover: hover) {

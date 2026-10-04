@@ -98,12 +98,14 @@ function SoundChoiceGame({ onComplete }) {
     if (status !== "answering" || feedback?.type === "correct") return;
     const correct = letter === target.letter;
     if (!correct) {
+      playPairEffect(PAIR_AUDIO.mistake);
       setFeedback({ type: "wrong", text: "Cuba lagi. Dengar bunyi sekali lagi." });
       return;
     }
 
     const nextScore = score + 1;
     setScore(nextScore);
+    playPairEffect(PAIR_AUDIO.yay);
     setFeedback({ type: "correct", text: `Betul! Ini huruf ${target.letter}.` });
     if (round === SOUND_ROUNDS - 1) {
       setStatus("complete");
@@ -139,10 +141,10 @@ function SoundChoiceGame({ onComplete }) {
   }
 
   return (
-    <div className="huruf-sound-stage">
+    <div className={`huruf-sound-stage ${feedback?.type === "wrong" ? "has-wrong-answer" : ""}`}>
       <div className="huruf-game-score"><span>Huruf <strong>{round + 1}</strong> / {SOUND_ROUNDS}</span><span>Betul <strong>{score}</strong></span></div>
       <div className="huruf-sound-prompt">
-        <span className="huruf-sound-wave"><Volume2 size={28} /></span>
+        <span className={`huruf-sound-wave ${feedback?.type === "wrong" ? "is-retry" : ""}`}><Volume2 size={34} /></span>
         <div><strong>Dengar bunyi</strong><span>Tekan pembesar suara jika mahu ulang.</span></div>
         <button className="icon-game-button" type="button" onClick={replaySound} aria-label="Dengar bunyi semula" title="Dengar bunyi semula"><Volume2 size={20} /></button>
       </div>
@@ -285,7 +287,16 @@ function PairingGame({ onComplete }) {
 }
 
 export default function HurufGames({ onBack, onComplete }) {
-  const [game, setGame] = useState("sound");
+  const [selectedGame, setSelectedGame] = useState(null);
+  const [game, setGame] = useState(null);
+
+  function enterSelectedGame() {
+    if (selectedGame) setGame(selectedGame);
+  }
+
+  function returnToGameLobby() {
+    setGame(null);
+  }
 
   return (
     <section className="huruf-games" aria-labelledby="huruf-games-title">
@@ -293,13 +304,29 @@ export default function HurufGames({ onBack, onComplete }) {
         <div><span className="section-kicker">Permainan / Main</span><h2 id="huruf-games-title">Pilih permainan huruf</h2><p>Dengar, kenal dan padankan huruf satu langkah demi satu langkah.</p></div>
         <button className="back-button huruf-games-back" type="button" onClick={onBack}><ArrowLeft size={18} /> <span>Huruf</span></button>
       </div>
-      <div className="huruf-game-tabs" role="tablist" aria-label="Pilih permainan huruf">
-        <button className={game === "sound" ? "is-selected" : ""} type="button" role="tab" aria-selected={game === "sound"} onClick={() => setGame("sound")}><Volume2 size={19} /><span><strong>Dengar dan pilih</strong><small>26 huruf dalam satu barisan</small></span></button>
-        <button className={game === "pair" ? "is-selected" : ""} type="button" role="tab" aria-selected={game === "pair"} onClick={() => setGame("pair")}><Heart size={19} /><span><strong>Beri kepada anak</strong><small>Padan huruf besar dan kecil</small></span></button>
-      </div>
-      <div className="huruf-game-board" role="tabpanel">
-        {game === "sound" ? <SoundChoiceGame onComplete={onComplete} /> : <PairingGame onComplete={onComplete} />}
-      </div>
+      {game === null ? (
+        <div className="huruf-game-lobby" aria-label="Pilih permainan huruf">
+          <p className="huruf-game-lobby-prompt">Pilih satu permainan untuk bermula.</p>
+          <div className="huruf-game-choices">
+            <button className={`huruf-game-choice huruf-game-choice-sound ${selectedGame === "sound" ? "is-selected" : ""}`} type="button" onClick={() => setSelectedGame("sound")} aria-pressed={selectedGame === "sound"}>
+              <span className="huruf-game-choice-icon"><Volume2 size={28} /></span>
+              <span><strong>Dengar dan pilih</strong><small>Dengar bunyi, kemudian pilih huruf yang betul daripada A hingga Z.</small></span>
+            </button>
+            <button className={`huruf-game-choice huruf-game-choice-pair ${selectedGame === "pair" ? "is-selected" : ""}`} type="button" onClick={() => setSelectedGame("pair")} aria-pressed={selectedGame === "pair"}>
+              <span className="huruf-game-choice-icon"><Heart size={28} /></span>
+              <span><strong>Beri kepada anak</strong><small>Padankan huruf besar dengan huruf kecil untuk anak haiwan.</small></span>
+            </button>
+          </div>
+          <button className="primary-mini-action huruf-game-enter" type="button" onClick={enterSelectedGame} disabled={!selectedGame}><Play size={18} fill="currentColor" /> Masuk permainan</button>
+        </div>
+      ) : (
+        <>
+          <button className="huruf-game-switch" type="button" onClick={returnToGameLobby}><ArrowLeft size={17} /> Pilih permainan lain</button>
+          <div className="huruf-game-board" role="tabpanel">
+            {game === "sound" ? <SoundChoiceGame onComplete={onComplete} /> : <PairingGame onComplete={onComplete} />}
+          </div>
+        </>
+      )}
     </section>
   );
 }
