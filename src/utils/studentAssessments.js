@@ -1,3 +1,6 @@
+import { collection, doc, getDocs, setDoc } from "firebase/firestore";
+import { auth, db } from "./firebase.js";
+
 export const ASSESSMENT_SKILLS = {
   bm: [
     { id: "huruf", label: "Huruf" },
@@ -32,14 +35,21 @@ export async function persistStudentAssessment({ studentId, subject, skillId, sc
     const current = JSON.parse(window.localStorage.getItem(key) || "[]");
     const rows = Array.isArray(current) ? current.filter((item) => item.id !== record.id) : [];
     window.localStorage.setItem(key, JSON.stringify([...rows, record]));
-    return { ok: true, localOnly: true, data: record };
+    if (!auth.currentUser) return { ok: true, localOnly: true, data: record };
+    await setDoc(doc(db, "students", studentId, "assessmentResults", record.id), record, { merge: true });
+    return { ok: true, localOnly: false, data: record };
   } catch (error) {
     return { ok: false, localOnly: true, error };
   }
 }
-
 export async function loadStudentAssessmentResults(studentId) {
   if (!studentId) return [];
+  try {
+    const snapshot = await getDocs(collection(db, "students", studentId, "assessmentResults"));
+    if (snapshot.docs.length) return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+  } catch {
+    // Fall back to the device copy when offline or before rules are deployed.
+  }
   try {
     const rows = JSON.parse(window.localStorage.getItem(`pemulihan-assessments-v1:${studentId}`) || "[]");
     return Array.isArray(rows) ? rows : [];

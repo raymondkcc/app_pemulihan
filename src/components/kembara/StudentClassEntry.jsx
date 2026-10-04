@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { ArrowRight, ChevronLeft } from "lucide-react";
 import AdventureLogo from "../home/AdventureLogo.jsx";
-import { continueAsGuest, loginStudentWithCode, loginStudentWithQrToken } from "../../utils/kembaraStore.js";
+import { continueAsGuest, loginStudentWithCode, loginStudentWithPictures, loginStudentWithQrToken } from "../../utils/kembaraStore.js";
 import { canRun, tooFrequent } from "../../utils/rateLimit.js";
+import PictureLockLogin from "./PictureLockLogin.jsx";
 
 function formatStudentCode(value) {
   const compact = String(value || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
@@ -14,6 +15,17 @@ export default function StudentClassEntry() {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [student, setStudent] = useState(null);
+
+  async function selectStudent(result) {
+    setBusy(false);
+    if (!result.ok) {
+      setError(result.error === "locked" ? "Kunci dikunci. Cikgu perlu reset." : result.error);
+      return;
+    }
+    setStudent(result.student);
+    setError("");
+  }
 
   useEffect(() => {
     const codeFromQr = new URLSearchParams(window.location.search).get("qr");
@@ -24,11 +36,7 @@ export default function StudentClassEntry() {
       const result = await loginStudentWithQrToken(codeFromQr);
       if (cancelled) return;
       setBusy(false);
-      if (!result.ok) {
-        setError(result.error === "locked" ? "Kunci dikunci. Cikgu perlu reset." : result.error);
-        return;
-      }
-      window.location.replace("/murid/ruang");
+      await selectStudent(result);
     })();
     return () => { cancelled = true; };
   }, []);
@@ -41,6 +49,14 @@ export default function StudentClassEntry() {
     }
     setBusy(true);
     const result = await loginStudentWithCode(code);
+    setBusy(false);
+    await selectStudent(result);
+  }
+
+  async function submitPictures(pictureIds) {
+    if (!student) return;
+    setBusy(true);
+    const result = await loginStudentWithPictures(student.id, pictureIds);
     setBusy(false);
     if (!result.ok) {
       setError(result.error === "locked" ? "Kunci dikunci. Cikgu perlu reset." : result.error);
@@ -62,6 +78,7 @@ export default function StudentClassEntry() {
         <div><span className="portal-kicker">Ruang murid</span><strong>Log masuk murid</strong></div>
       </header>
       <section className="profile-content">
+        {student ? <PictureLockLogin nickname={student.nickname} onSubmit={submitPictures} disabled={busy} /> : <>
         <div className="portal-intro">
           <h1>{busy && new URLSearchParams(window.location.search).has("qr") ? "Membuka permainan..." : "Kod murid anda"}</h1>
           <p>{busy && new URLSearchParams(window.location.search).has("qr") ? "Kod login dibaca. Sila tunggu sebentar." : "Masukkan kod murid yang diberi oleh cikgu untuk log masuk."}</p>
@@ -82,14 +99,14 @@ export default function StudentClassEntry() {
           </button>
         </form>
 
-        {error && <p className="form-error" role="alert">{error}</p>}
-
         <div className="entry-divider" role="separator"><span>ATAU<small>OR</small></span></div>
         <button className="guest-entry" type="button" onClick={enterGuest}>
           <span className="guest-entry-spark" aria-hidden="true">✦</span>
           <span className="guest-entry-label">Cuba secara percuma <em>/ Try for free</em></span>
           <ArrowRight size={20} />
         </button>
+        </>}
+        {error && <p className="form-error" role="alert">{error}</p>}
       </section>
     </main>
   );

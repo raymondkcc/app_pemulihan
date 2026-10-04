@@ -30,6 +30,11 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/students/$(studentId)).data.ownerId == request.auth.uid;
     }
 
+    function isStudentAuth(studentId) {
+      return isSignedIn()
+        && get(/databases/$(database)/documents/students/$(studentId)).data.authUid == request.auth.uid;
+    }
+
     function isAdmin() {
       return isSignedIn() && (
         exists(adultPath(request.auth.uid))
@@ -105,18 +110,27 @@ service cloud.firestore {
       allow read, write: if false;
     }
     match /students/{studentId}/multiplicationFacts/{factKey} {
-      allow read: if ownsStudent(studentId) || isStudentPractice(studentId);
-      allow write: if false;
+      allow read: if ownsStudent(studentId) || isStudentAuth(studentId);
+      allow write: if isStudentAuth(studentId)
+        && request.resource.data.keys().hasOnly([
+          "attempts", "correct", "wrong", "currentStreak", "lastResult", "lastAnsweredAt", "nextDueAt"
+        ])
+        && request.resource.data.attempts is int
+        && request.resource.data.correct is int
+        && request.resource.data.wrong is int;
     }
 
     match /students/{studentId}/multiplicationSessions/{sessionId} {
-      allow read: if ownsStudent(studentId) || isStudentPractice(studentId);
-      allow write: if false;
+      allow read: if ownsStudent(studentId) || isStudentAuth(studentId);
+      allow write: if isStudentAuth(studentId)
+        && request.resource.data.studentId == studentId;
     }
 
     match /students/{studentId}/assessmentResults/{resultId} {
-      allow read: if ownsStudent(studentId) || isStudentPractice(studentId);
-      allow write: if false;
+      allow read: if ownsStudent(studentId) || isStudentAuth(studentId);
+      allow write: if isStudentAuth(studentId)
+        && request.resource.data.studentId == studentId
+        && request.resource.data.subject in ["bm", "math"];
     }
 
   }

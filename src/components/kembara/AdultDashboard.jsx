@@ -154,7 +154,11 @@ export default function AdultDashboard() {
             studentName={lockStudent.nickname}
             onCancel={() => setLockStudent(null)}
             onSave={async (pictureIds) => {
-              await setStudentLock(lockStudent.id, pictureIds);
+              const result = await setStudentLock(lockStudent.id, pictureIds);
+              if (!result.ok) {
+                setError(result.error);
+                return;
+              }
               setLockStudent(null);
               await refresh(adult);
             }}

@@ -1,4 +1,6 @@
 import { createEmptyProgress, normaliseProgress } from "./multiplicationFacts.js";
+import { collection, doc, getDocs, setDoc } from "firebase/firestore";
+import { auth, db } from "../../utils/firebase.js";
 
 const STORAGE_PREFIX = "pemulihan-multiplication-zombie-v1";
 
@@ -49,6 +51,18 @@ export function loadMultiplicationProgress(student) {
   return mergeMultiplicationProgress(local.progress, remote);
 }
 
+function remoteFactRecord(stat) {
+  return {
+    attempts: Number(stat.attempts) || 0,
+    correct: Number(stat.correct) || 0,
+    wrong: Number(stat.wrong) || 0,
+    currentStreak: Number(stat.currentStreak) || 0,
+    lastResult: stat.lastResult === "correct" || stat.lastResult === "wrong" ? stat.lastResult : null,
+    lastAnsweredAt: stat.lastAnsweredAt || null,
+    nextDueAt: stat.nextDueAt || null
+  };
+}
+
 function localSessionRecord({ summary, factDeltas = {}, outcomes = [] }) {
   return {
     ...summary,
@@ -71,11 +85,37 @@ export function saveLocalMultiplicationSession({ studentId, progress, factDeltas
 
 export async function persistMultiplicationSession({ studentId, progress, factDeltas, outcomes = [], summary } = {}) {
   const local = saveLocalMultiplicationSession({ studentId, progress, factDeltas, outcomes, summary });
-  return { ok: true, localOnly: true, local };
+  if (!studentId || !auth.currentUser) return { ok: true, localOnly: true, local };
+  try {
+    const factWrites = Object.entries(normaliseProgress(progress)).map(([key, stat]) => setDoc(
+      doc(db, "students", studentId, "multiplicationFacts", key),
+      remoteFactRecord(stat),
+      { merge: true }
+    ));
+    await Promise.all([
+      ...factWrites,
+      setDoc(doc(db, "students", studentId, "multiplicationSessions", summary.sessionId), {
+        ...summary,
+        studentId,
+        factDeltas,
+        outcomes,
+        savedAt: new Date().toISOString()
+      }, { merge: true })
+    ]);
+    return { ok: true, localOnly: false, local };
+  } catch (error) {
+    return { ok: true, localOnly: true, local, error };
+  }
 }
 
 export async function loadMultiplicationReport(studentId) {
   if (!studentId) return [];
+  try {
+    const snapshot = await getDocs(collection(db, "students", studentId, "multiplicationFacts"));
+    if (snapshot.docs.length) return snapshot.docs.map((item) => ({ key: item.id, ...item.data() }));
+  } catch {
+    // Fall back to the device copy when offline or before rules are deployed.
+  }
   const local = readLocal(studentId);
   return Object.entries(local.progress || {}).map(([key, stat]) => ({ key, ...stat }));
 }

@@ -400,16 +400,18 @@ export default function MultiplicationZombieGame({ initialMode = "student", init
     };
     if (operation !== "darab") {
       saveZombieDefenseSession({ engine, studentId, operation, progress: finalProgress, outcomes: session.outcomes, summary: sessionSummary });
-      setSaveState({ kind: "local", text: "Analisis disimpan pada peranti ini. / Analysis saved on this device." });
+      setSaveState({ kind: "local", text: "Sesi disimpan pada peranti ini. / Session saved on this device." });
       notifyMissionComplete();
       return;
     }
-    setSaveState({ kind: "saving", text: "Menyimpan analisis fakta pada peranti... / Saving fact analysis on this device..." });
+    setSaveState({ kind: "saving", text: "Menyimpan analisis fakta... / Saving fact analysis..." });
     const result = await persistMultiplicationSession(savePayload);
     if (!result.ok) {
       setSaveState({ kind: "offline", text: "Tidak dapat menyimpan pada peranti ini. / Could not save on this device." });
+    } else if (result.localOnly) {
+      setSaveState({ kind: "offline", text: "Disimpan pada peranti ini sahaja. / Saved on this device only." });
     } else {
-      setSaveState({ kind: "saved", text: "Analisis disimpan pada peranti ini. / Analysis saved on this device." });
+      setSaveState({ kind: "saved", text: "Analisis disimpan dalam Firebase. / Analysis saved in Firebase." });
     }
     notifyMissionComplete();
   }, [difficulty, engine, mode, onComplete, operation, questionCount, soundOn, studentId]);

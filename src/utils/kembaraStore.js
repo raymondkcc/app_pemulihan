@@ -97,6 +97,14 @@ function hashSecret(value) {
   return `k1-${(hash >>> 0).toString(16)}-${text.length}`;
 }
 
+function studentAuthEmail(studentId, pictureIds) {
+  return `student-${studentId}-${hashSecret(pictureIds.join("|"))}@students.kembara-pintar.local`;
+}
+
+function studentAuthPassword(pictureIds) {
+  return `Kp-${hashSecret(pictureIds.join("|"))}-a9`;
+}
+
 function randomClassCode() {
   return `${randomCode(2, CLASS_CODE_ALPHABET)}${randomCode(2, CLASS_CODE_DIGITS)}`;
 }
@@ -307,6 +315,7 @@ export async function logoutAdult() {
 export function logoutStudent() {
   const session = readSession();
   writeSession({ ...session, studentId: null, guest: false, demoComplete: false, student: null });
+  void signOut(auth).catch(() => {});
 }
 
 export function clearClassSession() {
@@ -726,22 +735,46 @@ export async function updateStudent(studentId, patch) {
   };
 }
 
+async function ensureStudentAuth(studentId, pictureIds) {
+  const email = studentAuthEmail(studentId, pictureIds);
+  const password = studentAuthPassword(pictureIds);
+  await setPersistence(secondaryAuth, inMemoryPersistence);
+  try {
+    const credential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+    const authUid = credential.user.uid;
+    await signOut(secondaryAuth);
+    return authUid;
+  } catch (error) {
+    if (error?.code !== "auth/email-already-in-use") throw error;
+    const credential = await signInWithEmailAndPassword(secondaryAuth, email, password);
+    const authUid = credential.user.uid;
+    await signOut(secondaryAuth);
+    return authUid;
+  }
+}
+
 export async function setStudentLock(studentId, pictureIds) {
   if (!Array.isArray(pictureIds) || pictureIds.length !== 2) return { ok: false, error: "Pilih dua gambar." };
-  await updateStudent(studentId, {
-    lock: null,
-    lockHash: hashSecret(pictureIds.join("|")),
-    hasLock: true,
-    failCount: 0,
-    locked: false
-  });
-  return { ok: true };
+  try {
+    const authUid = await ensureStudentAuth(studentId, pictureIds);
+    await updateStudent(studentId, {
+      lock: null,
+      lockHash: hashSecret(pictureIds.join("|")),
+      authUid,
+      hasLock: true,
+      failCount: 0,
+      locked: false
+    });
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: authMessage(error) };
+  }
 }
 
 export async function resetStudentLock(studentId) {
   const adult = getActiveAdult();
   if (!adult) return { ok: false, error: "Sila log masuk dahulu." };
-  await updateStudent(studentId, { lock: null, lockHash: null, hasLock: false, failCount: 0, locked: false });
+  await updateStudent(studentId, { lock: null, lockHash: null, authUid: null, hasLock: false, failCount: 0, locked: false });
   return { ok: true };
 }
 
@@ -865,6 +898,12 @@ export async function loginStudentWithPictures(studentId, pictureIds) {
     return { ok: false, error: locked ? "locked" : "wrong", remaining: Math.max(0, 5 - failCount) };
   }
 
+  if (!student.authUid) return { ok: false, error: "Kunci belum disediakan semula. Minta cikgu simpan kunci gambar." };
+  try {
+    await signInWithEmailAndPassword(auth, studentAuthEmail(studentId, pictureIds), studentAuthPassword(pictureIds));
+  } catch (error) {
+    return { ok: false, error: authMessage(error) };
+  }
   await updateDoc(doc(db, "students", studentId), { failCount: 0, locked: false });
   const unlocked = { ...student, failCount: 0, locked: false };
   cachedStore = {
@@ -879,12 +918,7 @@ export async function loginStudentWithCode(studentCode) {
   const student = await findStudentByCode(studentCode);
   if (!student) return { ok: false, error: "Kod murid tidak jumpa." };
   if (student.locked) return { ok: false, error: "locked" };
-  cachedStore = {
-    ...cachedStore,
-    students: [...cachedStore.students.filter((item) => item.id !== student.id), student]
-  };
-  writeSession({ ...readSession(), studentId: student.id, guest: false, classCode: null, student });
-  return { ok: true, student };
+  return { ok: true, student, requiresPicture: true };
 }
 
 export async function loginStudentWithQrToken(token) {

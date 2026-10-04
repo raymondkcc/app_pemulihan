@@ -103,7 +103,7 @@ export default function StudentQrDialog({ student, onClose }) {
             <div className="student-qr-label"><span>Nama murid / Student name</span><strong>{student.nickname}</strong></div>
             <div className="student-qr-label"><span>Kod login sebenar / Actual login code</span><strong>{student.studentCode || "-"}</strong></div>
           </div>
-          <p className="student-qr-meta">QR ini membuka log masuk menggunakan kod murid yang tertera. Sesiapa yang mempunyai kad ini boleh menggunakannya.</p>
+          <p className="student-qr-meta">Imbas QR untuk memilih murid. Murid masih perlu memasukkan dua gambar password sebelum bermain.</p>
           <div className="student-qr-actions">
             <button className="student-qr-action" type="button" onClick={download}><Download size={16} /> Muat turun</button>
             <button className="student-qr-action" type="button" onClick={() => window.print()}><Printer size={16} /> Cetak</button>
