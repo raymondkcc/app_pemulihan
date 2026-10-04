@@ -5,6 +5,8 @@ import { continueAsGuest, loginStudentWithCode, loginStudentWithPictures, loginS
 import { canRun, tooFrequent } from "../../utils/rateLimit.js";
 import PictureLockLogin from "./PictureLockLogin.jsx";
 
+const LOCKED_MESSAGE = "Password gambar dikunci selepas 5 cubaan salah. Sila minta cikgu atau ibu bapa reset password anda.";
+
 function formatStudentCode(value) {
   const compact = String(value || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
   if (compact.length < 4) return compact;
@@ -20,7 +22,7 @@ export default function StudentClassEntry() {
   async function selectStudent(result) {
     setBusy(false);
     if (!result.ok) {
-      setError(result.error === "locked" ? "Kunci dikunci. Cikgu perlu reset." : result.error);
+      setError(result.error === "locked" ? LOCKED_MESSAGE : result.error);
       return;
     }
     setStudent(result.student);
@@ -59,7 +61,7 @@ export default function StudentClassEntry() {
     const result = await loginStudentWithPictures(student.id, pictureIds);
     setBusy(false);
     if (!result.ok) {
-      setError(result.error === "locked" ? "Kunci dikunci. Cikgu perlu reset." : result.error);
+      setError(result.error === "locked" ? LOCKED_MESSAGE : result.error);
       return;
     }
     window.location.href = "/murid/ruang";
