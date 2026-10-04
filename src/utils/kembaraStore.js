@@ -191,6 +191,7 @@ function studentFromDoc(id, data = {}) {
     track: data.track || "both",
     lock: data.lock || null,
     lockHash: data.lockHash || null,
+    authUid: data.authUid || null,
     hasLock: Boolean(data.hasLock || data.lockHash || data.lock),
     studentCode: data.studentCode || data.kadCode || "",
     kadCode: data.kadCode,
