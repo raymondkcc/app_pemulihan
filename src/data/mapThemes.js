@@ -4,35 +4,35 @@ export const MAP_THEMES = [
     title: "Hutan Mistik",
     image: "/images/maps/hutan-mistik.jpg",
     thumbnail: "/images/maps/hutan-mistik-thumb.jpg",
-    positions: [[29, 42], [72, 43], [47, 86], [86, 20]]
+    positions: [[32, 49], [72, 49], [46, 81], [86, 38]]
   },
   {
     id: "pulau-lanun-ceria",
     title: "Pulau Lanun Ceria",
     image: "/images/maps/pulau-lanun-ceria.jpg",
     thumbnail: "/images/maps/pulau-lanun-ceria-thumb.jpg",
-    positions: [[20, 77], [54, 50], [52, 21], [87, 19]]
+    positions: [[22, 70], [51, 50], [47, 25], [79, 23]]
   },
   {
     id: "angkasa-bintang",
     title: "Angkasa Bintang",
     image: "/images/maps/angkasa-bintang.jpg",
     thumbnail: "/images/maps/angkasa-bintang-thumb.jpg",
-    positions: [[17, 88], [53, 91], [51, 48], [61, 14]]
+    positions: [[11, 88], [51, 88], [50, 50], [61, 17]]
   },
   {
     id: "kota-robot",
     title: "Kota Robot",
     image: "/images/maps/kota-robot.jpg",
     thumbnail: "/images/maps/kota-robot-thumb.jpg",
-    positions: [[53, 89], [52, 50], [52, 20], [87, 21]]
+    positions: [[50, 86], [50, 52], [54, 19], [86, 23]]
   },
   {
     id: "lembah-dinosaur",
     title: "Lembah Dinosaur",
     image: "/images/maps/lembah-dinosaur.jpg",
     thumbnail: "/images/maps/lembah-dinosaur-thumb.jpg",
-    positions: [[22, 76], [51, 49], [62, 20], [86, 28]]
+    positions: [[14, 78], [51, 52], [61, 28], [86, 28]]
   }
 ];
 

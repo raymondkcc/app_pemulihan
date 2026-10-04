@@ -1,4 +1,4 @@
-import { ArrowRight, BookOpen, Castle, Check, Gift, Home, LockKeyhole, Map, Mountain, Sparkles, TreePine, Waves } from "lucide-react";
+import { ArrowRight, BookOpen, Check, Gift, LockKeyhole, Map, Sparkles } from "lucide-react";
 import { getCollectiblesForMap } from "../../data/collectibles.js";
 import { MAP_THEMES, DEFAULT_MAP_THEME, getMapTheme } from "../../data/mapThemes.js";
 import { getMissionsForTrack, missionIconForState } from "../../data/missions.js";
@@ -7,7 +7,6 @@ import { getMissionProgress, isMissionUnlocked, subscribeToMissionProgress } fro
 import CollectibleSprite from "./CollectibleSprite.jsx";
 import { useEffect, useState } from "react";
 
-const LANDMARKS = [Home, Waves, TreePine, Mountain, Castle];
 const THEME_STORAGE_KEY = "kembara-pintar-map-theme-v1";
 
 function readTheme(studentId) {
@@ -31,12 +30,13 @@ function saveTheme(studentId, themeId) {
 
 function MissionNode({ mission, state, index, href, position }) {
   const Icon = state === "complete" ? Check : state === "locked" ? LockKeyhole : missionIconForState(state);
-  const Landmark = LANDMARKS[index % LANDMARKS.length];
   const node = (
     <span className={`mission-map-landmark mission-map-landmark-${state}`}>
-      <span className="mission-map-landmark-art"><Landmark size={54} strokeWidth={1.7} /><span className="mission-map-landmark-node"><Icon size={18} strokeWidth={2.8} /></span></span>
+      <span className="mission-map-marker" aria-hidden="true">
+        <span className="mission-map-marker-icon"><Icon size={17} strokeWidth={2.8} /></span>
+        <span className="mission-map-marker-stem" />
+      </span>
       <span className="mission-map-node-number">{String(index + 1).padStart(2, "0")}</span>
-      {state === "locked" && <span className="mission-map-fog" aria-hidden="true"><LockKeyhole size={24} /></span>}
     </span>
   );
 
