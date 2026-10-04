@@ -5001,6 +5001,11 @@ body:has(.role-chooser-page) {
 .rate-toast strong { font-family: "Baloo 2", sans-serif; font-size: 1.05rem; line-height: 1.15; }
 .rate-toast span { margin-top: .2rem; color: #64727b; font-size: .72rem; font-weight: 800; }
 .lock-setup, .lock-login, .admin-panel-card, .limit-banner, .guest-gate { margin-top: 1.5rem; border: 2px solid #19384a; border-radius: 8px; padding: 1rem; background: white; box-shadow: 5px 6px 0 rgba(25,56,74,.1); }
+.lock-setup-backdrop { position: fixed; z-index: 80; inset: 0; display: grid; place-items: center; overflow-y: auto; padding: 1rem; background: rgba(25,56,74,.58); backdrop-filter: blur(4px); }
+.lock-setup-modal { width: min(100%, 680px); max-height: calc(100vh - 2rem); overflow-y: auto; border: 2px solid #19384a; border-radius: 10px; padding: 1.25rem; color: #19384a; background: #fffefa; box-shadow: 7px 8px 0 rgba(25,56,74,.18); }
+.lock-setup-modal-heading h2 { margin: .25rem 0 .3rem; font-family: "Baloo 2", sans-serif; font-size: 1.7rem; line-height: 1.05; }
+.lock-setup-modal-heading p { margin: 0; color: #64727b; font-size: .85rem; font-weight: 700; }
+.lock-setup-modal .lock-setup { margin-top: 1rem; padding: 0; border: 0; box-shadow: none; }
 .lock-copy-card { display: grid; gap: .8rem; }
 .lock-slots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin: 1rem 0; }
 .lock-slot { display: grid; min-height: 120px; place-items: center; gap: .35rem; border: 2px dashed #19384a; border-radius: 8px; background: #fffaf0; font-weight: 900; }

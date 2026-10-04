@@ -8,7 +8,7 @@ function pictureById(id) {
   return LOCK_PICTURES.find((item) => item.id === id);
 }
 
-export default function PictureLockSetup({ setupRef, studentName, onCancel, onSave }) {
+export default function PictureLockSetup({ studentName, onCancel, onSave }) {
   const [step, setStep] = useState("show");
   const [picked, setPicked] = useState([]);
   const [practice, setPractice] = useState([]);
@@ -73,7 +73,7 @@ export default function PictureLockSetup({ setupRef, studentName, onCancel, onSa
   const secondSlot = step === "practice" ? pictureById(practice[1]) : second;
 
   return (
-    <section ref={setupRef} className="lock-setup" data-silent-interface>
+    <section className="lock-setup" data-silent-interface>
       <div className="section-heading-row">
         <div>
           <span className="section-kicker">Kunci gambar / Picture lock</span>

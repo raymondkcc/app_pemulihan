@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, BarChart3, Check, CheckCircle2, LogOut, Pencil, Presentation, QrCode, UserRound, X } from "lucide-react";
 import { AVATARS } from "../../data/appAssets.js";
 import MultiplicationReportPanel from "./MultiplicationReportPanel.jsx";
@@ -38,7 +38,6 @@ export default function AdultDashboard() {
   const [reportBusy, setReportBusy] = useState(false);
   const [editStudent, setEditStudent] = useState(null);
   const [qrStudent, setQrStudent] = useState(null);
-  const lockSetupRef = useRef(null);
   const [assessmentRows, setAssessmentRows] = useState({});
 
   async function refresh(currentAdult) {
@@ -69,15 +68,6 @@ export default function AdultDashboard() {
     })();
     return () => { cancelled = true; };
   }, []);
-
-  useEffect(() => {
-    if (!lockStudent) return undefined;
-    const frame = window.requestAnimationFrame(() => {
-      lockSetupRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      lockSetupRef.current?.querySelector("button")?.focus();
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [lockStudent?.id]);
 
   const limit = adult?.studentLimit || FREE_STUDENT_LIMIT;
   const atLimit = students.length >= limit;
@@ -149,20 +139,30 @@ export default function AdultDashboard() {
           <a className="teaching-entry-button" href="/cikgu/mengajar"><span>Buka mod mengajar</span><small>Teaching mode</small><ArrowRight size={19} /></a>
         </section>
         {lockStudent && (
-          <PictureLockSetup
-            setupRef={lockSetupRef}
-            studentName={lockStudent.nickname}
-            onCancel={() => setLockStudent(null)}
-            onSave={async (pictureIds) => {
-              const result = await setStudentLock(lockStudent.id, pictureIds);
-              if (!result.ok) {
-                setError(result.error);
-                return;
-              }
-              setLockStudent(null);
-              await refresh(adult);
-            }}
-          />
+          <div className="lock-setup-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setLockStudent(null); }}>
+            <section className="lock-setup-modal" role="dialog" aria-modal="true" aria-labelledby="picture-lock-title">
+              <div className="lock-setup-modal-heading">
+                <div>
+                  <span className="section-kicker">Akaun murid berjaya dibuat</span>
+                  <h2 id="picture-lock-title">Tetapkan password gambar</h2>
+                  <p>Jadikan <strong>{lockStudent.nickname}</strong> lebih mudah dan selamat untuk masuk.</p>
+                </div>
+              </div>
+              <PictureLockSetup
+                studentName={lockStudent.nickname}
+                onCancel={() => setLockStudent(null)}
+                onSave={async (pictureIds) => {
+                  const result = await setStudentLock(lockStudent.id, pictureIds);
+                  if (!result.ok) {
+                    setError(result.error);
+                    return;
+                  }
+                  setLockStudent(null);
+                  await refresh(adult);
+                }}
+              />
+            </section>
+          </div>
         )}
 
         <section className="dashboard-section">
