@@ -4706,14 +4706,16 @@ body:has(.role-chooser-page) {
 .mission-map-stop { position: absolute; top: var(--map-y); left: var(--map-x); z-index: 1; width: 0; height: 0; }
 .mission-map-stop > a { position: absolute; bottom: 0; left: 0; display: block; width: 44px; height: 57px; color: inherit; text-decoration: none; transform: translateX(-50%); }
 .mission-map-landmark { position: absolute; inset: 0; display: block; width: 44px; height: 57px; color: #19384a; filter: drop-shadow(2px 3px 0 rgba(25,56,74,.2)); transition: transform .16s ease, filter .16s ease; }
+.mission-map-stop > .mission-map-landmark { top: auto; right: auto; bottom: 0; left: 50%; transform: translateX(-50%); }
 .mission-map-stop > a:hover .mission-map-landmark, .mission-map-stop > a:focus-visible .mission-map-landmark { filter: drop-shadow(3px 5px 0 rgba(25,56,74,.25)); transform: translateY(-4px); }
 .mission-map-marker { position: absolute; inset: 0; display: block; }
-.mission-map-marker-icon { position: absolute; top: 0; left: 50%; display: grid; width: 35px; height: 35px; place-items: center; border: 3px solid #19384a; border-radius: 50%; color: white; background: var(--marker-color, #bd4e40); transform: translateX(-50%); }
+.mission-map-marker-icon { position: absolute; top: 0; left: 50%; display: grid; width: 35px; height: 35px; place-items: center; border: 3px solid #19384a; border-radius: 50%; color: white; background: var(--marker-color, #bd4e40); box-shadow: 0 0 0 3px rgba(244,202,71,.28), 0 0 18px 4px var(--marker-glow, rgba(189,78,64,.48)); transform: translateX(-50%); animation: mission-map-marker-float 2.8s ease-in-out infinite, mission-map-marker-glow 2.8s ease-in-out infinite; will-change: transform, box-shadow; }
 .mission-map-marker-stem { position: absolute; bottom: 0; left: 50%; width: 9px; height: 26px; border-radius: 0 0 7px 7px; background: var(--marker-color, #bd4e40); transform: translateX(-50%); clip-path: polygon(0 0, 100% 0, 50% 100%); }
-.mission-map-landmark-current { --marker-color: #bd4e40; }
-.mission-map-landmark-complete { --marker-color: #167764; }
+.mission-map-landmark-current { --marker-color: #bd4e40; --marker-glow: rgba(189,78,64,.58); }
+.mission-map-landmark-complete { --marker-color: #167764; --marker-glow: rgba(22,119,100,.56); }
 .mission-map-landmark-locked { --marker-color: #84928b; }
-.mission-map-landmark-locked .mission-map-marker-icon { color: #52635d; background: #dce4de; filter: grayscale(1); }
+.mission-map-landmark-locked .mission-map-marker-icon { --marker-glow: rgba(132,146,139,.34); color: #52635d; background: #dce4de; filter: grayscale(1); }
+.mission-map-node-number { animation: mission-map-number-float 2.8s ease-in-out infinite; will-change: transform; }
 .mission-map-node-number { position: absolute; top: -4px; right: -7px; z-index: 1; display: grid; width: 17px; height: 17px; place-items: center; border: 2px solid #19384a; border-radius: 50%; color: #19384a; background: #f4ca47; font-size: .43rem; font-weight: 900; }
 .mission-map-trail { display: none; }
 .mission-map-trail-current { border-color: rgba(189,78,64,.8); }
@@ -4726,6 +4728,21 @@ body:has(.role-chooser-page) {
 .mission-map-stop-copy strong { overflow: hidden; color: #19384a; font-family: "Baloo 2", sans-serif; font-size: .68rem; line-height: 1; text-overflow: ellipsis; white-space: nowrap; }
 .mission-map-stop-copy small, .mission-map-start, .mission-map-requirement { display: none; }
 .mission-map-more-locked { display: none; }
+
+@keyframes mission-map-marker-float {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-4px); }
+}
+
+@keyframes mission-map-marker-glow {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(244,202,71,.25), 0 0 13px 2px var(--marker-glow); }
+  50% { box-shadow: 0 0 0 5px rgba(244,202,71,.42), 0 0 24px 7px var(--marker-glow); }
+}
+
+@keyframes mission-map-number-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
 .mission-access-page { display: grid; place-items: center; padding: 1rem; background: #fff9ec; }
 .mission-access-panel { width: min(100%, 520px); border: 3px solid #19384a; border-radius: 10px; padding: clamp(1.5rem, 5vw, 2.5rem); background: #e5f8ef; box-shadow: 7px 8px 0 rgba(25,56,74,.13); text-align: center; }
 .mission-access-icon { display: grid; width: 64px; height: 64px; margin: 0 auto 1rem; place-items: center; border: 3px solid #19384a; border-radius: 50%; color: #19384a; background: #f4ca47; }
@@ -4764,6 +4781,7 @@ body:has(.role-chooser-page) {
 .collectible-discovery-action { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; margin-top: 1rem; border: 2px solid #19384a; border-radius: 6px; padding: .5rem .8rem; color: #19384a; background: #f4ca47; font-size: .74rem; font-weight: 900; }
 @media (prefers-reduced-motion: reduce) {
   .mission-map-stop > a:hover .mission-map-landmark, .mission-map-stop > a:focus-visible .mission-map-landmark { transform: none; }
+  .mission-map-marker-icon, .mission-map-node-number { animation: none; }
 }
 
 /* Perkataan four-choice quiz */
