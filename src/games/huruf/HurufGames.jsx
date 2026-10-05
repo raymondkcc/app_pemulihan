@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
+  ArrowRight,
   Check,
   GripVertical,
   Heart,
@@ -56,9 +57,9 @@ function playPairEffect(source) {
   audio.play().catch(() => {});
 }
 
-function GameIntro({ icon, eyebrow, title, description, actionLabel, onStart }) {
+function GameIntro({ icon, eyebrow, title, description, actionLabel, onStart, sceneClass }) {
   return (
-    <div className="huruf-game-intro">
+    <div className={`huruf-game-intro ${sceneClass || ""}`.trim()}>
       <span className="huruf-game-intro-icon">{icon}</span>
       <span className="section-kicker">{eyebrow}</span>
       <h3>{title}</h3>
@@ -125,7 +126,7 @@ function SoundChoiceGame({ onComplete }) {
   }
 
   if (status === "ready") {
-    return <GameIntro icon={<Volume2 size={25} />} eyebrow="Permainan 01 / Dengar" title="Dengar dan pilih" description="Dengar bunyi huruf, kemudian cari huruf yang betul dalam barisan A hingga Z." actionLabel="Mula permainan" onStart={startGame} />;
+    return <GameIntro sceneClass="huruf-game-intro-sound" icon={<Volume2 size={25} />} eyebrow="Permainan 01 / Dengar" title="Dengar dan pilih" description="Dengar bunyi huruf, kemudian cari huruf yang betul dalam barisan A hingga Z." actionLabel="Mula permainan" onStart={startGame} />;
   }
 
   if (status === "complete") {
@@ -247,7 +248,7 @@ function PairingGame({ onComplete }) {
   }
 
   if (status === "ready") {
-    return <GameIntro icon={<Heart size={25} />} eyebrow="Permainan 02 / Padan" title="Beri huruf kepada anak" description="Seret huruf kecil yang betul kepada anak haiwan. Kamu juga boleh tekan satu huruf untuk memilihnya." actionLabel="Mula permainan" onStart={startGame} />;
+    return <GameIntro sceneClass="huruf-game-intro-pair" icon={<Heart size={25} />} eyebrow="Permainan 02 / Padan" title="Beri huruf kepada anak" description="Seret huruf kecil yang betul kepada anak haiwan. Kamu juga boleh tekan satu huruf untuk memilihnya." actionLabel="Mula permainan" onStart={startGame} />;
   }
 
   if (status === "complete") {
@@ -287,12 +288,7 @@ function PairingGame({ onComplete }) {
 }
 
 export default function HurufGames({ onBack, onComplete }) {
-  const [selectedGame, setSelectedGame] = useState(null);
   const [game, setGame] = useState(null);
-
-  function enterSelectedGame() {
-    if (selectedGame) setGame(selectedGame);
-  }
 
   function returnToGameLobby() {
     setGame(null);
@@ -306,18 +302,19 @@ export default function HurufGames({ onBack, onComplete }) {
       </div>
       {game === null ? (
         <div className="huruf-game-lobby" aria-label="Pilih permainan huruf">
-          <p className="huruf-game-lobby-prompt">Pilih satu permainan untuk bermula.</p>
+          <p className="huruf-game-lobby-prompt">Pilih satu permainan untuk terus bermain.</p>
           <div className="huruf-game-choices">
-            <button className={`huruf-game-choice huruf-game-choice-sound ${selectedGame === "sound" ? "is-selected" : ""}`} type="button" onClick={() => setSelectedGame("sound")} aria-pressed={selectedGame === "sound"}>
+            <button className="huruf-game-choice huruf-game-choice-sound" type="button" onClick={() => setGame("sound")}>
               <span className="huruf-game-choice-icon"><Volume2 size={28} /></span>
-              <span><strong>Dengar dan pilih</strong><small>Dengar bunyi, kemudian pilih huruf yang betul daripada A hingga Z.</small></span>
+              <span className="huruf-game-choice-copy"><strong>Dengar dan pilih</strong><small>Dengar bunyi, kemudian pilih huruf yang betul daripada A hingga Z.</small></span>
+              <span className="huruf-game-choice-cta">Mula <ArrowRight size={18} /></span>
             </button>
-            <button className={`huruf-game-choice huruf-game-choice-pair ${selectedGame === "pair" ? "is-selected" : ""}`} type="button" onClick={() => setSelectedGame("pair")} aria-pressed={selectedGame === "pair"}>
+            <button className="huruf-game-choice huruf-game-choice-pair" type="button" onClick={() => setGame("pair")}>
               <span className="huruf-game-choice-icon"><Heart size={28} /></span>
-              <span><strong>Beri kepada anak</strong><small>Padankan huruf besar dengan huruf kecil untuk anak haiwan.</small></span>
+              <span className="huruf-game-choice-copy"><strong>Beri kepada anak</strong><small>Padankan huruf besar dengan huruf kecil untuk anak haiwan.</small></span>
+              <span className="huruf-game-choice-cta">Mula <ArrowRight size={18} /></span>
             </button>
           </div>
-          <button className="primary-mini-action huruf-game-enter" type="button" onClick={enterSelectedGame} disabled={!selectedGame}><Play size={18} fill="currentColor" /> Masuk permainan</button>
         </div>
       ) : (
         <>

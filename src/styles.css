@@ -513,6 +513,8 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .picker-footer span:first-child { color: var(--home-coral-dark); }
 
 .hub-content { padding: 4.2rem 0 3.5rem; }
+.hub-content.huruf-hub-content { width: min(100%, 1240px); }
+.huruf-hub-content::before { position: absolute; z-index: -1; top: 0; right: 50%; bottom: 0; left: 50%; background: linear-gradient(rgba(220,239,230,.72), rgba(220,239,230,.9)), url("/images/huruf/huruf-world.jpg") center top / cover; content: ""; pointer-events: none; }
 .hub-hero { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: 1.7rem; }
 .back-button { display: inline-flex; align-items: center; gap: .35rem; min-height: 40px; border: 2px solid var(--home-line); border-radius: 8px; padding: .45rem .7rem; color: var(--home-ink); background: rgba(255,255,255,.58); font-size: .8rem; font-weight: 900; transition: background .16s ease, transform .16s ease; }
 .back-button:hover { background: white; transform: translateX(-2px); }
@@ -628,30 +630,37 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .huruf-game-tabs button span { display: flex; min-width: 0; flex-direction: column; gap: .15rem; }
 .huruf-game-tabs strong { font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.12rem; line-height: 1; }
 .huruf-game-tabs small { color: var(--home-muted); font-size: .7rem; font-weight: 800; }
-.huruf-game-lobby { display: flex; min-height: 440px; align-items: center; flex-direction: column; justify-content: center; padding: 2rem clamp(1rem, 5vw, 4rem); color: var(--home-ink); }
-.huruf-game-lobby-prompt { margin: 0 0 1rem; color: var(--home-muted); font-size: .95rem; font-weight: 800; text-align: center; }
-.huruf-game-choices { display: grid; gap: .75rem; width: min(100%, 720px); }
-.huruf-game-choice { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 1rem; min-height: 104px; border: 2px solid var(--home-ink); border-radius: 8px; padding: 1rem 1.15rem; color: var(--home-ink); text-align: left; box-shadow: 4px 5px 0 rgba(25,56,74,.1); transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease; }
-.huruf-game-choice-sound { background: #d8f2ec; }
-.huruf-game-choice-pair { background: #fff0b1; }
-.huruf-game-choice:hover { box-shadow: 6px 7px 0 rgba(25,56,74,.14); transform: translateY(-2px); }
-.huruf-game-choice.is-selected { border-width: 3px; box-shadow: 6px 7px 0 rgba(25,56,74,.16); transform: translateX(5px); }
-.huruf-game-choice-icon { display: grid; width: 58px; height: 58px; place-items: center; border: 2px solid var(--home-ink); border-radius: 8px; color: var(--home-ink); background: rgba(255,255,255,.78); }
-.huruf-game-choice > span:last-child { display: flex; min-width: 0; flex-direction: column; gap: .25rem; }
-.huruf-game-choice strong { font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.45rem; line-height: 1; }
-.huruf-game-choice small { max-width: 58ch; color: var(--home-muted); font-size: .82rem; font-weight: 800; line-height: 1.35; }
-.huruf-game-enter { margin-top: 1.15rem; min-height: 46px; padding-inline: 1.1rem; font-size: .86rem; }
-.huruf-game-enter:disabled { cursor: not-allowed; filter: grayscale(.2); opacity: .5; transform: none; }
+.huruf-game-lobby { display: flex; min-height: 390px; align-items: center; flex-direction: column; justify-content: center; padding: 2rem clamp(1rem, 4vw, 3rem); color: var(--home-ink); }
+.huruf-game-lobby-prompt { margin: 0 0 1rem; color: var(--home-ink); font-size: .95rem; font-weight: 900; text-align: center; }
+.huruf-game-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; width: min(100%, 900px); }
+.huruf-game-choice { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 1rem; min-height: 190px; border: 3px solid var(--home-ink); border-radius: 10px; padding: 1.2rem; color: white; text-align: left; box-shadow: 6px 7px 0 rgba(25,56,74,.2); cursor: pointer; transition: transform .18s ease, box-shadow .18s ease, filter .18s ease; }
+.huruf-game-choice-sound { background: #3655bd; }
+.huruf-game-choice-pair { background: #bd4e40; }
+.huruf-game-choice:hover { box-shadow: 8px 10px 0 rgba(25,56,74,.24); filter: brightness(1.06); transform: translateY(-4px); }
+.huruf-game-choice:focus-visible { outline: 4px solid #f4ca47; outline-offset: 4px; }
+.huruf-game-choice-icon { display: grid; width: 62px; height: 62px; place-items: center; border: 2px solid var(--home-ink); border-radius: 10px; color: var(--home-ink); background: #fffaf0; }
+.huruf-game-choice-copy { display: flex; min-width: 0; flex-direction: column; gap: .35rem; }
+.huruf-game-choice strong { font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.5rem; line-height: 1; }
+.huruf-game-choice small { max-width: 28ch; color: rgba(255,255,255,.9); font-size: .8rem; font-weight: 800; line-height: 1.35; }
+.huruf-game-choice-cta { display: inline-flex; align-items: center; gap: .25rem; align-self: end; color: #fffaf0; font-size: .75rem; font-weight: 900; white-space: nowrap; }
 .huruf-game-switch { display: inline-flex; align-items: center; gap: .3rem; margin: .8rem 1.2rem 0; border: 0; padding: .2rem 0; color: var(--home-muted); background: transparent; font-size: .74rem; font-weight: 900; }
 .huruf-game-switch:hover { color: var(--home-ink); }
 .huruf-game-board { min-height: 440px; margin-top: .8rem; overflow: hidden; border: 2px solid var(--home-ink); border-radius: 10px; background: #f8fbf6; box-shadow: 6px 7px 0 rgba(25,56,74,.1); }
-.huruf-game-intro, .huruf-game-result { display: flex; min-height: 440px; align-items: center; flex-direction: column; justify-content: center; padding: 2rem; color: var(--home-ink); text-align: center; }
+.huruf-game-intro, .huruf-game-result { position: relative; display: flex; min-height: 440px; align-items: center; flex-direction: column; justify-content: center; overflow: hidden; padding: 2rem; color: var(--home-ink); text-align: center; background-color: #dff4eb; background-position: center; background-size: cover; }
+.huruf-game-intro::before { position: absolute; inset: 0; background: rgba(248,251,246,.76); content: ""; pointer-events: none; }
+.huruf-game-intro > * { position: relative; z-index: 1; }
+.huruf-game-intro-sound { background-image: url("/images/huruf/huruf-sound-game.jpg"); }
+.huruf-game-intro-pair { background-image: url("/images/huruf/huruf-family-game.jpg"); }
 .huruf-game-intro-icon, .huruf-game-result-icon { display: grid; width: 58px; height: 58px; place-items: center; border: 2px solid var(--home-ink); border-radius: 50%; color: var(--home-coral-dark); background: var(--home-lemon); box-shadow: 4px 4px 0 rgba(25,56,74,.1); }
 .huruf-game-intro .section-kicker, .huruf-game-result .section-kicker { margin-top: 1rem; }
 .huruf-game-intro h3, .huruf-game-result h3 { margin: .35rem 0 0; font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 2rem; line-height: 1; }
 .huruf-game-intro p, .huruf-game-result p { max-width: 40ch; margin: .55rem 0 1.1rem; color: var(--home-muted); font-size: .84rem; font-weight: 700; line-height: 1.45; }
 .huruf-game-result p strong { color: var(--home-coral-dark); font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.45rem; }
-.huruf-sound-stage, .huruf-pair-stage { min-height: 440px; padding: 1.1rem 1.2rem 1rem; background: linear-gradient(135deg, #f8fbf6 0%, #e7f6ef 100%); }
+.huruf-sound-stage, .huruf-pair-stage { position: relative; min-height: 440px; padding: 1.1rem 1.2rem 1rem; background-color: #dff4eb; background-position: center; background-size: cover; }
+.huruf-sound-stage::before, .huruf-pair-stage::before { position: absolute; inset: 0; background: rgba(248,251,246,.72); content: ""; pointer-events: none; }
+.huruf-sound-stage > *, .huruf-pair-stage > * { position: relative; z-index: 1; }
+.huruf-sound-stage { background-image: url("/images/huruf/huruf-sound-game.jpg"); }
+.huruf-pair-stage { background-image: url("/images/huruf/huruf-family-game.jpg"); }
 .huruf-game-score { display: flex; align-items: center; justify-content: space-between; gap: 1rem; color: var(--home-muted); font-size: .72rem; font-weight: 900; }
 .huruf-game-score strong { color: var(--home-ink); font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.15rem; }
 .huruf-sound-prompt { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .85rem; width: min(100%, 580px); margin: 2.2rem auto 1.45rem; }
@@ -695,7 +704,9 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
   .huruf-game-tabs { grid-template-columns: 1fr; }
   .huruf-game-board, .huruf-game-intro, .huruf-game-result, .huruf-sound-stage, .huruf-pair-stage { min-height: 510px; }
   .huruf-game-lobby { min-height: 510px; padding: 1.2rem .8rem; }
+  .huruf-game-choices { grid-template-columns: 1fr; }
   .huruf-game-choice { grid-template-columns: auto 1fr; min-height: 112px; padding: .85rem; }
+  .huruf-game-choice-cta { grid-column: 2; align-self: start; }
   .huruf-game-choice strong { font-size: 1.2rem; }
   .huruf-game-choice small { font-size: .74rem; }
   .huruf-game-switch { margin-left: .7rem; }
@@ -716,6 +727,10 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
   .huruf-animal-image { width: min(100%, 125px); height: 96px; }
   .huruf-pair-choices { gap: .4rem; }
   .huruf-pair-choice { min-height: 66px; }
+}
+
+@media (max-width: 760px) {
+  .huruf-hub-content::before { background-position: 60% top; }
 }
 
 @keyframes huruf-speaker-retry {

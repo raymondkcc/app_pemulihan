@@ -60,7 +60,7 @@ function MainVokal({ onBack }) {
 }
 
 function MainHuruf({ onBack, onMissionComplete }) {
-  return <div className="home-content hub-content"><div className="hub-hero"><button className="back-button" type="button" onClick={onBack}><ArrowLeft size={18} /> <span>Huruf</span></button><div className="hub-title-block"><span className="hub-eyebrow"><PenLine size={15} /> Huruf</span><h1>Main Huruf</h1><p>Dengar bunyi dan padankan huruf dengan keluarga haiwan.</p></div></div><HurufGames onBack={onBack} onComplete={onMissionComplete} /></div>;
+  return <div className="home-content hub-content huruf-hub-content"><div className="hub-hero"><button className="back-button" type="button" onClick={onBack}><ArrowLeft size={18} /> <span>Huruf</span></button><div className="hub-title-block"><span className="hub-eyebrow"><PenLine size={15} /> Huruf</span><h1>Main Huruf</h1><p>Dengar bunyi dan padankan huruf dengan keluarga haiwan.</p></div></div><HurufGames onBack={onBack} onComplete={onMissionComplete} /></div>;
 }
 
 function CategoryHeader({ onBack, cat }) {
