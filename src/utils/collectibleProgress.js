@@ -54,4 +54,11 @@ export function getFoundCollectibles(studentId, mapId) {
   return Array.isArray(foundIds) ? foundIds : [];
 }
 
+export function hasCollectedMap(studentId, mapId) {
+  const items = getCollectiblesForMap(mapId);
+  if (!items.length) return false;
+  const foundIds = getFoundCollectibles(studentId, mapId);
+  return items.every((item) => foundIds.includes(item.id));
+}
+
 export { STORAGE_KEY as COLLECTIBLES_STORAGE_KEY, PENDING_KEY as PENDING_COLLECTIBLE_KEY };

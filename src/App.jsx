@@ -74,7 +74,6 @@ function missionAccess(student, missionId) {
       completeMission(student.id, missionId);
       const theme = MAP_THEMES[Math.min(MAP_THEMES.length - 1, Math.max(0, missionIndex))];
       discoverCollectible(student.id, theme.id);
-      window.location.href = "/murid/ruang";
     }
   };
 }

@@ -2,7 +2,7 @@ import { ArrowRight, BookOpen, Check, Gift, LockKeyhole, Map, Sparkles } from "l
 import { getCollectiblesForMap } from "../../data/collectibles.js";
 import { MAP_THEMES, DEFAULT_MAP_THEME, getMapTheme } from "../../data/mapThemes.js";
 import { getMissionsForTrack, missionIconForState } from "../../data/missions.js";
-import { getFoundCollectibles } from "../../utils/collectibleProgress.js";
+import { getFoundCollectibles, hasCollectedMap } from "../../utils/collectibleProgress.js";
 import { getMissionProgress, isMissionUnlocked, subscribeToMissionProgress } from "../../utils/missionProgress.js";
 import CollectibleSprite from "./CollectibleSprite.jsx";
 import { useEffect, useState } from "react";
@@ -78,7 +78,12 @@ export default function MissionMap({ student }) {
   }, [student.id]);
 
   const completedCount = missions.filter((mission) => completedIds.includes(mission.id)).length;
-  const unlockedMapCount = isGuest ? 1 : Math.min(availableMapCount, completedCount + 1);
+  const unlockedMapCount = isGuest
+    ? 1
+    : availableThemes.reduce((count, mapTheme, index) => {
+      if (index === 0 || count !== index || !hasCollectedMap(student.id, availableThemes[index - 1].id)) return count;
+      return count + 1;
+    }, 1);
   const selectedThemeIndex = MAP_THEMES.findIndex((mapTheme) => mapTheme.id === theme.id);
   const activeTheme = selectedThemeIndex >= 0 && selectedThemeIndex < unlockedMapCount
     ? theme
@@ -105,7 +110,7 @@ export default function MissionMap({ student }) {
         <div>
           <span className="section-kicker"><Map size={15} /> Peta kembara</span>
           <h2 id="mission-map-title">Hai, {student.nickname || "kembara"}!</h2>
-          <p>{isGuest ? "Demo membuka peta pertama sahaja." : journeyFinished ? "Semua peta untuk laluan ini sudah terbuka. Pilih mana-mana untuk bermain semula." : "Selesaikan checkpoint untuk membuka peta seterusnya."}</p>
+          <p>{isGuest ? "Demo membuka peta pertama sahaja." : journeyFinished ? "Semua peta untuk laluan ini sudah terbuka. Pilih mana-mana untuk bermain semula." : "Lengkapkan koleksi peta untuk membuka peta seterusnya."}</p>
         </div>
         <span className="mission-map-count"><Sparkles size={15} /> {completedCount}/{missions.length} checkpoint</span>
       </div>
@@ -120,7 +125,7 @@ export default function MissionMap({ student }) {
             <button className={`mission-map-theme-option ${selected ? "is-selected" : ""} ${locked ? "is-locked" : ""}`} key={mapTheme.id} type="button" onClick={() => chooseTheme(mapTheme.id)} disabled={locked} aria-label={`${mapTheme.title}${locked ? ", belum terbuka" : ", pilih peta"}`} aria-pressed={selected}>
               <img src={mapTheme.thumbnail} alt="" />
               <span className="mission-map-theme-name">{mapTheme.title}</span>
-              {locked && <span className="mission-map-theme-lock"><LockKeyhole size={13} /> Selesaikan peta {index}</span>}
+              {locked && <span className="mission-map-theme-lock"><LockKeyhole size={13} /> Lengkapkan koleksi peta {index}</span>}
             </button>
             );
           })}

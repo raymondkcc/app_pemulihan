@@ -738,6 +738,7 @@ export default function KvSoundPondGame({ onComplete }) {
           <p>{correct} / {questionCount} bunyi tepat</p>
           <h1 id="pond-finish-title">Hebat!</h1>
           <button className="pond-start" type="button" onClick={() => setPhase("setup")}><RotateCcw size={22} /> Main lagi</button>
+          <a className="pond-back" href="/murid/ruang"><ArrowLeft size={20} /> Kembali ke peta</a>
         </section>
       </main>
     );
