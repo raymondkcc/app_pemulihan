@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Archive, ChevronLeft, GraduationCap, LogOut, Pencil, Plus, Presentation, QrCode, Shield, X } from "lucide-react";
+import { Archive, Check, ChevronLeft, Copy, GraduationCap, LogOut, Pencil, Plus, Presentation, QrCode, Shield, X } from "lucide-react";
 import { FREE_STUDENT_LIMIT } from "../../data/kembara.js";
 import AdventureLogo from "../home/AdventureLogo.jsx";
 import {
@@ -16,6 +16,8 @@ import {
   setAdultLimit,
   updateAdultAccount,
   deleteAdultAccount,
+  getDemoConfig,
+  setDemoActive,
   whenAuthReady
 } from "../../utils/kembaraStore.js";
 import { canRun, tooFrequent } from "../../utils/rateLimit.js";
@@ -121,6 +123,7 @@ function AdminHome({ adult }) {
   const [deletingAdultId, setDeletingAdultId] = useState("");
   const [accountFeedback, setAccountFeedback] = useState(null);
   const [showArchivedAccounts, setShowArchivedAccounts] = useState(false);
+  const [demo, setDemo] = useState(getDemoConfig());
   const adults = useMemo(() => store.adults, [store]);
   const activeAdults = useMemo(() => adults.filter((item) => item.active), [adults]);
   const archivedAdults = useMemo(() => adults.filter((item) => !item.active), [adults]);
@@ -130,6 +133,7 @@ function AdminHome({ adult }) {
     const result = await loadAdminWorkspace();
     setStore(result.store);
     setStats(result.stats);
+    setDemo(result.demo || getDemoConfig());
   }
 
   useEffect(() => {
@@ -235,6 +239,7 @@ function AdminHome({ adult }) {
           <article><span>Bacaan / Kira / Kembara</span><strong>{stats.tracks.bm} / {stats.tracks.math} / {stats.tracks.both}</strong></article>
         </div>
         <button className="new-profile-button" type="button" onClick={refresh}>Muat semula / Refresh</button>
+        <DemoAccessCard demo={demo} onChange={setDemo} />
         <section className="admin-panel-card">
           <div className="section-heading-row">
             <div><span className="section-kicker">Akaun baru</span><h2><Plus size={18} /> Tambah cikgu / ibu bapa</h2></div>
@@ -346,6 +351,62 @@ function AdminHome({ adult }) {
       {editing && <AdultEditDialog adult={editing} onClose={() => setEditing(null)} onSave={saveEdit} />}
       {qrStudent && <StudentQrDialog student={qrStudent} onClose={() => setQrStudent(null)} />}
     </main>
+  );
+}
+
+function DemoAccessCard({ demo, onChange }) {
+  const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState("");
+  const [error, setError] = useState("");
+
+  async function toggle() {
+    setBusy(true);
+    setError("");
+    const result = await setDemoActive(!demo.active);
+    setBusy(false);
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+    onChange(result.demo);
+  }
+
+  async function copyLink(role) {
+    const token = demo[`${role}Token`];
+    const link = `${window.location.origin}/demo/${role}?token=${encodeURIComponent(token)}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(role);
+      window.setTimeout(() => setCopied(""), 1800);
+    } catch {
+      setError("Pautan tidak dapat disalin. Salin pautan yang dipaparkan secara manual.");
+    }
+  }
+
+  const linksReady = demo.active && demo.studentToken && demo.teacherToken;
+  return (
+    <section className="admin-panel-card demo-access-card">
+      <div className="section-heading-row">
+        <div><span className="section-kicker">Akses sementara</span><h2><Presentation size={18} /> Demo produk</h2></div>
+        <span className={`demo-status ${demo.active ? "is-active" : ""}`}>{demo.active ? "Aktif" : "Tidak aktif"}</span>
+      </div>
+      <p className="demo-access-copy">Hidupkan dua pautan khas untuk menunjukkan pengalaman murid tanpa had dan dashboard cikgu dengan data contoh.</p>
+      <button className={`demo-toggle-button ${demo.active ? "is-active" : ""}`} type="button" onClick={toggle} disabled={busy}>{demo.active ? <Check size={17} /> : <Shield size={17} />}{busy ? "Menyimpan..." : demo.active ? "Nyahaktifkan demo" : "Aktifkan demo"}</button>
+      {error && <p className="form-error" role="alert">{error}</p>}
+      {linksReady && <div className="demo-link-list">
+        <DemoLinkRow label="Pautan murid tanpa had" href={`${window.location.origin}/demo/student?token=${encodeURIComponent(demo.studentToken)}`} onCopy={() => copyLink("student")} copied={copied === "student"} description="Semua permainan, latihan, ujian, peta dan koleksi terbuka." />
+        <DemoLinkRow label="Pautan cikgu demo" href={`${window.location.origin}/demo/teacher?token=${encodeURIComponent(demo.teacherToken)}`} onCopy={() => copyLink("teacher")} copied={copied === "teacher"} description="Dashboard baca sahaja dengan tiga murid dan data contoh." />
+      </div>}
+    </section>
+  );
+}
+
+function DemoLinkRow({ label, href, description, onCopy, copied }) {
+  return (
+    <div className="demo-link-row">
+      <div><strong>{label}</strong><small>{description}</small><code>{href}</code></div>
+      <button type="button" onClick={onCopy}>{copied ? <Check size={15} /> : <Copy size={15} />}{copied ? "Disalin" : "Salin"}</button>
+    </div>
   );
 }
 

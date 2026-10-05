@@ -15,12 +15,13 @@ import KVKGame from "./components/kvk/KVKGame.jsx";
 import AdultLogin from "./components/kembara/AdultLogin.jsx";
 import AdminPanel from "./components/kembara/AdminPanel.jsx";
 import AdultDashboard from "./components/kembara/AdultDashboard.jsx";
+import DemoTeacherDashboard from "./components/kembara/DemoTeacherDashboard.jsx";
 import StudentClassEntry from "./components/kembara/StudentClassEntry.jsx";
 import GuestDemoGate from "./components/kembara/GuestDemoGate.jsx";
 import RateLimitToast from "./components/kembara/RateLimitToast.jsx";
 import LoadingScreen from "./components/kembara/LoadingScreen.jsx";
 import { isInteractiveTarget, playInterfaceClick } from "./utils/interfaceAudio.js";
-import { getActiveAdult, getActiveStudent, isGuestPathAllowed, startKembaraAuth, whenAuthReady } from "./utils/kembaraStore.js";
+import { getActiveAdult, getActiveStudent, isGuestPathAllowed, refreshAppMeta, startDemoSession, startKembaraAuth, whenAuthReady } from "./utils/kembaraStore.js";
 import { getMissionById, getMissionsForTrack } from "./data/missions.js";
 import { MAP_THEMES } from "./data/mapThemes.js";
 import { completeMission, getMissionProgress, isMissionUnlocked } from "./utils/missionProgress.js";
@@ -58,6 +59,19 @@ function studentPath(path) {
   return student;
 }
 
+function DemoUnavailable() {
+  return (
+    <main className="portal-page">
+      <section className="profile-content guest-gate">
+        <span className="portal-eyebrow">Demo tidak tersedia</span>
+        <h1>Pautan demo ditutup</h1>
+        <p>Pautan ini tidak lagi aktif. Sila minta admin mengaktifkan demo semula.</p>
+        <a className="new-profile-button" href="/">Kembali ke laman utama</a>
+      </section>
+    </main>
+  );
+}
+
 function missionAccess(student, missionId) {
   if (!missionId) return { mission: null, onComplete: undefined };
   const mission = getMissionById(missionId);
@@ -65,7 +79,7 @@ function missionAccess(student, missionId) {
   const missions = getMissionsForTrack(student.track);
   const missionIndex = missions.findIndex((item) => item.id === missionId);
   const progress = getMissionProgress(student.id);
-  if (missionIndex < 0 || (student.isGuest && missionIndex > 0) || !isMissionUnlocked(missionIndex, missions, progress.completedIds)) {
+  if (missionIndex < 0 || (!student.isDemo && student.isGuest && missionIndex > 0) || (!student.isDemo && !isMissionUnlocked(missionIndex, missions, progress.completedIds))) {
     return { blocked: true };
   }
   return {
@@ -80,10 +94,13 @@ function missionAccess(student, missionId) {
 
 function RouteView() {
   const path = window.location.pathname.replace(/\/+$/, "") || "/";
+  if (path === "/demo/student") return <StudentDashboard />;
+  if (path === "/demo/teacher") return <DemoTeacherDashboard />;
+  if (path === "/demo/tidak-tersedia") return <DemoUnavailable />;
   if (path === "/") return <RoleChooser />;
   if (path === "/murid") return <StudentClassEntry />;
   if (path === "/cikgu") return <AdultLogin />;
-  if (path === "/akaun") return <AdultDashboard />;
+  if (path === "/akaun") return getActiveAdult()?.isDemo ? <DemoTeacherDashboard /> : <AdultDashboard />;
   if (path === "/admin") return <AdminPanel />;
   if (path === "/murid/demo-tamat") return <GuestDemoGate />;
   if (path === "/cikgu/mengajar") return <TeacherHub teachingMode />;
@@ -185,10 +202,23 @@ function RouteView() {
 
 function AuthGate({ children }) {
   const [ready, setReady] = useState(false);
+  const [demoError, setDemoError] = useState(false);
 
   useEffect(() => {
-    startKembaraAuth();
-    whenAuthReady().then(() => setReady(true));
+    let cancelled = false;
+    (async () => {
+      startKembaraAuth();
+      await whenAuthReady();
+      await refreshAppMeta();
+      const path = window.location.pathname.replace(/\/+$/, "") || "/";
+      if (path === "/demo/student" || path === "/demo/teacher") {
+        const role = path.endsWith("/student") ? "student" : "teacher";
+        const result = await startDemoSession(role, new URLSearchParams(window.location.search).get("token"));
+        if (!result.ok && !cancelled) setDemoError(true);
+      }
+      if (!cancelled) setReady(true);
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   if (!ready) {
@@ -197,7 +227,7 @@ function AuthGate({ children }) {
     );
   }
 
-  return children;
+  return demoError ? <DemoUnavailable /> : children;
 }
 
 export default function App() {

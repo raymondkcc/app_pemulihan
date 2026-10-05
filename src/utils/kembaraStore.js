@@ -24,7 +24,7 @@ import { auth, db, secondaryAuth } from "./firebase.js";
 
 const SESSION_KEY = "kembara-pintar-session-v1";
 
-const emptySession = () => ({ adultId: null, studentId: null, guest: false, classCode: null, demoComplete: false });
+const emptySession = () => ({ adultId: null, studentId: null, guest: false, classCode: null, demoComplete: false, demoRole: null, demoToken: null });
 
 const GUEST_STUDENT = {
   id: "guest",
@@ -36,11 +36,32 @@ const GUEST_STUDENT = {
   demoComplete: false
 };
 
+const DEMO_STUDENT = {
+  id: "demo-student",
+  nickname: "Aiman Demo",
+  avatarId: "bintang",
+  track: "both",
+  isDemo: true,
+  progress: {}
+};
+
+const DEMO_ADULT = {
+  id: "demo-teacher",
+  name: "Cikgu Demo",
+  email: "demo.teacher@kembara-pintar.local",
+  role: "teacher",
+  plan: "demo",
+  studentLimit: 0,
+  active: true,
+  isDemo: true
+};
+
 let authReady = false;
 let currentUser = null;
 let cachedAdult = null;
 let cachedStore = { version: 2, adults: [], classes: [], students: [] };
 let cachedHasAdmin = false;
+let cachedDemoConfig = { active: false, studentToken: "", teacherToken: "" };
 const authWaiters = [];
 let authStarted = false;
 
@@ -78,6 +99,19 @@ function readSession() {
 
 function writeSession(session) {
   return writeJson(SESSION_KEY, session);
+}
+
+function normaliseDemoConfig(data = {}) {
+  const demo = data.demo || {};
+  return {
+    active: Boolean(demo.active),
+    studentToken: String(demo.studentToken || ""),
+    teacherToken: String(demo.teacherToken || "")
+  };
+}
+
+function createDemoToken(role) {
+  return `${role}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
 }
 
 function randomCode(length, alphabet = CLASS_CODE_ALPHABET) {
@@ -276,7 +310,27 @@ export function hasAdmin() {
 }
 
 export function getActiveAdult() {
+  const session = readSession();
+  if (session.demoRole === "teacher" && isDemoSessionValid("teacher")) return DEMO_ADULT;
   return cachedAdult && cachedAdult.active ? cachedAdult : null;
+}
+
+export function getDemoConfig() {
+  return { ...cachedDemoConfig };
+}
+
+export function isDemoSessionValid(role) {
+  const session = readSession();
+  return Boolean(
+    cachedDemoConfig.active
+      && session.demoRole === role
+      && session.demoToken
+      && session.demoToken === cachedDemoConfig[`${role}Token`]
+  );
+}
+
+export function getDemoStudent() {
+  return isDemoSessionValid("student") ? DEMO_STUDENT : null;
 }
 
 export function getAdultClass(adultId) {
@@ -293,6 +347,7 @@ export function studentSeatCount(adultId) {
 
 export function getActiveStudent() {
   const session = readSession();
+  if (session.demoRole === "student" && isDemoSessionValid("student")) return DEMO_STUDENT;
   if (session.guest) return { ...GUEST_STUDENT, demoComplete: Boolean(session.demoComplete) };
   if (!session.studentId) return null;
   const cached = cachedStore.students.find((student) => student.id === session.studentId && !student.archived);
@@ -303,7 +358,7 @@ export function getActiveStudent() {
 }
 
 export async function logoutAdult() {
-  writeSession({ ...readSession(), adultId: null });
+  writeSession({ ...readSession(), adultId: null, demoRole: null, demoToken: null });
   cachedAdult = null;
   currentUser = null;
   try {
@@ -315,22 +370,41 @@ export async function logoutAdult() {
 
 export function logoutStudent() {
   const session = readSession();
-  writeSession({ ...session, studentId: null, guest: false, demoComplete: false, student: null });
+  writeSession({ ...session, studentId: null, guest: false, demoComplete: false, student: null, demoRole: null, demoToken: null });
   void signOut(auth).catch(() => {});
 }
 
 export function clearClassSession() {
-  writeSession({ ...readSession(), classCode: null, studentId: null, guest: false, student: null });
+  writeSession({ ...readSession(), classCode: null, studentId: null, guest: false, student: null, demoRole: null, demoToken: null });
 }
 
 export async function refreshAppMeta() {
   try {
     const snap = await getDoc(doc(db, "meta", "app"));
     cachedHasAdmin = Boolean(snap.exists() && snap.data()?.adminExists);
+    cachedDemoConfig = normaliseDemoConfig(snap.exists() ? snap.data() : {});
     return cachedHasAdmin;
   } catch {
     return cachedHasAdmin;
   }
+}
+
+export async function setDemoActive(active) {
+  const actor = getActiveAdult();
+  if (!actor || actor.role !== "admin" || actor.isDemo) return { ok: false, error: "Hanya admin boleh mengurus demo." };
+  const current = getDemoConfig();
+  const next = {
+    active: Boolean(active),
+    studentToken: current.studentToken || createDemoToken("student"),
+    teacherToken: current.teacherToken || createDemoToken("teacher")
+  };
+  try {
+    await setDoc(doc(db, "meta", "app"), { demo: next, updatedAt: nowIso() }, { merge: true });
+  } catch (error) {
+    return { ok: false, error: authMessage(error) };
+  }
+  cachedDemoConfig = next;
+  return { ok: true, demo: { ...next } };
 }
 
 async function loadOwnedData(adultId) {
@@ -366,7 +440,7 @@ export async function loadAdminWorkspace() {
   await whenAuthReady();
   const adult = getActiveAdult();
   if (!adult || adult.role !== "admin") {
-    return { adult, store: cachedStore, stats: getDailyStats() };
+    return { adult, store: cachedStore, stats: getDailyStats(), demo: getDemoConfig() };
   }
   const [adultsSnap, classesSnap, studentsSnap] = await Promise.all([
     getDocs(collection(db, "adults")),
@@ -379,7 +453,7 @@ export async function loadAdminWorkspace() {
     classes: classesSnap.docs.map((item) => classFromDoc(item.id, item.data())),
     students: studentsSnap.docs.map((item) => studentFromDoc(item.id, item.data()))
   };
-  return { adult, store: cachedStore, stats: getDailyStats() };
+  return { adult, store: cachedStore, stats: getDailyStats(), demo: getDemoConfig() };
 }
 
 async function claimFirstAdmin(user, { name, email }) {
@@ -931,6 +1005,16 @@ export async function loginStudentWithQrToken(token) {
 export function continueAsGuest() {
   writeSession({ ...emptySession(), guest: true, demoComplete: false });
   return GUEST_STUDENT;
+}
+
+export async function startDemoSession(role, token) {
+  if (role !== "student" && role !== "teacher") return { ok: false, error: "Pautan demo tidak sah." };
+  const config = getDemoConfig();
+  if (!config.active || !token || token !== config[`${role}Token`]) {
+    return { ok: false, error: "Pautan demo ini sudah tidak aktif." };
+  }
+  writeSession({ ...emptySession(), demoRole: role, demoToken: token });
+  return { ok: true };
 }
 
 export function markGuestDemoComplete() {

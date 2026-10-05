@@ -61,11 +61,13 @@ export default function MissionMap({ student }) {
   const [collectionOpen, setCollectionOpen] = useState(false);
   const [foundCollectibleIds, setFoundCollectibleIds] = useState(() => getFoundCollectibles(student.id, readTheme(student.id)));
   const missions = getMissionsForTrack(student.track);
-  const availableMapCount = Math.min(MAP_THEMES.length, missions.length);
+  const isDemo = Boolean(student.isDemo);
+  const availableMapCount = isDemo ? MAP_THEMES.length : Math.min(MAP_THEMES.length, missions.length);
   const availableThemes = MAP_THEMES.slice(0, availableMapCount);
   const theme = getMapTheme(themeId);
   const isGuest = Boolean(student.isGuest);
-  const visibleMissions = isGuest ? missions.slice(0, 1) : missions;
+  const visibleMissions = isGuest && !isDemo ? missions.slice(0, 1) : missions;
+  const visibleCompletedIds = isDemo ? missions.map((mission) => mission.id) : completedIds;
 
   useEffect(() => {
     setThemeId(readTheme(student.id));
@@ -77,8 +79,10 @@ export default function MissionMap({ student }) {
     });
   }, [student.id]);
 
-  const completedCount = missions.filter((mission) => completedIds.includes(mission.id)).length;
-  const unlockedMapCount = isGuest
+  const completedCount = missions.filter((mission) => visibleCompletedIds.includes(mission.id)).length;
+  const unlockedMapCount = isDemo
+    ? MAP_THEMES.length
+    : isGuest
     ? 1
     : availableThemes.reduce((count, mapTheme, index) => {
       if (index === 0 || count !== index || !hasCollectedMap(student.id, availableThemes[index - 1].id)) return count;
@@ -88,10 +92,11 @@ export default function MissionMap({ student }) {
   const activeTheme = selectedThemeIndex >= 0 && selectedThemeIndex < unlockedMapCount
     ? theme
     : MAP_THEMES[Math.max(0, unlockedMapCount - 1)];
-  const currentIndex = missions.findIndex((mission, index) => !completedIds.includes(mission.id) && isMissionUnlocked(index, missions, completedIds));
+  const currentIndex = missions.findIndex((mission, index) => !visibleCompletedIds.includes(mission.id) && isMissionUnlocked(index, missions, visibleCompletedIds));
   const journeyFinished = currentIndex === -1 && completedCount === missions.length;
   const mapCollectibles = getCollectiblesForMap(activeTheme.id);
-  const foundCollectibleCount = mapCollectibles.filter((item) => foundCollectibleIds.includes(item.id)).length;
+  const visibleFoundCollectibleIds = isDemo ? mapCollectibles.map((item) => item.id) : foundCollectibleIds;
+  const foundCollectibleCount = mapCollectibles.filter((item) => visibleFoundCollectibleIds.includes(item.id)).length;
 
   useEffect(() => {
     setFoundCollectibleIds(getFoundCollectibles(student.id, activeTheme.id));
@@ -110,7 +115,7 @@ export default function MissionMap({ student }) {
         <div>
           <span className="section-kicker"><Map size={15} /> Peta kembara</span>
           <h2 id="mission-map-title">Hai, {student.nickname || "kembara"}!</h2>
-          <p>{isGuest ? "Demo membuka peta pertama sahaja." : journeyFinished ? "Semua peta untuk laluan ini sudah terbuka. Pilih mana-mana untuk bermain semula." : "Lengkapkan koleksi peta untuk membuka peta seterusnya."}</p>
+          <p>{isDemo ? "Semua peta, latihan dan koleksi tersedia untuk diterokai." : isGuest ? "Demo membuka peta pertama sahaja." : journeyFinished ? "Semua peta untuk laluan ini sudah terbuka. Pilih mana-mana untuk bermain semula." : "Lengkapkan koleksi peta untuk membuka peta seterusnya."}</p>
         </div>
         <span className="mission-map-count"><Sparkles size={15} /> {completedCount}/{missions.length} checkpoint</span>
       </div>
@@ -147,7 +152,7 @@ export default function MissionMap({ student }) {
           <p className="mission-map-collection-prompt">Lengkapkan aktiviti pembelajaran, latihan, permainan atau ujian untuk menjumpai koleksi baharu.</p>
           <div className="mission-map-collection-grid">
             {mapCollectibles.map((item, index) => {
-              const found = foundCollectibleIds.includes(item.id);
+              const found = visibleFoundCollectibleIds.includes(item.id);
               return (
                 <div className={`mission-map-collection-item ${found ? "is-found" : "is-hidden"}`} key={item.id}>
                   <CollectibleSprite item={item} size="tile" hidden={!found} />
@@ -163,9 +168,9 @@ export default function MissionMap({ student }) {
       <ol className="mission-map-path" style={{ "--map-background": `url("${activeTheme.image}")` }}>
         {visibleMissions.map((mission) => {
           const index = missions.findIndex((item) => item.id === mission.id);
-          const state = completedIds.includes(mission.id)
+          const state = visibleCompletedIds.includes(mission.id)
             ? "complete"
-            : isMissionUnlocked(index, missions, completedIds) && (!isGuest || index === 0)
+            : isMissionUnlocked(index, missions, visibleCompletedIds) && (!isGuest || isDemo || index === 0)
               ? "current"
               : "locked";
           return <MissionNode key={mission.id} mission={mission} index={index} state={state} href={mission.route} position={activeTheme.positions[index] || activeTheme.positions[activeTheme.positions.length - 1]} />;

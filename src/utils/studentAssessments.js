@@ -18,7 +18,7 @@ export const ASSESSMENT_SKILLS = {
 };
 
 export async function persistStudentAssessment({ studentId, subject, skillId, score, total }) {
-  if (!studentId || studentId === "guest") return { ok: false, localOnly: true };
+  if (!studentId || studentId === "guest" || studentId === "demo-student") return { ok: false, localOnly: true };
   const key = `pemulihan-assessments-v1:${studentId}`;
   const record = {
     id: `${subject}_${skillId}`,

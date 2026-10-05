@@ -41,6 +41,7 @@ export default function StudentDashboard() {
         </div>
       </header>
       <section className="dashboard-content">
+        {profile.isDemo && <p className="demo-banner">Demo murid tanpa had: semua peta, koleksi, latihan dan ujian tersedia.</p>}
         {profile.isGuest && <p className="guest-banner">Demo tahap 1 sahaja. Simpan kembara dengan akaun percuma.</p>}
         <MissionMap student={profile} />
       </section>
