@@ -1,10 +1,18 @@
 import { useState } from "react";
 
-export default function CollectibleSprite({ item, size = "tile", className = "" }) {
+export default function CollectibleSprite({ item, size = "tile", className = "", hidden = false }) {
   const [imageFailed, setImageFailed] = useState(false);
   const sprite = item?.sprite;
   const sheet = item?.sheet;
   const classes = `collectible-sprite collectible-sprite-${size} ${className}`.trim();
+
+  if (hidden) {
+    return (
+      <span className={`${classes} collectible-sprite-question`} role="img" aria-label="Koleksi belum ditemui">
+        ?
+      </span>
+    );
+  }
 
   if (!sprite || !sheet || imageFailed) {
     return <span className={`${classes} collectible-sprite-fallback`} role="img" aria-label={item?.name || "Koleksi"}>{item?.emoji || "?"}</span>;

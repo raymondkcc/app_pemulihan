@@ -4685,16 +4685,21 @@ body:has(.role-chooser-page) {
 .mission-map-collection-heading { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; color: #19384a; }
 .mission-map-collection-heading strong { font-family: "Baloo 2", sans-serif; font-size: 1rem; line-height: 1; }
 .mission-map-collection-heading small { color: #167764; font-size: .62rem; font-weight: 900; }
+.mission-map-collection-prompt { margin: .35rem 0 0; color: #397567; font-size: .66rem; font-weight: 800; line-height: 1.35; }
 .mission-map-collection-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .45rem; margin-top: .55rem; }
 .mission-map-collection-item { display: grid; min-width: 0; gap: .2rem; justify-items: center; color: #19384a; text-align: center; }
 .mission-map-collection-item > span:last-child { width: 100%; overflow: hidden; font-size: .52rem; font-weight: 900; line-height: 1.1; text-overflow: ellipsis; white-space: nowrap; }
-.mission-map-collection-item.is-hidden { color: #64727b; }
-.mission-map-collection-item.is-hidden .collectible-sprite { filter: grayscale(1); opacity: .38; }
+.mission-map-collection-item.is-hidden { color: #285f55; }
 .collectible-sprite { position: relative; display: block; overflow: hidden; flex: none; aspect-ratio: var(--sprite-ratio, 1); border: 2px solid #19384a; border-radius: 6px; background: #f4eee8; }
 .collectible-sprite img { position: absolute; top: calc(var(--sprite-row, 0) * -100%); left: calc(var(--sprite-column, 0) * -100%); display: block; width: 500%; max-width: none; height: 300%; }
 .collectible-sprite-tile { width: 100%; max-width: 68px; }
 .collectible-sprite-discovery { width: 86px; border-radius: 50%; }
 .collectible-sprite-fallback { display: grid; place-items: center; color: #19384a; background: #f4ca47; font-size: 2.4rem; line-height: 1; }
+.collectible-sprite-question { display: grid; place-items: center; color: #fffaf0; background: #3655bd; font-family: "Baloo 2", sans-serif; font-size: 2rem; font-weight: 900; line-height: 1; text-shadow: 0 0 8px rgba(255,255,255,.85); box-shadow: 0 0 0 3px rgba(244,202,71,.35), 0 0 18px 5px rgba(88,121,232,.7); animation: collectible-question-glow 2.4s ease-in-out infinite; }
+@keyframes collectible-question-glow {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(244,202,71,.28), 0 0 12px 3px rgba(88,121,232,.5); transform: translateY(0); }
+  50% { box-shadow: 0 0 0 5px rgba(244,202,71,.48), 0 0 24px 8px rgba(88,121,232,.8); transform: translateY(-2px); }
+}
 .mission-map-legend { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: .7rem 1rem; margin-top: 1.1rem; color: #285f55; font-size: .65rem; font-weight: 900; }
 .mission-map-legend > span { display: inline-flex; align-items: center; gap: .3rem; }
 .legend-dot { display: inline-block; width: 10px; height: 10px; border: 2px solid #19384a; border-radius: 50%; }
@@ -4781,7 +4786,7 @@ body:has(.role-chooser-page) {
 .collectible-discovery-action { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; margin-top: 1rem; border: 2px solid #19384a; border-radius: 6px; padding: .5rem .8rem; color: #19384a; background: #f4ca47; font-size: .74rem; font-weight: 900; }
 @media (prefers-reduced-motion: reduce) {
   .mission-map-stop > a:hover .mission-map-landmark, .mission-map-stop > a:focus-visible .mission-map-landmark { transform: none; }
-  .mission-map-marker-icon, .mission-map-node-number { animation: none; }
+  .mission-map-marker-icon, .mission-map-node-number, .collectible-sprite-question { animation: none; }
 }
 
 /* Perkataan four-choice quiz */

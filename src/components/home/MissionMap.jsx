@@ -139,12 +139,13 @@ export default function MissionMap({ student }) {
             <strong>Barang yang dijumpai</strong>
             <small>{foundCollectibleCount} daripada {mapCollectibles.length}</small>
           </div>
+          <p className="mission-map-collection-prompt">Lengkapkan aktiviti pembelajaran, latihan, permainan atau ujian untuk menjumpai koleksi baharu.</p>
           <div className="mission-map-collection-grid">
             {mapCollectibles.map((item, index) => {
               const found = foundCollectibleIds.includes(item.id);
               return (
                 <div className={`mission-map-collection-item ${found ? "is-found" : "is-hidden"}`} key={item.id}>
-                  <CollectibleSprite item={item} size="tile" />
+                  <CollectibleSprite item={item} size="tile" hidden={!found} />
                   <span>{found ? item.name : `Rahsia ${index + 1}`}</span>
                 </div>
               );
