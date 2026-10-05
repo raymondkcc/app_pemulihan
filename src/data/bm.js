@@ -50,6 +50,18 @@ export const BM_CATEGORIES = [
       { id: "main", title: "Main", description: "Kuiz pilihan kemahiran" },
       { id: "ujian", title: "Ulang kaji", description: "Ulang kaji kad imbas" }
     ]
+  },
+  {
+    id: "ayat-dan-pemahaman",
+    title: "Ayat dan Pemahaman",
+    subtitle: "Sentences & Comprehension",
+    description: "Membaca, membina ayat dan memahami petikan",
+    image: "/images/topics/perkataan.jpg",
+    color: "coral",
+    subCategories: [
+      { id: "k31", title: "K31 Membaca dan Membina Ayat", description: "Baca dan bina ayat mudah" },
+      { id: "k32", title: "K32 Bacaan dan Pemahaman", description: "Baca petikan dan jawab soalan" }
+    ]
   }
 ];
 

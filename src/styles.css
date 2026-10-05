@@ -3435,6 +3435,26 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
   }
 }
 
+/* Ayat dan Pemahaman activity */
+.bacaan-pemahaman-module-content { width: min(100% - 2rem, 1180px); }
+.bacaan-pemahaman-frame {
+  width: 100%;
+  height: min(78vh, 920px);
+  min-height: 620px;
+  margin-top: 1.5rem;
+  overflow: hidden;
+  border: 3px solid #19384a;
+  border-radius: 8px;
+  background: #f3f4ef;
+  box-shadow: 7px 8px 0 rgba(25, 56, 74, .14);
+}
+.bacaan-pemahaman-frame iframe { display: block; width: 100%; height: 100%; border: 0; background: #f3f4ef; }
+
+@media (max-width: 700px) {
+  .bacaan-pemahaman-module-content { width: min(100% - 1rem, 1180px); }
+  .bacaan-pemahaman-frame { height: 78vh; min-height: 560px; margin-top: 1rem; }
+}
+
 /* Syllable learning and pronunciation test */
 .syllable-choice-section { margin-top: 4.2rem; padding-top: 1.2rem; border-top: 2px solid var(--home-line); }
 .syllable-choice-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem; margin-top: 1.25rem; }

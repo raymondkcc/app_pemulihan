@@ -67,6 +67,29 @@ function CategoryHeader({ onBack, cat }) {
   return <div className="hub-hero"><button className="back-button" type="button" onClick={onBack}><ArrowLeft size={18} /> <span>Bahasa Melayu</span></button><div className="hub-title-block"><span className="hub-eyebrow"><BookOpen size={15} /> Bahasa Melayu</span><h1>{cat.title}</h1><p>{cat.description}</p></div></div>;
 }
 
+function BacaanPemahamanModule({ onBack }) {
+  return (
+    <div className="home-content hub-content bacaan-pemahaman-module-content">
+      <div className="hub-hero">
+        <button className="back-button" type="button" onClick={onBack} title="Kembali ke Ayat dan Pemahaman">
+          <ArrowLeft size={18} /> <span>Ayat dan Pemahaman</span>
+        </button>
+        <div className="hub-title-block">
+          <span className="hub-eyebrow"><BookOpen size={15} /> Ayat dan Pemahaman</span>
+          <h1>K32 · Bacaan dan Pemahaman</h1>
+          <p>Baca petikan dengan teliti dan jawab soalan pemahaman.</p>
+        </div>
+      </div>
+      <div className="bacaan-pemahaman-frame">
+        <iframe
+          title="K32 Bacaan dan Pemahaman"
+          src="/activities/bacaan-dan-pemahaman.html"
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function BahasaMelayuHub({ onBack, onComingSoon, notice, initialMission, onMissionComplete }) {
   const startsHurufMission = initialMission === "huruf";
   const startsSyllableMission = initialMission === "suku-kata";
@@ -138,6 +161,10 @@ export default function BahasaMelayuHub({ onBack, onComingSoon, notice, initialM
       if (subCategory === "belajar") return <PerkataanModule onBack={goBack} />;
       if (subCategory === "main") return <PerkataanQuizGame onBack={goBack} />;
       if (subCategory === "ujian") return <PerkataanFlashCardGame onBack={goBack} />;
+    }
+    if (category === "ayat-dan-pemahaman") {
+      if (subCategory === "k31") return <ComingSoon onBack={goBack} title="K31 Membaca dan Membina Ayat" description="Aktiviti membaca dan membina ayat akan datang." />;
+      if (subCategory === "k32") return <BacaanPemahamanModule onBack={goBack} />;
     }
   }
 
