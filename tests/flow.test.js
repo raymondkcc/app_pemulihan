@@ -112,6 +112,10 @@ test("real logins replace demo sessions", async () => {
   const unexpected = () => { throw new Error("Unexpected Firebase call"); };
   const auth = Object.fromEntries(["createUserWithEmailAndPassword", "onAuthStateChanged", "setPersistence", "signOut", "updateProfile"].map((name) => [name, unexpected]));
   auth.inMemoryPersistence = {};
+  auth.GoogleAuthProvider = class {
+    setCustomParameters() {}
+  };
+  auth.signInWithPopup = unexpected;
   auth.signInWithEmailAndPassword = async () => ({ user: { uid: "teacher" } });
   const firestore = Object.fromEntries(["collection", "getDocs", "limit", "query", "runTransaction", "setDoc", "where"].map((name) => [name, unexpected]));
   firestore.doc = (_db, collection, id) => `${collection}/${id}`;

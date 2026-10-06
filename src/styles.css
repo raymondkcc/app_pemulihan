@@ -4321,6 +4321,14 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .role-card-copy em { max-width: 360px; margin-top: .35rem; color: rgba(25,56,74,.75); font-size: .85rem; font-style: normal; font-weight: 700; line-height: 1.4; }
 .role-card-blue .role-card-copy em { color: rgba(255,255,255,.86); }
 .role-card-action { display: inline-flex; align-items: center; gap: .4rem; font-size: .8rem; font-weight: 900; }
+.google-entry-block { max-width: 540px; margin: 1.35rem auto 0; }
+.google-entry-button { display: grid; width: 100%; grid-template-columns: auto 1fr auto; align-items: center; gap: .75rem; min-height: 62px; border: 2px solid #19384a; border-radius: 7px; padding: .65rem .8rem; color: #19384a; background: white; box-shadow: 4px 5px 0 rgba(25,56,74,.1); font: inherit; font-size: .86rem; font-weight: 900; text-align: left; cursor: pointer; transition: transform .16s ease, box-shadow .16s ease; }
+.google-entry-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 4px 8px 0 rgba(25,56,74,.14); }
+.google-entry-button:disabled { cursor: wait; opacity: .65; }
+.google-entry-button > span:nth-child(2), .google-entry-button small { display: block; }
+.google-entry-button small { margin-top: .15rem; color: #64727b; font-size: .68rem; font-weight: 800; }
+.google-entry-mark { display: grid; width: 36px; height: 36px; place-items: center; border: 2px solid #4285f4; border-radius: 50%; color: #4285f4; font-family: Arial, sans-serif; font-size: 1.15rem; font-weight: 900; }
+.google-entry-button > svg { color: #3655bd; }
 .portal-note { display: flex; align-items: center; gap: .35rem; margin-top: 1.4rem; color: #64727b; font-size: .75rem; font-weight: 900; }
 .portal-back { display: grid; width: 40px; height: 40px; place-items: center; border: 2px solid #dce4de; border-radius: 7px; color: #19384a; background: rgba(255,255,255,.7); }
 .profile-content { max-width: 720px; padding-top: 4rem; }
@@ -4334,6 +4342,9 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .guest-entry-icon { display: grid; width: 50px; height: 50px; place-items: center; border: 2px solid #19384a; border-radius: 50%; background: white; font-size: 1.6rem; }
 .profile-list { display: grid; gap: .65rem; margin-top: 1.6rem; }
 .profile-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .8rem; min-height: 76px; border: 2px solid #19384a; border-radius: 8px; padding: .7rem .85rem; color: #19384a; background: white; text-align: left; box-shadow: 4px 5px 0 rgba(25,56,74,.1); }
+.student-class-choice { width: 100%; font: inherit; cursor: pointer; }
+.student-class-choice:disabled { cursor: not-allowed; opacity: .55; }
+.student-class-choice:not(:disabled):hover { transform: translateY(-2px); box-shadow: 4px 8px 0 rgba(25,56,74,.14); }
 .profile-card strong, .profile-card small { display: block; } .profile-card small { margin-top: .15rem; color: #64727b; font-size: .7rem; font-weight: 800; }
 .avatar { position: relative; display: grid; place-items: center; width: 50px; height: 50px; overflow: hidden; border: 2px solid #19384a; border-radius: 50%; color: #19384a; font-family: "Baloo 2", sans-serif; font-size: 1.8rem; font-weight: 900; line-height: 1; }
 .avatar img, .avatar-choice img, .dashboard-avatar img { position: absolute; inset: 0; z-index: 1; display: block; width: 100%; height: 100%; object-fit: cover; }

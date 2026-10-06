@@ -66,6 +66,16 @@ service cloud.firestore {
       allow create: if isAdmin() || (
         isSignedIn()
         && request.auth.uid == uid
+        && request.auth.token.firebase.sign_in_provider == "google.com"
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.matches("^[^@]+@moe-dl[.]edu[.]my$")
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.authProvider == "google.com"
+        && request.resource.data.role == "teacher"
+        && request.resource.data.active == true
+      ) || (
+        isSignedIn()
+        && request.auth.uid == uid
         && !adminExists()
         && request.resource.data.role == "admin"
         && request.resource.data.active == true

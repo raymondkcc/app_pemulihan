@@ -6,3 +6,8 @@ export function formatStudentCode(value) {
   }
   return normalised;
 }
+
+export function formatClassCode(value) {
+  const normalised = String(value || "").toUpperCase().replace(/[^A-Z0-9-]/g, "");
+  return normalised.replace(/-\d+$/, "");
+}

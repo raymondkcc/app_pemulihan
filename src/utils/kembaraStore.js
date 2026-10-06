@@ -3,9 +3,11 @@ import {
   inMemoryPersistence,
   onAuthStateChanged,
   setPersistence,
+  signInWithPopup,
   signInWithEmailAndPassword,
   signOut,
-  updateProfile
+  updateProfile,
+  GoogleAuthProvider
 } from "firebase/auth";
 import {
   collection,
@@ -21,6 +23,7 @@ import {
 } from "firebase/firestore";
 import { CLASS_CODE_ALPHABET, CLASS_CODE_DIGITS, FREE_STUDENT_LIMIT, GUEST_DEMO_PATHS } from "../data/kembara.js";
 import { auth, db, secondaryAuth } from "./firebase.js";
+import { formatClassCode } from "./studentCode.js";
 
 const SESSION_KEY = "kembara-pintar-session-v1";
 
@@ -247,8 +250,20 @@ function authMessage(error) {
   if (code === "auth/weak-password") return "Kata laluan terlalu lemah. Guna sekurang-kurangnya 6 aksara.";
   if (code === "auth/too-many-requests") return "Terlalu banyak cubaan. Cuba lagi nanti.";
   if (code === "auth/network-request-failed") return "Rangkaian gagal. Semak internet.";
+  if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") return "Log masuk Google dibatalkan.";
+  if (code === "auth/popup-blocked") return "Pelayar menyekat tetingkap Google. Benarkan pop-up dan cuba lagi.";
   if (code === "permission-denied") return "Firestore menolak akses. Kemas kini rules dahulu.";
   return error?.message || "Tidak berjaya. Cuba lagi.";
+}
+
+function isMoeDlEmail(email) {
+  return /^[^@]+@moe-dl\.edu\.my$/i.test(String(email || "").trim());
+}
+
+function cacheAdultSession(adult) {
+  cachedAdult = adult;
+  cachedHasAdmin = cachedHasAdmin || adult.role === "admin";
+  writeSession({ ...emptySession(), adultId: adult.id });
 }
 
 function notifyAuthWaiters() {
@@ -618,9 +633,51 @@ export async function loginAdult(email, password) {
       await signOut(auth);
       return { ok: false, error: "Akaun tidak jumpa atau ditutup." };
     }
-    cachedAdult = adult;
-    cachedHasAdmin = cachedHasAdmin || adult.role === "admin";
-    writeSession({ ...emptySession(), adultId: adult.id });
+    cacheAdultSession(adult);
+    return { ok: true, adult };
+  } catch (error) {
+    return { ok: false, error: authMessage(error) };
+  }
+}
+
+export async function loginAdultWithGoogle() {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ hd: "moe-dl.edu.my", prompt: "select_account" });
+
+  try {
+    const credential = await signInWithPopup(auth, provider);
+    const user = credential.user;
+    const email = String(user.email || "").trim().toLowerCase();
+    if (!user.emailVerified || !isMoeDlEmail(email)) {
+      await signOut(auth);
+      return { ok: false, error: "Guna akaun Google Delima yang disahkan dengan e-mel @moe-dl.edu.my." };
+    }
+
+    const adultRef = doc(db, "adults", user.uid);
+    const existingSnap = await getDoc(adultRef);
+    if (existingSnap.exists()) {
+      const adult = adultFromDoc(user.uid, existingSnap.data());
+      if (!adult.active) {
+        await signOut(auth);
+        return { ok: false, error: "Akaun ini telah ditutup. Hubungi admin." };
+      }
+      cacheAdultSession(adult);
+      return { ok: true, adult };
+    }
+
+    const adultData = {
+      name: user.displayName || email.split("@")[0],
+      email,
+      role: "teacher",
+      plan: "free",
+      studentLimit: FREE_STUDENT_LIMIT,
+      active: true,
+      authProvider: "google.com",
+      createdAt: nowIso()
+    };
+    await setDoc(adultRef, adultData);
+    const adult = adultFromDoc(user.uid, adultData);
+    cacheAdultSession(adult);
     return { ok: true, adult };
   } catch (error) {
     return { ok: false, error: authMessage(error) };
@@ -900,7 +957,7 @@ export async function createStudentQrCode(studentId) {
 }
 
 export async function findClassByCode(code) {
-  const normalised = String(code || "").trim().toUpperCase();
+  const normalised = formatClassCode(code);
   if (!normalised) return null;
   const snap = await getDocs(query(collection(db, "classes"), where("code", "==", normalised), limit(1)));
   if (snap.empty) return null;
@@ -937,6 +994,13 @@ export async function listClassFaces(code) {
       locked: Boolean(student.locked)
     }))
   };
+}
+
+export async function loginStudentWithClassCode(classCode) {
+  const result = await listClassFaces(classCode);
+  if (!result.ok) return result;
+  if (result.faces.length === 0) return { ok: false, error: "Kelas ini belum mempunyai murid." };
+  return result;
 }
 
 export async function findStudentByCode(studentCode) {
