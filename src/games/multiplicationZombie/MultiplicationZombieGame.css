@@ -24,6 +24,8 @@
   justify-items: center;
   gap: 1rem;
   padding: clamp(1rem, 4vw, 3rem) 1rem 4rem;
+  isolation: isolate;
+  background: linear-gradient(rgba(255, 250, 240, .74), rgba(255, 250, 240, .88)), url("/images/zombie/zombie-setup-generated.jpg") center / cover;
 }
 
 .mz-back-link {
@@ -47,7 +49,8 @@
   border: 3px solid var(--mz-ink);
   border-radius: 28px;
   padding: clamp(1.25rem, 4vw, 3rem);
-  background: rgba(255, 255, 255, .88);
+  background: rgba(255, 255, 255, .9);
+  backdrop-filter: blur(2px);
   box-shadow: 10px 12px 0 rgba(33, 38, 61, .11);
 }
 
@@ -100,6 +103,22 @@
   line-height: 1.5;
 }
 
+.mz-setup-prompt,
+.mz-game-prompt {
+  width: fit-content;
+  max-width: 100%;
+  margin-top: .85rem !important;
+  border: 3px solid var(--mz-ink);
+  border-radius: 12px;
+  padding: .65rem .8rem;
+  color: var(--mz-ink) !important;
+  background: var(--mz-orange);
+  box-shadow: 4px 4px 0 rgba(33, 38, 61, .15);
+  font-size: .82rem !important;
+  font-weight: 1000 !important;
+  line-height: 1.35 !important;
+}
+
 .mz-hero-art {
   position: absolute;
   top: 1rem;
@@ -108,6 +127,7 @@
   width: 180px;
   height: 136px;
   pointer-events: none;
+  opacity: .72;
 }
 .mz-hero-art span { position: absolute; display: block; }
 .mz-hero-zombie {
@@ -215,7 +235,10 @@
 .mz-choice-card span { color: var(--mz-muted); font-size: .7rem; font-weight: 800; }
 .mz-choice-card em { margin-top: .45rem; color: var(--mz-purple-dark); font-size: .68rem; font-style: normal; font-weight: 1000; }
 .mz-choice-card.is-selected,
-.mz-count-row button.is-selected { border-color: var(--mz-purple); background: #f1eeff; box-shadow: 0 0 0 3px rgba(105, 88, 236, .13); }
+.mz-count-row button.is-selected { border-color: var(--mz-purple-dark); color: white; background: var(--mz-purple); box-shadow: 0 0 0 3px rgba(105, 88, 236, .24), 0 4px 0 var(--mz-purple-dark); }
+.mz-choice-card.is-selected span,
+.mz-choice-card.is-selected em,
+.mz-count-row button.is-selected small { color: rgba(255, 255, 255, .9); }
 .mz-count-row button { display: grid; min-height: 82px; place-items: center; font-size: 1.8rem; font-weight: 1000; text-align: center; }
 .mz-count-row small { color: var(--mz-muted); font-size: .68rem; font-weight: 900; }
 .mz-student-lock-card {
@@ -289,7 +312,11 @@
 .mz-summary-actions .mz-start-button { margin-top: 0; }
 .mz-secondary-button { display: inline-flex; align-items: center; gap: .35rem; }
 
-.mz-game-page { padding: 0 0 2rem; }
+.mz-game-page {
+  isolation: isolate;
+  padding: 0 0 2rem;
+  background: linear-gradient(rgba(255, 250, 240, .72), rgba(255, 250, 240, .84)), url("/images/zombie/zombie-gameplay-generated.jpg") center / cover fixed;
+}
 .mz-game-header { display: flex; align-items: center; gap: 1rem; width: min(100% - 2rem, 1420px); margin: 0 auto; padding: 1rem 0; }
 .mz-game-header .mz-back-link { width: auto; }
 .mz-game-brand { display: flex; align-items: baseline; gap: .45rem; margin: 0 auto; }
@@ -298,16 +325,17 @@
 .mz-game-brand small { color: var(--mz-muted); font-size: .63rem; font-weight: 900; }
 .mz-sound-button { display: grid; width: 42px; height: 42px; place-items: center; border: 2px solid var(--mz-ink); border-radius: 13px; color: var(--mz-ink); background: white; cursor: pointer; }
 .mz-game-shell { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 335px); align-items: stretch; gap: 1rem; width: min(100% - 2rem, 1420px); margin: 0 auto; }
-.mz-stage-panel { min-width: 0; border: 3px solid var(--mz-ink); border-radius: 22px; padding: .7rem; background: #bfe9ff; box-shadow: 8px 9px 0 rgba(33, 38, 61, .12); }
+.mz-stage-panel { min-width: 0; border: 3px solid var(--mz-ink); border-radius: 22px; padding: .7rem; background: rgba(191, 233, 255, .94); box-shadow: 8px 9px 0 rgba(33, 38, 61, .12); }
 .mz-canvas { width: 100%; aspect-ratio: 1280 / 600; overflow: hidden; border-radius: 15px; background: #bfe9ff; }
 .mz-canvas canvas { display: block; width: 100%; height: 100%; border-radius: 15px; }
-.mz-stage-caption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .45rem; padding: .55rem .3rem .05rem; color: #40506a; font-size: .7rem; font-weight: 900; }
+.mz-stage-caption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .45rem; padding: .55rem .3rem .05rem; color: #263957; font-size: .7rem; font-weight: 900; }
 .mz-stage-caption span { display: inline-flex; align-items: center; gap: .25rem; }
+.mz-game-prompt { margin: .65rem .3rem 0 !important; background: #ff87a8; }
 .mz-answer-panel { display: flex; flex-direction: column; border: 3px solid var(--mz-ink); border-radius: 22px; padding: 1rem; background: rgba(255, 255, 255, .92); box-shadow: 8px 9px 0 rgba(33, 38, 61, .12); }
 .mz-answer-heading { display: flex; align-items: center; justify-content: space-between; gap: .5rem; color: var(--mz-muted); font-size: .74rem; font-weight: 900; }
 .mz-answer-heading strong { color: var(--mz-ink); font-size: 1.1rem; }
-.mz-answer-display { display: grid; min-height: 76px; margin: .75rem 0; place-items: center; border: 2px solid #d7dfd7; border-radius: 16px; color: var(--mz-purple-dark); background: #fbfff8; font-family: "Baloo 2", sans-serif; font-size: 3rem; font-weight: 1000; }
-.mz-answer-display span { color: #bcc8bf; }
+.mz-answer-display { display: grid; min-height: 76px; margin: .75rem 0; place-items: center; border: 3px solid var(--mz-purple-dark); border-radius: 16px; color: var(--mz-purple-dark); background: #fff4d8; font-family: "Baloo 2", sans-serif; font-size: 3rem; font-weight: 1000; }
+.mz-answer-display span { color: #7a6b53; }
 .mz-keypad { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
 .mz-keypad button { display: inline-flex; min-height: 57px; align-items: center; justify-content: center; gap: .3rem; border: 2px solid #c8d6cb; border-radius: 14px; color: var(--mz-ink); background: white; font: inherit; font-size: 1.25rem; font-weight: 1000; cursor: pointer; touch-action: manipulation; }
 .mz-keypad button:hover:not(:disabled) { border-color: var(--mz-purple); background: #f1eeff; }

@@ -16,6 +16,10 @@
 
 .pond-setup-page {
   position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(180deg, rgba(165, 233, 242, .72) 0 42%, rgba(232, 251, 239, .9) 42% 100%),
+    url("/images/pond/pond-setup-generated.jpg") center / cover;
 }
 
 .pond-back {
@@ -23,6 +27,12 @@
   align-items: center;
   gap: .38rem;
   min-height: 46px;
+  position: relative;
+  z-index: 2;
+  border: 2px solid #145e46;
+  border-radius: 7px;
+  padding: .35rem .55rem;
+  background: rgba(255, 253, 242, .9);
   color: #145e46;
   font-weight: 900;
   text-decoration: none;
@@ -35,6 +45,8 @@
 }
 
 .pond-setup {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: minmax(220px, .8fr) minmax(350px, 1.2fr);
   gap: clamp(1.25rem, 4vw, 3rem);
@@ -42,7 +54,7 @@
   padding: clamp(1.4rem, 4vw, 3.4rem);
   border: 4px solid #145e46;
   border-radius: 8px;
-  background: #fffdf2;
+  background: rgba(255, 253, 242, .94);
   box-shadow: 12px 12px 0 #76c8b7;
 }
 
@@ -54,7 +66,8 @@
   background:
     radial-gradient(circle at 23% 26%, #fff 0 8%, transparent 8.5%),
     radial-gradient(circle at 70% 18%, #fff 0 5%, transparent 5.5%),
-    #a5e9f2;
+    linear-gradient(rgba(165, 233, 242, .35), rgba(165, 233, 242, .35)),
+    url("/images/pond/pond-setup-generated.jpg") center / cover;
 }
 
 .pond-setup-sky img {
@@ -90,6 +103,31 @@
   font-weight: 800;
 }
 
+.pond-prompt,
+.pond-game-prompt {
+  border: 3px solid #145e46;
+  border-radius: 10px;
+  padding: .65rem .8rem;
+  color: #123f39 !important;
+  background: #ffdc6a;
+  box-shadow: 4px 4px 0 rgba(20, 94, 70, .2);
+  font-size: .9rem;
+  font-weight: 900 !important;
+  line-height: 1.35;
+}
+
+.pond-game-prompt {
+  position: absolute;
+  z-index: 5;
+  top: 82px;
+  left: 50%;
+  width: min(92%, 520px);
+  margin: 0;
+  transform: translateX(-50%);
+  pointer-events: none;
+  text-align: center;
+}
+
 .pond-choice-block {
   grid-column: 2;
 }
@@ -110,9 +148,9 @@
   border: 3px solid #145e46;
   border-radius: 7px;
   color: #145e46;
-  background: #effbf1;
+  background: #dff6ea;
   font-weight: 900;
-  transition: transform .16s ease, background .16s ease;
+  transition: transform .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease;
 }
 
 .pond-set-option strong,
@@ -121,14 +159,23 @@
 }
 
 .pond-set-option strong { font-size: 1.08rem; }
-.pond-set-option span { margin-top: .12rem; color: #408c77; font-size: .88rem; }
+.pond-set-option span { margin-top: .12rem; color: #176b5a; font-size: .88rem; }
 
 .pond-set-option.is-selected,
 .pond-round-options button.is-selected {
+  border-color: #123f39;
   color: #173d35;
   background: #ffdc6a;
-  box-shadow: 4px 4px 0 #145e46;
+  box-shadow: 0 0 0 3px #fffdf2, 5px 5px 0 #145e46;
   transform: translate(-2px, -2px);
+}
+
+.pond-set-option:focus-visible,
+.pond-round-options button:focus-visible,
+.pond-start:focus-visible,
+.pond-back:focus-visible {
+  outline: 4px solid #e84e65;
+  outline-offset: 3px;
 }
 
 .pond-rounds-block {
@@ -161,7 +208,11 @@
   font-family: "Comic Sans MS", "Comic Sans", "Comic Neue", cursive;
   font-size: 1.25rem;
   font-weight: 800;
+  cursor: pointer;
+  transition: transform .16s ease, filter .16s ease, box-shadow .16s ease;
 }
+
+.pond-start:hover { filter: brightness(1.06); transform: translateY(-2px); }
 
 .pond-start:active,
 .pond-set-option:active,
@@ -171,15 +222,19 @@
 }
 
 .pond-game-page {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
-  background: #79d9df;
+  background: linear-gradient(rgba(121, 217, 223, .25), rgba(121, 217, 223, .25)), url("/images/pond/pond-gameplay-generated.jpg") center / cover;
 }
 
 .pond-hud {
+  position: relative;
+  z-index: 4;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -249,6 +304,7 @@
 
 .pond-canvas {
   position: relative;
+  z-index: 1;
   flex: 1 1 auto;
   width: 100%;
   min-height: 0;
@@ -260,15 +316,24 @@
 }
 
 .pond-finish {
+  position: relative;
+  z-index: 1;
   display: grid;
   justify-items: center;
   width: min(100%, 560px);
   padding: clamp(1.75rem, 6vw, 4rem);
   border: 4px solid #145e46;
   border-radius: 8px;
-  background: #fffdf2;
+  background: rgba(255, 253, 242, .95);
   box-shadow: 12px 12px 0 #76c8b7;
   text-align: center;
+}
+
+.pond-finish-page {
+  isolation: isolate;
+  background:
+    linear-gradient(180deg, rgba(165, 233, 242, .42) 0 42%, rgba(232, 251, 239, .76) 42% 100%),
+    url("/images/backgrounds/completion-generated.jpg") center / cover;
 }
 
 .finish-stars {
@@ -330,6 +395,7 @@
   .pond-start { grid-column: 1; }
   .pond-hud { min-height: 61px; padding: .35rem .7rem; }
   .pond-hud .pond-back span { display: none; }
+  .pond-game-prompt { top: 70px; width: min(94%, 390px); padding: .45rem .6rem; font-size: .72rem; }
   .pond-back { min-height: 40px; }
   .pond-progress { min-width: 70px; }
   .pond-progress strong { font-size: 1.65rem; }

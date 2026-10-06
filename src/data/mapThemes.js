@@ -2,8 +2,8 @@ export const MAP_THEMES = [
   {
     id: "hutan-mistik",
     title: "Hutan Mistik",
-    image: "/images/maps/hutan-mistik.jpg",
-    thumbnail: "/images/maps/hutan-mistik-thumb.jpg",
+    image: "/images/backgrounds/mission-map-generated.jpg",
+    thumbnail: "/images/backgrounds/mission-map-generated.jpg",
     positions: [[32, 49], [72, 49], [46, 81], [83, 36]]
   },
   {

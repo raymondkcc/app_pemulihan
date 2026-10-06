@@ -514,7 +514,8 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 
 .hub-content { padding: 4.2rem 0 3.5rem; }
 .hub-content.huruf-hub-content { width: min(100%, 1240px); }
-.huruf-hub-content::before { position: absolute; z-index: -1; top: 0; right: 50%; bottom: 0; left: 50%; background: linear-gradient(rgba(220,239,230,.72), rgba(220,239,230,.9)), url("/images/huruf/huruf-world.jpg") center top / cover; content: ""; pointer-events: none; }
+.huruf-hub-content { position: relative; isolation: isolate; }
+.huruf-hub-content::before { position: absolute; z-index: -1; top: 0; right: 50%; bottom: 0; left: 50%; background: linear-gradient(rgba(220,239,230,.68), rgba(220,239,230,.91)), url("/images/backgrounds/bm-hub-generated.jpg") center top / cover; content: ""; pointer-events: none; }
 .hub-hero { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: 1.7rem; }
 .back-button { display: inline-flex; align-items: center; gap: .35rem; min-height: 40px; border: 2px solid var(--home-line); border-radius: 8px; padding: .45rem .7rem; color: var(--home-ink); background: rgba(255,255,255,.58); font-size: .8rem; font-weight: 900; transition: background .16s ease, transform .16s ease; }
 .back-button:hover { background: white; transform: translateX(-2px); }
@@ -635,14 +636,17 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .huruf-game-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; width: min(100%, 900px); }
 .huruf-game-choice { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 1rem; min-height: 190px; border: 3px solid var(--home-ink); border-radius: 10px; padding: 1.2rem; color: white; text-align: left; box-shadow: 6px 7px 0 rgba(25,56,74,.2); cursor: pointer; transition: transform .18s ease, box-shadow .18s ease, filter .18s ease; }
 .huruf-game-choice-sound { background: #3655bd; }
-.huruf-game-choice-pair { background: #bd4e40; }
+.huruf-game-choice-pair { color: var(--home-ink); border-color: rgba(25,56,74,.8); background: rgba(255,250,240,.54); box-shadow: 6px 7px 0 rgba(25,56,74,.14); backdrop-filter: blur(5px); }
 .huruf-game-choice:hover { box-shadow: 8px 10px 0 rgba(25,56,74,.24); filter: brightness(1.06); transform: translateY(-4px); }
+.huruf-game-choice-pair:hover { background: rgba(255,250,240,.72); box-shadow: 8px 10px 0 rgba(25,56,74,.18); }
 .huruf-game-choice:focus-visible { outline: 4px solid #f4ca47; outline-offset: 4px; }
 .huruf-game-choice-icon { display: grid; width: 62px; height: 62px; place-items: center; border: 2px solid var(--home-ink); border-radius: 10px; color: var(--home-ink); background: #fffaf0; }
 .huruf-game-choice-copy { display: flex; min-width: 0; flex-direction: column; gap: .35rem; }
 .huruf-game-choice strong { font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.5rem; line-height: 1; }
 .huruf-game-choice small { max-width: 28ch; color: rgba(255,255,255,.9); font-size: .8rem; font-weight: 800; line-height: 1.35; }
 .huruf-game-choice-cta { display: inline-flex; align-items: center; gap: .25rem; align-self: end; color: #fffaf0; font-size: .75rem; font-weight: 900; white-space: nowrap; }
+.huruf-game-choice-pair small { color: var(--home-muted); }
+.huruf-game-choice-pair .huruf-game-choice-cta { color: var(--home-coral-dark); }
 .huruf-game-switch { display: inline-flex; align-items: center; gap: .3rem; margin: .8rem 1.2rem 0; border: 0; padding: .2rem 0; color: var(--home-muted); background: transparent; font-size: .74rem; font-weight: 900; }
 .huruf-game-switch:hover { color: var(--home-ink); }
 .huruf-game-board { min-height: 440px; margin-top: .8rem; overflow: hidden; border: 2px solid var(--home-ink); border-radius: 10px; background: #f8fbf6; box-shadow: 6px 7px 0 rgba(25,56,74,.1); }
@@ -656,6 +660,8 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .huruf-game-intro h3, .huruf-game-result h3 { margin: .35rem 0 0; font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 2rem; line-height: 1; }
 .huruf-game-intro p, .huruf-game-result p { max-width: 40ch; margin: .55rem 0 1.1rem; color: var(--home-muted); font-size: .84rem; font-weight: 700; line-height: 1.45; }
 .huruf-game-result p strong { color: var(--home-coral-dark); font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.45rem; }
+.huruf-game-intro-pair .primary-mini-action { border: 2px solid var(--home-coral-dark); color: var(--home-coral-dark); background: rgba(255,255,255,.62); box-shadow: 0 3px 0 rgba(143,62,54,.55); }
+.huruf-game-intro-pair .primary-mini-action:hover:not(:disabled) { background: rgba(255,255,255,.84); }
 .huruf-sound-stage, .huruf-pair-stage { position: relative; min-height: 440px; padding: 1.1rem 1.2rem 1rem; background-color: #dff4eb; background-position: center; background-size: cover; }
 .huruf-sound-stage::before, .huruf-pair-stage::before { position: absolute; inset: 0; background: rgba(248,251,246,.72); content: ""; pointer-events: none; }
 .huruf-sound-stage > *, .huruf-pair-stage > * { position: relative; z-index: 1; }
@@ -1438,7 +1444,7 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .mrg-undo-button:disabled { cursor: not-allowed; opacity: .45; }
 
 .mrg-mat-board { display: grid; grid-template-rows: auto minmax(142px, 23%) minmax(260px, 1fr) minmax(125px, 19%); min-width: 0; overflow: hidden; border-right: 4px solid #c4cfdd; background: #eef2f7; box-shadow: inset 0 0 16px rgba(26, 47, 72, .08); }
-.mrg-place-headings { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-bottom: 3px solid var(--mrg-border); color: var(--mrg-blue); background: #f4f7fb; font-size: 1.05rem; font-weight: 900; letter-spacing: .1em; text-align: center; text-transform: uppercase; }
+.mrg-place-headings { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-bottom: 3px solid var(--mrg-border); color: var(--mrg-blue); background: linear-gradient(rgba(244,247,251,.78), rgba(244,247,251,.9)), url("/images/math/subtraction-generated.jpg") center 42% / cover; font-size: 1.05rem; font-weight: 900; letter-spacing: .1em; text-align: center; text-transform: uppercase; }
 .mrg-place-headings span { padding: .8rem .4rem; }
 .mrg-place-headings span:nth-child(2) { border-right: 3px solid var(--mrg-border); border-left: 3px solid var(--mrg-border); color: #188343; }
 .mrg-place-headings span:nth-child(3) { color: #c48a00; }
@@ -1630,7 +1636,7 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .arg-undo-button:disabled { cursor: not-allowed; opacity: .42; }
 
 .arg-mat-board { display: grid; grid-template-rows: auto minmax(210px, 1fr) minmax(210px, 1fr) auto; min-width: 0; overflow: hidden; border-right: 4px solid #c3d5d0; background: #edf4f2; box-shadow: inset 0 0 16px rgba(26, 67, 67, .08); }
-.arg-carry-zone { min-height: 96px; border-bottom: 5px solid #c9d9d5; padding: .65rem .75rem; background: #edf0ff; }
+.arg-carry-zone { min-height: 96px; border-bottom: 5px solid #c9d9d5; padding: .65rem .75rem; background: linear-gradient(rgba(237,240,255,.75), rgba(237,240,255,.9)), url("/images/math/addition-generated.jpg") center 44% / cover; }
 .arg-board-row-heading { display: flex; align-items: center; justify-content: space-between; gap: .75rem; color: var(--arg-blue-dark); font-size: .7rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
 .arg-board-row-heading small { color: #7b8995; font-size: .58rem; font-weight: 800; letter-spacing: 0; text-transform: none; }
 .arg-carry-blocks { display: flex; min-height: 46px; align-items: center; justify-content: center; gap: .6rem; padding-top: .38rem; }
@@ -5580,3 +5586,154 @@ body:has(.role-chooser-page) {
 .math-choice-back:hover { color: var(--home-ink); }
 @media (max-width: 580px) { .math-game-choice-grid { grid-template-columns: 1fr; } .math-game-choice { min-height: 150px; } }
 @media (max-width: 700px) { .student-progress-grid { grid-template-columns: 1fr; } }
+
+/* Final kid-facing contrast overrides for the regrouping labs. */
+.arg-board-hint,
+.arg-board-success {
+  border: 2px solid var(--arg-teal-dark);
+  border-radius: 999px;
+  padding: .42rem .7rem;
+  color: var(--arg-ink);
+  background: #ffe07a;
+  box-shadow: 3px 3px 0 rgba(25, 56, 74, .14);
+}
+.arg-board-success { color: #fff; background: var(--arg-teal-dark); }
+.arg-board-hint svg { color: var(--arg-coral-dark); }
+.arg-answer-cell.arg-tone-h { border-color: #5d83e8; color: #174d9b; background: #dbeaff; }
+.arg-answer-cell.arg-tone-t { border-color: #159a91; color: #0f6f6b; background: #d5f4e8; }
+.arg-answer-cell.arg-tone-o { border-color: #c38d00; color: #855e00; background: #ffe99b; }
+.arg-answer-cell.is-focused { box-shadow: 0 0 0 5px rgba(93, 131, 232, .3), 0 4px 0 rgba(25, 56, 74, .14); }
+.arg-keypad-grid button:hover,
+.arg-keypad-grid button:focus-visible { border-color: var(--arg-blue-dark); background: #dce7ff; }
+
+.mrg-answer-cell.mrg-tone-h { border-color: #5c8fe8; color: #174d9b; background: #dbeaff; }
+.mrg-answer-cell.mrg-tone-t { border-color: #1fa35c; color: #147b3c; background: #d8f5e3; }
+.mrg-answer-cell.mrg-tone-o { border-color: #c38d00; color: #855e00; background: #ffe99b; }
+.mrg-answer-cell.is-focused { box-shadow: 0 0 0 5px rgba(85, 100, 222, .3), 0 4px 0 rgba(27, 41, 60, .14); }
+
+.arg-submit-button:focus-visible,
+.arg-start-button:focus-visible,
+.arg-merge-button:focus-visible,
+.arg-keypad-grid button:focus-visible,
+.arg-undo-button:focus-visible,
+.arg-bank-card:focus-visible,
+.mrg-controls select:focus-visible,
+.mrg-music-button:focus-visible,
+.mrg-answer-cell:focus-visible,
+.mrg-keypad-grid button:focus-visible,
+.mrg-zone:focus-visible,
+.mrg-undo-button:focus-visible { outline: 4px solid #ffcf24; outline-offset: 3px; }
+
+/* Generated scene artwork: keep busy illustrations behind the learning controls. */
+.math-hub-content,
+.handwriting-game,
+.mrg-app,
+.arg-app,
+.mos-app { position: relative; isolation: isolate; }
+
+.math-hub-content::before {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  right: 50%;
+  bottom: 0;
+  left: 50%;
+  background:
+    linear-gradient(rgba(247, 251, 248, .74), rgba(247, 251, 248, .93)),
+    url("/images/backgrounds/math-hub-generated.jpg") center top / cover;
+  content: "";
+  pointer-events: none;
+}
+
+.math-hero,
+.math-practice-strip,
+.math-game-strip,
+.handwriting-heading,
+.handwriting-layout,
+.mrg-topbar,
+.mrg-game-body,
+.mrg-footer,
+.arg-topbar,
+.arg-game-body,
+.arg-footer { position: relative; z-index: 1; }
+
+.math-hero {
+  border: 3px solid rgba(25, 56, 74, .78);
+  border-radius: 12px;
+  padding: clamp(1rem, 2vw, 1.4rem);
+  background: rgba(255, 250, 240, .78);
+  box-shadow: 7px 8px 0 rgba(25, 56, 74, .12);
+}
+.math-hero .back-button { color: #19384a; background: #fffaf0; }
+.math-hero .back-button:hover { background: #f4ca47; }
+.math-practice-strip { border-radius: 10px; padding-right: .9rem; padding-left: .9rem; background: rgba(255, 250, 240, .86); }
+.math-game-strip { background: rgba(255, 240, 201, .92); }
+
+.handwriting-game {
+  overflow: hidden;
+  border-color: #19384a;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, .94), rgba(255, 255, 255, .82)),
+    url("/images/backgrounds/handwriting-generated.jpg") center / cover;
+  box-shadow: 8px 9px 0 rgba(25, 56, 74, .15);
+}
+.handwriting-heading,
+.handwriting-layout { position: relative; z-index: 1; }
+.handwriting-board { background-color: #fffdf5; }
+
+.mrg-app {
+  background:
+    linear-gradient(rgba(223, 229, 238, .82), rgba(223, 229, 238, .92)),
+    url("/images/math/subtraction-generated.jpg") center top / cover fixed;
+}
+.arg-app {
+  background:
+    linear-gradient(rgba(230, 240, 237, .8), rgba(230, 240, 237, .92)),
+    url("/images/math/addition-generated.jpg") center top / cover fixed;
+}
+.mrg-mat-board,
+.arg-mat-board { position: relative; background-color: rgba(238, 242, 247, .96); }
+.arg-mat-board { background-color: rgba(237, 244, 242, .96); }
+.mrg-mat-board::before,
+.arg-mat-board::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: linear-gradient(rgba(255, 255, 255, .6), rgba(255, 255, 255, .78));
+  content: "";
+  pointer-events: none;
+}
+.mrg-mat-board > *,
+.arg-mat-board > * { position: relative; z-index: 1; }
+
+.mos-app::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: 28px;
+  background: linear-gradient(rgba(255, 253, 246, .7), rgba(255, 253, 246, .88)), url("/images/mosquito/mosquito-menu-generated.jpg") center / cover;
+  content: "";
+  pointer-events: none;
+}
+.mos-menu {
+  background: rgba(255, 253, 246, .87);
+  backdrop-filter: blur(2px);
+}
+.mos-menu-hero { position: relative; z-index: 1; }
+.mos-option-card,
+.mos-tool-card,
+.mos-mode-card,
+.mos-level-card { background-color: rgba(255, 255, 255, .94); }
+.mos-field { background-image: linear-gradient(rgba(255, 249, 218, .26), rgba(255, 249, 218, .26)), url("/images/mosquito/mosquito-background-generated.jpg"); background-position: center; background-size: cover; }
+.mos-field::before { z-index: 0; background: linear-gradient(rgba(255, 248, 215, .16), rgba(255, 248, 215, .28)); }
+.mos-question,
+.mos-field-hint,
+.mos-answer { backdrop-filter: blur(3px); }
+.mos-results {
+  background: linear-gradient(rgba(255, 253, 246, .84), rgba(255, 253, 246, .9)), url("/images/backgrounds/completion-generated.jpg") center / cover;
+}
+
+@media (max-width: 700px) {
+  .math-hero { padding: .85rem; }
+  .handwriting-game { background-position: 70% center; }
+}
