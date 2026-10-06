@@ -25,7 +25,7 @@ export default function StudentDashboard() {
   }
 
   return (
-    <main className="dashboard-page">
+    <main className="dashboard-page student-dashboard-page">
       <header className="dashboard-header">
         <a className="dashboard-brand" href="/"><AdventureLogo /><strong>Kembara Pintar</strong></a>
         <div className="dashboard-actions">

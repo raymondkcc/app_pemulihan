@@ -4421,14 +4421,31 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .avatar-choice svg { position: absolute; right: -3px; bottom: -3px; padding: 2px; border-radius: 50%; color: white; background: #167764; }
 .avatar-choice.is-selected { box-shadow: 0 0 0 4px #fffaf0, 0 0 0 6px #19384a; }
 .profile-submit { color: white; background: #3655bd; } .profile-submit:disabled { opacity: .4; cursor: not-allowed; }
-.dashboard-page { background-color: #fffaf0; }
-.dashboard-header { border-bottom: 2px solid #dce4de; }
+.student-dashboard-page {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-color: #d5ead8;
+  background-image: linear-gradient(rgba(255,250,240,.38), rgba(255,250,240,.38)), url("/images/backgrounds/hutan-mistik-page-background.jpg");
+  background-position: center top;
+  background-size: cover;
+  background-attachment: fixed;
+}
+.student-dashboard-page::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,250,240,.78) 0, rgba(255,250,240,.58) 19rem, rgba(255,250,240,.72) 100%);
+  content: "";
+  pointer-events: none;
+}
+.student-dashboard-page .dashboard-header { border-bottom: 2px solid rgba(25,56,74,.18); background: rgba(255,250,240,.82); }
 .dashboard-brand { display: inline-flex; align-items: center; gap: .5rem; color: #19384a; text-decoration: none; }
 .dashboard-brand span { display: grid; width: 31px; height: 31px; place-items: center; border: 2px solid #19384a; color: #19384a; background: #f1785d; font-family: "Baloo 2", sans-serif; font-weight: 900; transform: rotate(-6deg); }
 .dashboard-actions { display: flex; align-items: center; gap: 1rem; margin-left: auto; }
 .dashboard-actions a { display: inline-flex; align-items: center; gap: .35rem; color: #19384a; font-size: .75rem; font-weight: 900; text-decoration: none; }
 .dashboard-actions .exit-link { color: #64727b; }
-.dashboard-content { width: min(100% - 2rem, 1040px); margin: 0 auto; padding: 3.5rem 0; }
+.dashboard-content { position: relative; z-index: 0; width: min(100% - 2rem, 1040px); margin: 0 auto; padding: 3.5rem 0; }
 .dashboard-welcome { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .dashboard-welcome h1 { font-size: clamp(2.5rem, 5vw, 4rem); }
 .dashboard-avatar { position: relative; display: grid; width: 100px; height: 100px; flex: none; overflow: hidden; place-items: center; border: 3px solid #19384a; border-radius: 50%; font-family: "Baloo 2", sans-serif; font-size: 3rem; box-shadow: 7px 8px 0 rgba(25,56,74,.12); }
