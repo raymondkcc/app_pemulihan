@@ -10,7 +10,7 @@ import StudentDashboard from "./components/home/StudentDashboard.jsx";
 import MissionAccessRequired from "./components/home/MissionAccessRequired.jsx";
 import TeacherHub from "./components/home/TeacherHub.jsx";
 import BahasaMelayuHub from "./components/bm/BahasaMelayuHub.jsx";
-import MathHub from "./components/math/MathHub.jsx";
+import MathLearningJourney from "./components/math/MathLearningJourney.jsx";
 import KVKGame from "./components/kvk/KVKGame.jsx";
 import AdultLogin from "./components/kembara/AdultLogin.jsx";
 import AdminPanel from "./components/kembara/AdminPanel.jsx";
@@ -134,7 +134,7 @@ function RouteView() {
       window.location.replace("/murid/bahasa-melayu");
       return null;
     }
-    return <MathHub onBack={() => { window.location.href = "/murid/ruang"; }} onComingSoon={() => {}} notice="" />;
+    return <MathLearningJourney onBack={() => { window.location.href = "/murid/ruang"; }} />;
   }
 
   if (path === "/kvk") {

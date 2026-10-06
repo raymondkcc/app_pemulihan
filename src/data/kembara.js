@@ -3,7 +3,7 @@ export const WHATSAPP_PREFILL = "Saya mahu akaun percuma Kembara Pintar. Nama: _
 export const FREE_STUDENT_LIMIT = 10;
 export const CLASS_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ";
 export const CLASS_CODE_DIGITS = "123456789";
-export const GUEST_DEMO_PATHS = ["/murid/ruang", "/murid/bahasa-melayu", "/addition-regroup"];
+export const GUEST_DEMO_PATHS = ["/murid/ruang", "/murid/bahasa-melayu", "/murid/matematik", "/addition-regroup"];
 
 export const TRACKS = [
   { id: "bm", title: "Bacaan", english: "Malay only", helper: "Huruf, suku kata, perkataan" },
