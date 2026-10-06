@@ -8,6 +8,8 @@ import { persistStudentAssessment } from "../../utils/studentAssessments.js";
 
 const MODES = { kv: "KV", kvk: "KVK" };
 const QUESTIONS_PER_TEST = 10;
+const RECOGNITION_TIMEOUT_MS = 10000;
+const RESULT_CLEANUP_TIMEOUT_MS = 1500;
 const KV_QUESTIONS = createKvRows("e-pepet").flat().filter((item) => item.syllable.length === 2 && !["we", "ye"].includes(item.syllable));
 
 function nextRandom(items, previous) {
@@ -29,17 +31,38 @@ export default function SpeechSyllableQuiz({ onBack, teachingMode = false }) {
   const [testComplete, setTestComplete] = useState(false);
   const [status, setStatus] = useState({ type: "idle", text: "Tekan dan tahan butang untuk menyebut." });
   const recognitionRef = useRef(null);
+  const recognitionTimeoutRef = useRef(null);
+  const listeningAttemptRef = useRef(0);
   const pressedRef = useRef(false);
   const answeredRef = useRef(false);
   const mountedRef = useRef(true);
+
+  function clearRecognitionTimeout() {
+    if (recognitionTimeoutRef.current !== null) {
+      window.clearTimeout(recognitionTimeoutRef.current);
+      recognitionTimeoutRef.current = null;
+    }
+  }
+
+  function cancelRecognition() {
+    listeningAttemptRef.current += 1;
+    pressedRef.current = false;
+    clearRecognitionTimeout();
+    const recognition = recognitionRef.current;
+    recognitionRef.current = null;
+    try {
+      recognition?.abort();
+    } catch {
+      // The browser may already have ended the recognition session.
+    }
+  }
 
   useEffect(() => {
     mountedRef.current = true;
     loadKvkPack().then((items) => mountedRef.current && setKvkItems(items.filter((item) => item.sound === "e-pepet" || item.sound === "standard"))).catch(() => {});
     return () => {
       mountedRef.current = false;
-      pressedRef.current = false;
-      recognitionRef.current?.abort();
+      cancelRecognition();
       stopSyllableAudio();
     };
   }, []);
@@ -47,8 +70,7 @@ export default function SpeechSyllableQuiz({ onBack, teachingMode = false }) {
   const questions = useMemo(() => mode === "kv" ? KV_QUESTIONS : kvkItems, [kvkItems, mode]);
 
   useEffect(() => {
-    recognitionRef.current?.abort();
-    pressedRef.current = false;
+    cancelRecognition();
     setStatus({ type: "idle", text: "Tekan dan tahan butang untuk menyebut." });
     answeredRef.current = false;
     setQuestion((current) => nextRandom(questions, current?.syllable));
@@ -69,15 +91,13 @@ export default function SpeechSyllableQuiz({ onBack, teachingMode = false }) {
       setQuestionNumber(1);
       setScore({ correct: 0, retry: 0 });
       setTestComplete(false);
-      recognitionRef.current?.abort();
-      pressedRef.current = false;
+      cancelRecognition();
       setQuestion((current) => nextRandom(questions, current?.syllable));
       setStatus({ type: "idle", text: "Tekan dan tahan butang untuk menyebut." });
       answeredRef.current = false;
       return;
     }
-    recognitionRef.current?.abort();
-    pressedRef.current = false;
+    cancelRecognition();
     setQuestion((current) => nextRandom(questions, current?.syllable));
     setQuestionNumber((number) => number + 1);
     setStatus({ type: "idle", text: "Tekan dan tahan butang untuk menyebut." });
@@ -91,35 +111,47 @@ export default function SpeechSyllableQuiz({ onBack, teachingMode = false }) {
 
   async function startListening() {
     if (pressedRef.current || answeredRef.current || testComplete || status.type === "requesting" || status.type === "listening") return;
+    if (recognitionRef.current) cancelRecognition();
     const Recognition = getSpeechRecognitionConstructor();
     if (!Recognition) {
       setStatus({ type: "unsupported", text: "Pengecaman suara tidak disokong oleh pelayar ini." });
       return;
     }
+    const listeningAttempt = listeningAttemptRef.current + 1;
+    listeningAttemptRef.current = listeningAttempt;
     pressedRef.current = true;
     setStatus({ type: "requesting", text: "Minta izin mikrofon..." });
     try {
       await requestMicrophonePermission();
     } catch {
+      if (!mountedRef.current || listeningAttemptRef.current !== listeningAttempt) return;
       pressedRef.current = false;
       setStatus({ type: "denied", text: "Izin mikrofon belum diberi. Benarkan mikrofon dan cuba lagi." });
       return;
     }
-    if (!pressedRef.current) {
+    if (!mountedRef.current || !pressedRef.current || listeningAttemptRef.current !== listeningAttempt) {
       if (mountedRef.current) setStatus({ type: "idle", text: "Tekan dan tahan butang untuk menyebut." });
       return;
     }
     const recognition = new Recognition();
+    let resultHandled = false;
     recognition.lang = "ms-MY";
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
-    recognition.onstart = () => mountedRef.current && setStatus({ type: "listening", text: `Sebut ${question?.syllable || "suku kata"}...` });
+    recognition.onstart = () => {
+      if (mountedRef.current && recognitionRef.current === recognition && listeningAttemptRef.current === listeningAttempt) {
+        setStatus({ type: "listening", text: `Sebut ${question?.syllable || "suku kata"}...` });
+      }
+    };
     recognition.onresult = (event) => {
-      if (answeredRef.current) return;
-      answeredRef.current = true;
+      if (resultHandled || recognitionRef.current !== recognition || listeningAttemptRef.current !== listeningAttempt) return;
+      resultHandled = true;
+      clearRecognitionTimeout();
       const transcript = event.results[0]?.[0]?.transcript || "";
       const normalized = normalizeSyllableTranscript(transcript);
       const correct = normalized === questionAnswer(question);
+      // A wrong attempt should leave this question open for another try.
+      answeredRef.current = correct;
       const nextScore = { ...score, [correct ? "correct" : "retry"]: score[correct ? "correct" : "retry"] + 1 };
       setScore(nextScore);
       if (questionNumber >= QUESTIONS_PER_TEST) {
@@ -134,20 +166,59 @@ export default function SpeechSyllableQuiz({ onBack, teachingMode = false }) {
         });
       }
       setStatus(correct ? { type: "correct", text: `Betul! Saya dengar “${transcript}”.${questionNumber >= QUESTIONS_PER_TEST ? " Ujian selesai." : ""}` } : { type: "incorrect", text: `Saya dengar “${transcript}”.${questionNumber >= QUESTIONS_PER_TEST ? " Ujian selesai." : ` Cuba sebut ${question.syllable}.`}` });
+      recognitionTimeoutRef.current = window.setTimeout(() => {
+        if (recognitionRef.current !== recognition || listeningAttemptRef.current !== listeningAttempt) return;
+        pressedRef.current = false;
+        recognitionRef.current = null;
+        clearRecognitionTimeout();
+        try {
+          recognition.abort();
+        } catch {
+          // The browser may already have ended the recognition session.
+        }
+      }, RESULT_CLEANUP_TIMEOUT_MS);
     };
     recognition.onerror = (event) => {
-      if (!mountedRef.current) return;
+      if (!mountedRef.current || recognitionRef.current !== recognition || listeningAttemptRef.current !== listeningAttempt || resultHandled) return;
+      resultHandled = true;
+      clearRecognitionTimeout();
+      pressedRef.current = false;
+      recognitionRef.current = null;
       const text = event.error === "no-speech" ? "Tiada suara dikesan. Cuba tekan dan tahan lagi." : "Bacaan suara belum dapat didengar. Cuba lagi.";
       setStatus({ type: "error", text });
+      try {
+        recognition.abort();
+      } catch {
+        // The browser may already have stopped after reporting the error.
+      }
     };
     recognition.onend = () => {
+      if (recognitionRef.current !== recognition || listeningAttemptRef.current !== listeningAttempt) return;
+      clearRecognitionTimeout();
       pressedRef.current = false;
-      if (recognitionRef.current === recognition) recognitionRef.current = null;
+      recognitionRef.current = null;
+      if (!resultHandled && mountedRef.current) {
+        setStatus({ type: "error", text: "Bacaan suara terhenti. Cuba tekan dan tahan lagi." });
+      }
     };
     recognitionRef.current = recognition;
     try {
       recognition.start();
+      recognitionTimeoutRef.current = window.setTimeout(() => {
+        if (recognitionRef.current !== recognition || listeningAttemptRef.current !== listeningAttempt) return;
+        resultHandled = true;
+        pressedRef.current = false;
+        recognitionRef.current = null;
+        clearRecognitionTimeout();
+        setStatus({ type: "error", text: "Bacaan suara mengambil masa terlalu lama. Cuba lagi." });
+        try {
+          recognition.abort();
+        } catch {
+          // The browser may already have stopped the session.
+        }
+      }, RECOGNITION_TIMEOUT_MS);
     } catch {
+      clearRecognitionTimeout();
       pressedRef.current = false;
       recognitionRef.current = null;
       setStatus({ type: "error", text: "Bacaan suara belum dapat dimulakan." });
@@ -155,9 +226,17 @@ export default function SpeechSyllableQuiz({ onBack, teachingMode = false }) {
   }
 
   function stopListening() {
-    if (!pressedRef.current) return;
-    recognitionRef.current?.stop();
+    if (!pressedRef.current && !recognitionRef.current) return;
     pressedRef.current = false;
+    const recognition = recognitionRef.current;
+    if (recognition) {
+      try {
+        recognition.stop();
+      } catch {
+        recognitionRef.current = null;
+        clearRecognitionTimeout();
+      }
+    }
   }
 
   function handlePointerDown(event) {
