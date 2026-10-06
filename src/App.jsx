@@ -11,6 +11,7 @@ import MissionAccessRequired from "./components/home/MissionAccessRequired.jsx";
 import TeacherHub from "./components/home/TeacherHub.jsx";
 import BahasaMelayuHub from "./components/bm/BahasaMelayuHub.jsx";
 import MathLearningJourney from "./components/math/MathLearningJourney.jsx";
+import MathHub from "./components/math/MathHub.jsx";
 import KVKGame from "./components/kvk/KVKGame.jsx";
 import AdultLogin from "./components/kembara/AdultLogin.jsx";
 import AdminPanel from "./components/kembara/AdminPanel.jsx";
@@ -21,11 +22,12 @@ import GuestDemoGate from "./components/kembara/GuestDemoGate.jsx";
 import RateLimitToast from "./components/kembara/RateLimitToast.jsx";
 import LoadingScreen from "./components/kembara/LoadingScreen.jsx";
 import { isInteractiveTarget, playInterfaceClick } from "./utils/interfaceAudio.js";
-import { getActiveAdult, getActiveStudent, isGuestPathAllowed, refreshAppMeta, startDemoSession, startKembaraAuth, whenAuthReady } from "./utils/kembaraStore.js";
+import { getActiveAdult, getActiveStudent, isDemoSessionValid, isGuestPathAllowed, refreshAppMeta, startDemoSession, startKembaraAuth, whenAuthReady } from "./utils/kembaraStore.js";
 import { getMissionById, getMissionsForTrack } from "./data/missions.js";
 import { MAP_THEMES } from "./data/mapThemes.js";
 import { completeMission, getMissionProgress, isMissionUnlocked } from "./utils/missionProgress.js";
-import { discoverCollectible } from "./utils/collectibleProgress.js";
+import { discoverCollectible, missionRewardMap } from "./utils/collectibleProgress.js";
+import { activityHref, teacherReturnPath } from "./utils/activityNavigation.js";
 import "./styles.css";
 
 function useInterfaceClickSound() {
@@ -47,10 +49,10 @@ function useInterfaceClickSound() {
   }, []);
 }
 
-function studentPath(path) {
+function studentPath(path, teacherMode = false) {
   const adult = getActiveAdult();
   const student = getActiveStudent();
-  if (adult && !student) return { preview: true, track: "both" };
+  if (adult && (teacherMode || !student)) return { preview: true, track: "both" };
   if (!student) {
     window.location.replace("/murid");
     return null;
@@ -73,6 +75,7 @@ function DemoUnavailable() {
 }
 
 function missionAccess(student, missionId) {
+  if (student.preview) return { mission: null, onComplete: undefined };
   if (!missionId) return { mission: null, onComplete: undefined };
   const mission = getMissionById(missionId);
   if (!mission) return { mission: null, onComplete: undefined };
@@ -86,7 +89,7 @@ function missionAccess(student, missionId) {
     mission,
     onComplete: () => {
       completeMission(student.id, missionId);
-      const theme = MAP_THEMES[Math.min(MAP_THEMES.length - 1, Math.max(0, missionIndex))];
+      const theme = missionRewardMap(student.id, new URLSearchParams(window.location.search).get("map"), Math.min(MAP_THEMES.length, missions.length), student);
       discoverCollectible(student.id, theme.id);
     }
   };
@@ -94,6 +97,15 @@ function missionAccess(student, missionId) {
 
 function RouteView() {
   const path = window.location.pathname.replace(/\/+$/, "") || "/";
+  const params = new URLSearchParams(window.location.search);
+  const teacherMode = params.get("mode") === "teacher";
+  const activityPaths = ["/murid/bahasa-melayu", "/murid/matematik", "/murid/matematik/aktiviti", "/kvk", "/kv-sound-pond", "/addition-regroup", "/minus-regroup", "/zombie-defense", "/multiplication-zombie", "/mosquito-splat"];
+  if (teacherMode && activityPaths.includes(path) && !getActiveAdult()) {
+    window.location.replace("/cikgu");
+    return null;
+  }
+  const bmBackPath = teacherMode ? teacherReturnPath(params) : "/murid/ruang";
+  const mathBackPath = teacherMode ? teacherReturnPath(params, "math") : "/murid/matematik/aktiviti";
   if (path === "/demo/student") return <StudentDashboard />;
   if (path === "/demo/teacher") return <DemoTeacherDashboard />;
   if (path === "/demo/tidak-tersedia") return <DemoUnavailable />;
@@ -109,93 +121,99 @@ function RouteView() {
   if (path === "/cikgu/matematik") return <TeacherHub initialSubject="math" />;
 
   if (path === "/murid/ruang") {
-    const student = studentPath(path);
+    const student = studentPath(path, teacherMode);
     if (!student || student.$$typeof) return student;
+    if (student.preview) {
+      window.location.replace("/cikgu/mengajar");
+      return null;
+    }
     return <StudentDashboard />;
   }
 
   if (path === "/murid/bahasa-melayu") {
-    const student = studentPath(path);
+    const student = studentPath(path, teacherMode);
     if (!student || student.$$typeof) return student;
     if (student.track === "math") {
       window.location.replace("/murid/matematik");
       return null;
     }
-    const missionId = new URLSearchParams(window.location.search).get("mission");
+    const missionId = params.get("mission");
     const access = missionAccess(student, missionId);
     if (access.blocked) return <MissionAccessRequired />;
-    return <BahasaMelayuHub initialMission={missionId} onMissionComplete={access.onComplete} onBack={() => { window.location.href = "/murid/ruang"; }} onComingSoon={() => {}} notice="" />;
+    return <BahasaMelayuHub initialCategory={params.get("category")} initialActivity={params.get("activity")} teachingMode={teacherMode} teacherReturnTo={params.get("returnTo")} initialMission={missionId} onMissionComplete={access.onComplete} onBack={() => { window.location.href = bmBackPath; }} onComingSoon={() => {}} notice="" />;
   }
 
-  if (path === "/murid/matematik") {
-    const student = studentPath(path);
+  if (path === "/murid/matematik" || path === "/murid/matematik/aktiviti") {
+    const student = studentPath(path, teacherMode);
     if (!student || student.$$typeof) return student;
     if (student.track === "bm") {
       window.location.replace("/murid/bahasa-melayu");
       return null;
     }
-    return <MathLearningJourney onBack={() => { window.location.href = "/murid/ruang"; }} />;
+    if (path.endsWith("/aktiviti")) return <MathHub onBack={() => { window.location.href = teacherMode ? mathBackPath : "/murid/matematik"; }} teachingMode={teacherMode} teacherReturnTo={params.get("returnTo")} />;
+    return <MathLearningJourney teachingMode={teacherMode} activitiesHref={activityHref("/murid/matematik/aktiviti", { teacherMode, returnTo: params.get("returnTo") })} onBack={() => { window.location.href = teacherMode ? mathBackPath : "/murid/ruang"; }} />;
   }
 
   if (path === "/kvk") {
-    const student = studentPath(path);
+    const student = studentPath(path, teacherMode);
     if (!student || student.$$typeof) return student;
     if (student.isGuest) return <GuestDemoGate />;
-    return <KVKGame />;
+    return <KVKGame backHref={teacherMode ? bmBackPath : "/murid/bahasa-melayu?category=suku-kata"} />;
   }
   if (path === "/kv-sound-pond") {
-    const student = studentPath(path);
+    const student = studentPath(path, teacherMode);
     if (!student || student.$$typeof) return student;
     if (student.isGuest) return <GuestDemoGate />;
     const missionId = new URLSearchParams(window.location.search).get("mission");
     const access = missionAccess(student, missionId);
     if (access.blocked) return <MissionAccessRequired />;
-    return <KvSoundPondGame onComplete={access.onComplete} />;
+    const backHref = missionId && !teacherMode ? "/murid/ruang" : activityHref("/murid/bahasa-melayu?category=suku-kata", { teacherMode, returnTo: params.get("returnTo") });
+    return <KvSoundPondGame onComplete={access.onComplete} backHref={backHref} />;
   }
   if (path === "/addition-regroup") {
-    const student = studentPath(path);
+    const student = studentPath(path, teacherMode);
     if (!student || student.$$typeof) return student;
     const missionId = new URLSearchParams(window.location.search).get("mission");
     const access = missionAccess(student, missionId);
     if (access.blocked) return <MissionAccessRequired />;
-    return <AdditionRegroupGame onComplete={access.onComplete} />;
+    return <AdditionRegroupGame onComplete={access.onComplete} backHref={missionId && !teacherMode ? "/murid/ruang" : mathBackPath} teachingMode={teacherMode} teacherReturnTo={params.get("returnTo")} />;
   }
   if (path === "/minus-regroup") {
-    const student = studentPath(path);
+    const student = studentPath(path, teacherMode);
     if (!student || student.$$typeof) return student;
     if (student.isGuest) return <GuestDemoGate />;
-    return <MinusRegroupGame />;
+    return <MinusRegroupGame backHref={mathBackPath} teachingMode={teacherMode} teacherReturnTo={params.get("returnTo")} />;
   }
   if (path === "/zombie-defense" || path === "/multiplication-zombie") {
     const params = new URLSearchParams(window.location.search);
     const mode = params.get("mode") === "teacher" ? "teacher" : "student";
     const initialOperation = params.get("op") || "darab";
-    if (mode === "teacher") return <MultiplicationZombieGame initialMode="teacher" initialOperation={initialOperation} />;
+    if (mode === "teacher") return <MultiplicationZombieGame initialMode="teacher" initialOperation={initialOperation} assessmentMode={params.get("assessment") === "1"} backHref={mathBackPath} />;
     const student = studentPath(path);
     if (!student || student.$$typeof) return student;
     if (student.isGuest) return <GuestDemoGate />;
     const missionId = params.get("mission");
     const access = missionAccess(student, missionId);
     if (access.blocked) return <MissionAccessRequired />;
-    return <MultiplicationZombieGame initialMode="student" initialOperation={initialOperation} assessmentMode={params.get("assessment") === "1"} onComplete={access.onComplete} />;
+    return <MultiplicationZombieGame initialMode="student" initialOperation={initialOperation} assessmentMode={params.get("assessment") === "1"} onComplete={access.onComplete} backHref={params.has("mission") ? "/murid/ruang" : mathBackPath} />;
   }
   if (path === "/mosquito-splat") {
     const params = new URLSearchParams(window.location.search);
     const initialOp = params.get("op");
     const mode = params.get("mode") === "teacher" ? "teacher" : "student";
-    if (mode === "teacher") return <MosquitoSplatGame initialMode="teacher" initialOp={initialOp} />;
+    if (mode === "teacher") return <MosquitoSplatGame initialMode="teacher" initialOp={initialOp} backHref={mathBackPath} />;
     // Old links keep the Darab-to-Zombie compatibility alias; the explicit
     // chooser must be able to launch the real multiplication mosquito game.
     if (initialOp === "darab" && params.get("game") !== "mosquito") {
       const student = studentPath(path);
       if (!student || student.$$typeof) return student;
       if (student.isGuest) return <GuestDemoGate />;
-      return <MultiplicationZombieGame initialMode="student" initialOperation="darab" />;
+      return <MultiplicationZombieGame initialMode="student" initialOperation="darab" backHref={mathBackPath} />;
     }
     const student = studentPath(path);
     if (!student || student.$$typeof) return student;
     if (student.isGuest) return <GuestDemoGate />;
-    return <MosquitoSplatGame initialOp={initialOp} />;
+    return <MosquitoSplatGame initialOp={initialOp} backHref={mathBackPath} />;
   }
   return <HomeLanding />;
 }
@@ -213,8 +231,11 @@ function AuthGate({ children }) {
       const path = window.location.pathname.replace(/\/+$/, "") || "/";
       if (path === "/demo/student" || path === "/demo/teacher") {
         const role = path.endsWith("/student") ? "student" : "teacher";
-        const result = await startDemoSession(role, new URLSearchParams(window.location.search).get("token"));
-        if (!result.ok && !cancelled) setDemoError(true);
+        const token = new URLSearchParams(window.location.search).get("token");
+        if (token || !isDemoSessionValid(role)) {
+          const result = await startDemoSession(role, token);
+          if (!result.ok && !cancelled) setDemoError(true);
+        }
       }
       if (!cancelled) setReady(true);
     })();

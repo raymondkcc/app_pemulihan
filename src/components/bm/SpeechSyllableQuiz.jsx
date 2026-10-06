@@ -20,7 +20,7 @@ function questionAnswer(item) {
   return normalizeSyllableTranscript(item.syllable);
 }
 
-export default function SpeechSyllableQuiz({ onBack }) {
+export default function SpeechSyllableQuiz({ onBack, teachingMode = false }) {
   const [mode, setMode] = useState("kv");
   const [kvkItems, setKvkItems] = useState([]);
   const [question, setQuestion] = useState(KV_QUESTIONS[0]);
@@ -124,7 +124,7 @@ export default function SpeechSyllableQuiz({ onBack }) {
       setScore(nextScore);
       if (questionNumber >= QUESTIONS_PER_TEST) {
         setTestComplete(true);
-        const student = getActiveStudent();
+        const student = teachingMode ? null : getActiveStudent();
         void persistStudentAssessment({
           studentId: student?.id,
           subject: "bm",

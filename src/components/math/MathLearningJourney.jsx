@@ -44,7 +44,7 @@ function OperationMark({ operation, size = 28 }) {
   return operation === "tambah" ? <Plus size={size} strokeWidth={3.2} /> : <Minus size={size} strokeWidth={3.2} />;
 }
 
-function MathMap({ operation, progress, onSelectStage, onChangeOperation, onBack }) {
+function MathMap({ operation, progress, onSelectStage, onChangeOperation, onBack, activitiesHref }) {
   const copy = OPERATION_COPY[operation];
   return (
     <div className="math-journey-page">
@@ -84,6 +84,7 @@ function MathMap({ operation, progress, onSelectStage, onChangeOperation, onBack
           })}
         </div>
         <div className="math-map-footer"><span><OperationMark operation={operation} size={16} /> {copy.concept}</span><span>{Object.values(progress.levels).filter((level) => level.test).length}/3 level selesai</span></div>
+        <a className="math-secondary-button" href={activitiesHref}>Permainan dan ujian <ArrowRight size={17} /></a>
       </main>
     </div>
   );
@@ -186,9 +187,9 @@ function QuizResult({ pass, score, stage, onAction }) {
   return <div className="math-quiz-result"><span className={`math-result-icon ${pass ? "is-pass" : "is-retry"}`}>{pass ? <Trophy size={32} /> : <RotateCcw size={32} />}</span><span className="math-activity-kicker">{pass ? "Syabas!" : "Belum lagi"}</span><h2>{pass ? "Checkpoint lulus" : "Cuba sekali lagi"}</h2><p>{pass ? `${score}/5 betul. ${stage === "test" ? "Level seterusnya sudah terbuka." : "Teruskan ke checkpoint seterusnya."}` : `${score}/5 betul. Dapatkan sekurang-kurangnya 4/5 untuk lulus.`}</p><button className="math-primary-button" type="button" onClick={onAction}>{pass ? "Teruskan" : "Ulang"} <ArrowRight size={17} /></button></div>;
 }
 
-export default function MathLearningJourney({ operation = "tambah", initialLevel = "easy", initialStage = null, onBack }) {
-  const student = getActiveStudent();
-  const studentId = student?.id || "guest";
+export default function MathLearningJourney({ operation = "tambah", initialLevel = "easy", initialStage = null, onBack, activitiesHref = "/murid/matematik/aktiviti", teachingMode = false }) {
+  const student = teachingMode ? null : getActiveStudent();
+  const studentId = teachingMode ? "teacher-preview" : student?.id || "guest";
   const [currentOperation, setCurrentOperation] = useState(operation);
   const [progress, setProgress] = useState(() => getMathProgress(studentId, operation));
   const [activity, setActivity] = useState(initialStage && initialLevel ? { level: initialLevel, stage: initialStage } : null);
@@ -209,9 +210,9 @@ export default function MathLearningJourney({ operation = "tambah", initialLevel
 
   if (activity) {
     const unlocked = isMathStageUnlocked(progress, activity.level, activity.stage);
-    if (!unlocked) return <MathMap operation={currentOperation} progress={progress} onSelectStage={(level, stage) => setActivity({ level, stage })} onChangeOperation={goMap} onBack={onBack} />;
-    if (activity.stage === "learn") return <Lesson operation={currentOperation} level={activity.level} onComplete={() => completeStage(activity.level, "learn")} onBack={() => goMap()} />;
-    return <Practice operation={currentOperation} level={activity.level} stage={activity.stage} onComplete={() => completeStage(activity.level, activity.stage)} onBack={() => goMap()} />;
+    if (!unlocked) return <MathMap operation={currentOperation} progress={progress} onSelectStage={(level, stage) => setActivity({ level, stage })} onChangeOperation={goMap} onBack={onBack} activitiesHref={activitiesHref} />;
+    if (activity.stage === "learn") return <Lesson key={`${currentOperation}-${activity.level}`} operation={currentOperation} level={activity.level} onComplete={() => completeStage(activity.level, "learn")} onBack={() => goMap()} />;
+    return <Practice key={`${currentOperation}-${activity.level}-${activity.stage}`} operation={currentOperation} level={activity.level} stage={activity.stage} onComplete={() => completeStage(activity.level, activity.stage)} onBack={() => goMap()} />;
   }
-  return <MathMap operation={currentOperation} progress={progress} onSelectStage={(level, stage) => setActivity({ level, stage })} onChangeOperation={goMap} onBack={onBack} />;
+  return <MathMap operation={currentOperation} progress={progress} onSelectStage={(level, stage) => setActivity({ level, stage })} onChangeOperation={goMap} onBack={onBack} activitiesHref={activitiesHref} />;
 }

@@ -19,7 +19,7 @@ function itemLabel(item) {
   return item.variant ? `${item.label} (${item.variant})` : item.label || item.letter;
 }
 
-export default function BMAssessment({ type, onBack }) {
+export default function BMAssessment({ type, onBack, teachingMode = false }) {
   const isLetter = type === "huruf";
   const items = isLetter ? HURUF : VOKAL;
   const questions = useMemo(() => makeQuestions(items), [items]);
@@ -45,7 +45,7 @@ export default function BMAssessment({ type, onBack }) {
     if (questionNumber < QUESTIONS_PER_TEST) return;
     setComplete(true);
     setSaving(true);
-    const student = getActiveStudent();
+    const student = teachingMode ? null : getActiveStudent();
     await persistStudentAssessment({
       studentId: student?.id,
       subject: "bm",
@@ -78,6 +78,7 @@ export default function BMAssessment({ type, onBack }) {
         <div className="sound-hero-badge"><CheckCircle2 size={18} /><span><strong>{score}</strong> betul</span></div>
       </div>
       <section className="letter-test-section speech-quiz-section" aria-labelledby="bm-assessment-title">
+        {complete && <p className="home-notice" role="status">{score === QUESTIONS_PER_TEST ? "Syabas! Ujian lulus." : "Ujian selesai. Cuba semula untuk lulus."} {score}/{QUESTIONS_PER_TEST} betul.</p>}
         <div className="section-heading-row"><div><span className="section-kicker">Ujian / {isLetter ? "Huruf" : "Vokal"}</span><h2 id="bm-assessment-title">Pilih jawapan yang betul</h2><p>Setiap soalan dikira sekali sahaja.</p></div><span className="skill-count">Soalan {questionNumber}/{QUESTIONS_PER_TEST}</span></div>
         <div className="speech-quiz-card bm-assessment-card">
           <span className="speech-quiz-label">{isLetter ? "Cari huruf kecil untuk" : "Pilih vokal yang disebut"}</span>

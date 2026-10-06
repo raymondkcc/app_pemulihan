@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { activityHref } from "../../utils/activityNavigation.js";
 import {
   ArrowLeft,
   ArrowRight,
@@ -212,7 +213,7 @@ function MathPanel({ phase, level, topBoxes, displayH1, displayT1, displayO1, di
   );
 }
 
-function MinusRegroupGame() {
+function MinusRegroupGame({ backHref = "/murid/ruang", teachingMode = false, teacherReturnTo }) {
   const [level, setLevel] = useState("1000");
   const [groupingMode, setGroupingMode] = useState("mixed");
   const [problem, setProblem] = useState(DEFAULT_PROBLEM);
@@ -598,7 +599,7 @@ function MinusRegroupGame() {
   return (
     <main className="mrg-app">
       <header className="mrg-topbar">
-        <a className="mrg-home-link" href="/murid/ruang" aria-label="Back to learning space"><ArrowLeft size={17} /> <span>Learning space</span></a>
+        <a className="mrg-home-link" href={backHref} aria-label="Kembali"><ArrowLeft size={17} /> <span>Kembali</span></a>
         <div className="mrg-equation-pill" aria-label={`${problem.n1} minus ${problem.n2}`}>
           <strong>{problem.n1} - {problem.n2} = </strong><span>{phase === "success" ? problem.n1 - problem.n2 : "?"}</span>
         </div>
@@ -613,7 +614,7 @@ function MinusRegroupGame() {
         <aside className="mrg-bank">
           <div className="mrg-bank-title">Bank</div>
           <div className="mrg-bank-content">
-            <div className="mrg-bank-heading"><span>Drag / Click</span><button type="button" onClick={() => setShowBuildClue(true)} aria-label="Open help" title="Help"><CircleHelp size={16} /></button></div>
+            <div className="mrg-bank-heading"><span>Seret / Klik</span><button type="button" onClick={() => setShowBuildClue(true)} aria-label="Buka bantuan" title="Bantuan"><CircleHelp size={16} /></button></div>
             {level === "1000" && <BlockCard type="H" label="Hundreds" onClick={() => handleBankClick("H")} onDragStart={handleDragStart} />}
             <BlockCard type="T" label="Tens" onClick={() => handleBankClick("T")} onDragStart={handleDragStart} />
             <BlockCard type="O" label="Ones" onClick={() => handleBankClick("O")} onDragStart={handleDragStart} />
@@ -657,7 +658,7 @@ function MinusRegroupGame() {
         />
       </div>
 
-      <footer className="mrg-footer"><span><Volume2 size={15} /> Build the top number, then subtract from Ones to Hundreds.</span><a className="mrg-footer-game" href="/mosquito-splat?op=tolak">Permainan Nyamuk</a><a href="/" aria-label="Return to maths selection"><ArrowRight size={15} /> Maths</a></footer>
+      <footer className="mrg-footer"><span><Volume2 size={15} /> Bina nombor atas dahulu, kemudian tolak dari unit ke puluh dan ratus.</span><a className="mrg-footer-game" href={activityHref("/mosquito-splat?op=tolak&game=mosquito", { teacherMode: teachingMode, returnTo: teacherReturnTo })}>Permainan Nyamuk</a><a href={teachingMode ? backHref : "/murid/matematik/aktiviti"} aria-label="Kembali ke pilihan matematik"><ArrowRight size={15} /> Matematik</a></footer>
 
       {errorMsg && <div className="mrg-error-toast" role="alert"><X size={22} /> <span>{errorMsg}</span></div>}
 
@@ -666,9 +667,9 @@ function MinusRegroupGame() {
           <div className="mrg-overlay-card" role="dialog" aria-modal="true" aria-labelledby="mrg-overlay-title">
             <button className="mrg-overlay-close" type="button" onClick={() => { setShowBuildClue(false); setShowSolveClue(false); setShowReminder(false); }} aria-label="Close"><X size={18} /></button>
             <div className="mrg-overlay-mark">{showReminder ? <Check size={28} /> : <CircleHelp size={28} />}</div>
-            <h2 id="mrg-overlay-title">{showBuildClue ? `Build ${problem.n1}` : showReminder ? "Number built" : "Start subtracting"}</h2>
-            <p>{showBuildClue ? "Drag or click blocks from Bank into the matching Build Space." : showReminder ? `Now subtract ${problem.n2}. Work from Ones to Hundreds.` : "Move blocks to the red Trash Area. If you need more, shatter a Ten or Hundred in the Borrow Space."}</p>
-            <button className="mrg-overlay-action" type="button" onClick={() => { if (showReminder) setShowReminder(false); else { setShowBuildClue(false); setShowSolveClue(false); } }}>{showReminder ? "Start subtracting" : "Got it"}<ChevronRight size={18} /></button>
+            <h2 id="mrg-overlay-title">{showBuildClue ? `Bina ${problem.n1}` : showReminder ? "Nombor siap" : "Mula menolak"}</h2>
+            <p>{showBuildClue ? "Seret atau klik blok dari bank ke ruang bina yang sepadan." : showReminder ? `Sekarang tolak ${problem.n2}. Kira dari unit ke puluh dan ratus.` : "Alihkan blok ke kawasan buang. Jika tidak cukup, pecahkan puluh atau ratus di ruang pinjam."}</p>
+            <button className="mrg-overlay-action" type="button" onClick={() => { if (showReminder) setShowReminder(false); else { setShowBuildClue(false); setShowSolveClue(false); } }}>{showReminder ? "Mula menolak" : "Faham"}<ChevronRight size={18} /></button>
           </div>
         </div>
       )}

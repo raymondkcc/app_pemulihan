@@ -14,6 +14,7 @@ import SyllableLearningChoice from "./SyllableLearningChoice.jsx";
 import LetterLearningChoice from "./LetterLearningChoice.jsx";
 import BMAssessment from "./BMAssessment.jsx";
 import HurufGames from "../../games/huruf/HurufGames.jsx";
+import { activityHref } from "../../utils/activityNavigation.js";
 
 function ScreamAnimalCard() {
   const [playing, setPlaying] = useState(false);
@@ -90,14 +91,19 @@ function BacaanPemahamanModule({ onBack }) {
   );
 }
 
-export default function BahasaMelayuHub({ onBack, onComingSoon, notice, initialMission, onMissionComplete }) {
+export default function BahasaMelayuHub({ onBack, onComingSoon, notice, initialMission, onMissionComplete, initialCategory, initialActivity, teachingMode = false, teacherReturnTo }) {
   const startsHurufMission = initialMission === "huruf";
   const startsSyllableMission = initialMission === "suku-kata";
-  const [category, setCategory] = useState(startsHurufMission ? "huruf" : startsSyllableMission ? "suku-kata" : null);
-  const [subCategory, setSubCategory] = useState(startsSyllableMission ? "main" : null);
-  const [learningChoiceOpen, setLearningChoiceOpen] = useState(false);
   const student = getActiveStudent();
-  const guestDemo = Boolean(student?.isGuest);
+  const guestDemo = !teachingMode && Boolean(student?.isGuest);
+  const requestedCategory = BM_CATEGORIES.find((item) => item.id === initialCategory && (!guestDemo || item.id === "huruf"));
+  const [category, setCategory] = useState(startsHurufMission ? "huruf" : startsSyllableMission ? "suku-kata" : requestedCategory?.id || null);
+  const [subCategory, setSubCategory] = useState(startsSyllableMission ? "main" : requestedCategory?.subCategories.some((item) => item.id === initialActivity && item.id !== "belajar") ? initialActivity : null);
+  const [learningChoiceOpen, setLearningChoiceOpen] = useState(false);
+  const pondUrl = new URL(initialMission === "suku-kata" ? "/kv-sound-pond?mission=suku-kata" : "/kv-sound-pond", window.location.origin);
+  const missionMap = new URLSearchParams(window.location.search).get("map");
+  if (initialMission === "suku-kata" && missionMap) pondUrl.searchParams.set("map", missionMap);
+  const pondHref = activityHref(`${pondUrl.pathname}${pondUrl.search}`, { teacherMode: teachingMode, returnTo: teacherReturnTo });
   const missionLockedToHuruf = startsHurufMission;
 
   function selectCategory(catId) {
@@ -129,7 +135,7 @@ export default function BahasaMelayuHub({ onBack, onComingSoon, notice, initialM
     if (subCategory) {
       setSubCategory(null);
     } else if (category) {
-      if (missionLockedToHuruf) {
+      if (missionLockedToHuruf || (teachingMode && requestedCategory)) {
         onBack();
         return;
       }
@@ -144,23 +150,23 @@ export default function BahasaMelayuHub({ onBack, onComingSoon, notice, initialM
     if (category === "huruf") {
       if (subCategory === "baca" || subCategory === "tulis") return <HurufModule mode={subCategory} onBack={goBack} />;
       if (subCategory === "main") return <MainHuruf onBack={goBack} onMissionComplete={onMissionComplete} />;
-      if (subCategory === "ujian") return <BMAssessment type="huruf" onBack={goBack} />;
+      if (subCategory === "ujian") return <BMAssessment type="huruf" onBack={goBack} teachingMode={teachingMode} />;
     }
     if (category === "vokal") {
       if (subCategory === "belajar") return <VokalModule onBack={goBack} />;
       if (subCategory === "main") return <MainVokal onBack={goBack} />;
-      if (subCategory === "ujian") return <BMAssessment type="vokal" onBack={goBack} />;
+      if (subCategory === "ujian") return <BMAssessment type="vokal" onBack={goBack} teachingMode={teachingMode} />;
     }
     if (category === "suku-kata") {
-      if (subCategory === "kv") return <KVModule onBack={goBack} />;
+      if (subCategory === "kv") return <KVModule onBack={goBack} pondHref={pondHref} />;
       if (subCategory === "kvk") return <KVKLearning onBack={goBack} />;
-      if (subCategory === "main") return <div className="home-content hub-content"><CategoryHeader onBack={goBack} cat={BM_CATEGORIES.find((item) => item.id === category)} /><a className="kv-pond-launch" href={initialMission === "suku-kata" ? "/kv-sound-pond?mission=suku-kata" : "/kv-sound-pond"}><span><strong>Lompat Si Katak Lompat</strong><p>Dengar bunyi KV, kemudian pilih gema yang sama.</p></span><span>Main sekarang <ArrowLeft size={17} /></span></a></div>;
-      if (subCategory === "ujian") return <SpeechSyllableQuiz onBack={goBack} />;
+      if (subCategory === "main") return <div className="home-content hub-content"><CategoryHeader onBack={goBack} cat={BM_CATEGORIES.find((item) => item.id === category)} /><a className="kv-pond-launch" href={pondHref}><span><strong>Lompat Si Katak Lompat</strong><p>Dengar bunyi KV, kemudian pilih gema yang sama.</p></span><span>Main sekarang <ArrowLeft size={17} /></span></a></div>;
+      if (subCategory === "ujian") return <SpeechSyllableQuiz onBack={goBack} teachingMode={teachingMode} />;
     }
     if (category === "perkataan") {
       if (subCategory === "belajar") return <PerkataanModule onBack={goBack} />;
       if (subCategory === "main") return <PerkataanQuizGame onBack={goBack} />;
-      if (subCategory === "ujian") return <PerkataanFlashCardGame onBack={goBack} />;
+      if (subCategory === "ujian") return <PerkataanFlashCardGame onBack={goBack} teachingMode={teachingMode} />;
     }
     if (category === "ayat-dan-pemahaman") {
       if (subCategory === "k31") return <ComingSoon onBack={goBack} title="K31 Membaca dan Membina Ayat" description="Aktiviti membaca dan membina ayat akan datang." />;
@@ -174,7 +180,7 @@ export default function BahasaMelayuHub({ onBack, onComingSoon, notice, initialM
     return (
       <div className="home-content hub-content">
         <div className="hub-hero">
-          <button className="back-button" type="button" onClick={goBack}><ArrowLeft size={18} /> <span>Bahasa Melayu</span></button>
+          <button className="back-button" type="button" onClick={goBack}><ArrowLeft size={18} /> <span>{teachingMode && requestedCategory ? "Kembali" : "Bahasa Melayu"}</span></button>
           <div className="hub-title-block">
             <h1>{cat.title}</h1>
             <p>{cat.description}</p>

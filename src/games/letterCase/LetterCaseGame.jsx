@@ -220,7 +220,7 @@ export default function LetterCaseGame({ letters, onPlayLetter, onComplete }) {
               <span className="letter-case-postmark"><Sparkles size={20} /></span>
               <span className="section-kicker">Misi bermula di sini</span>
               <h3>Hantar huruf kepada pasangan!</h3>
-              <p>Lihat huruf sasaran, kemudian pilih pasangan yang betul.</p>
+              <p>Cari pasangan huruf besar dan huruf kecil yang sepadan.</p>
               <button className="primary-mini-action" type="button" onClick={startGame}><Play size={18} fill="currentColor" /> Mula misi</button>
               <span className="letter-case-key-hint">Tekan Enter untuk mula</span>
             </div>

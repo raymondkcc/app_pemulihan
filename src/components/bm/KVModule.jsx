@@ -51,7 +51,7 @@ function KVSoundTable({ selectedItem, onSelect, eSound }) {
   );
 }
 
-export default function KVModule({ onBack }) {
+export default function KVModule({ onBack, pondHref = "/kv-sound-pond" }) {
   const [eSound, setESound] = useState("e-pepet");
   const [selectedItem, setSelectedItem] = useState(() => createKvItem("b", "a"));
 
@@ -73,7 +73,7 @@ export default function KVModule({ onBack }) {
         <div className="e-sound-picker" role="radiogroup" aria-label="Pilih jenis bunyi e"><span className="e-sound-picker-label">Pilih bunyi e</span>{E_SOUND_OPTIONS.map((option) => <button className={`e-sound-option ${eSound === option.id ? "is-selected" : ""}`} type="button" role="radio" aria-checked={eSound === option.id} key={option.id} onClick={() => changeESound(option.id)}><strong>{option.label}</strong><span>{option.hint}</span></button>)}</div>
         <KVSoundTable selectedItem={selectedItem} onSelect={setSelectedItem} eSound={eSound} />
       </section>
-      <section className="kv-pond-launch" aria-label="Permainan Lompat Si Katak Lompat"><div><span className="section-kicker">Permainan bunyi</span><strong>Lompat Si Katak Lompat</strong><p>Dengar bunyi KV, kemudian pilih gema yang sama.</p></div><a href="/kv-sound-pond">Main sekarang <ArrowRight size={17} /></a></section>
+      <section className="kv-pond-launch" aria-label="Permainan Lompat Si Katak Lompat"><div><span className="section-kicker">Permainan bunyi</span><strong>Lompat Si Katak Lompat</strong><p>Dengar bunyi KV, kemudian pilih gema yang sama.</p></div><a href={pondHref}>Main sekarang <ArrowRight size={17} /></a></section>
     </div>
   );
 }

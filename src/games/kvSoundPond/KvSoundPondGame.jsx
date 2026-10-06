@@ -438,7 +438,7 @@ function PondCanvas({ round, feedback, phase, onChoice, onReplay, onCorrectLandi
   return <div className="pond-canvas" ref={hostRef} aria-label="Lompat Si Katak Lompat" />;
 }
 
-export default function KvSoundPondGame({ onComplete }) {
+export default function KvSoundPondGame({ onComplete, backHref = "/murid/ruang" }) {
   const [setId, setSetId] = useState("a");
   const [questionCount, setQuestionCount] = useState(10);
   const [phase, setPhase] = useState("setup");
@@ -699,13 +699,14 @@ export default function KvSoundPondGame({ onComplete }) {
   if (phase === "setup") {
     return (
       <main className="pond-page pond-setup-page">
-        <a className="pond-back" href="/murid/ruang" title="Kembali ke ruang belajar"><ArrowLeft size={20} /> Kembali</a>
+        <a className="pond-back" href={backHref} title="Kembali"><ArrowLeft size={20} /> Kembali</a>
         <section className="pond-setup" aria-labelledby="pond-setup-title">
           <div className="pond-setup-sky" aria-hidden="true"><img src="/images/pond/echo-frog.svg" alt="" /></div>
           <div className="pond-setup-copy">
             <span>LATIHAN BUNYI KV</span>
             <h1 id="pond-setup-title">Lompat Si Katak Lompat</h1>
             <p>Pilih bunyi dan bilangan soalan.</p>
+            <p className="pond-prompt">Dengar bunyi, kemudian pilih katak yang menyebut bunyi sama.</p>
           </div>
           <div className="pond-choice-block">
             <h2>Bunyi hari ini</h2>
@@ -738,7 +739,7 @@ export default function KvSoundPondGame({ onComplete }) {
           <p>{correct} / {questionCount} bunyi tepat</p>
           <h1 id="pond-finish-title">Hebat!</h1>
           <button className="pond-start" type="button" onClick={() => setPhase("setup")}><RotateCcw size={22} /> Main lagi</button>
-          <a className="pond-back" href="/murid/ruang"><ArrowLeft size={20} /> Kembali ke peta</a>
+          <a className="pond-back" href={backHref}><ArrowLeft size={20} /> Kembali</a>
         </section>
       </main>
     );
@@ -761,7 +762,7 @@ export default function KvSoundPondGame({ onComplete }) {
   return (
     <main className="pond-page pond-game-page">
       <header className="pond-hud">
-        <a className="pond-back" href="/murid/ruang" title="Kembali ke ruang belajar"><ArrowLeft size={19} /><span>Kembali</span></a>
+        <a className="pond-back" href={backHref} title="Kembali"><ArrowLeft size={19} /><span>Kembali</span></a>
         <div className="pond-progress" aria-label={`Soalan ${roundNumber} daripada ${questionCount}`}>
           <div className="pond-progress-counter">
             <strong>{roundNumber}</strong>
@@ -777,6 +778,7 @@ export default function KvSoundPondGame({ onComplete }) {
           ))}
         </div>
       </header>
+      <div className="pond-game-prompt">Dengar bunyi sasaran, kemudian lompat ke katak yang betul.</div>
       {round && (
         <PondCanvas
           round={round}

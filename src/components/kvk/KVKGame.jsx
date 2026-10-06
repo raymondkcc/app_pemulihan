@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { BookOpen, Check, DoorOpen, LockKeyhole, Maximize2, Minimize2, RotateCcw, Volume2, X } from "lucide-react";
+import { ArrowLeft, BookOpen, Check, DoorOpen, LockKeyhole, Maximize2, Minimize2, RotateCcw, Volume2, X } from "lucide-react";
 import { ENDINGS, pickAdaptiveEnding } from "../../data/kvk.js";
 import { loadKvkPack, pickPackSyllable } from "../../data/syllablePack.js";
 import { playSyllableAudio, stopSyllableAudio } from "../../utils/syllableAudio.js";
@@ -100,7 +100,7 @@ function CategoryStats({ stats }) {
   );
 }
 
-export default function KVKGame() {
+export default function KVKGame({ backHref = "/murid/bahasa-melayu?category=suku-kata" }) {
   const [selectedEnding, setSelectedEnding] = useState(null);
   const [currentEnding, setCurrentEnding] = useState(null);
   const [phase, setPhase] = useState("ready");
@@ -314,6 +314,7 @@ export default function KVKGame() {
             <p className="subtitle">Pintu Bacaan Interaktif</p>
           </div>
           <div className="header-actions">
+            <a className="back-button" href={backHref}><ArrowLeft size={18} /> Kembali</a>
             <div className="header-lockup"><LockKeyhole size={15} /> sesi {String(total).padStart(2, "0")}</div>
             <button
               className="fullscreen-button"

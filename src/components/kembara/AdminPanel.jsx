@@ -130,10 +130,14 @@ function AdminHome({ adult }) {
   const students = useMemo(() => store.students.filter((student) => !student.archived), [store]);
 
   async function load() {
-    const result = await loadAdminWorkspace();
-    setStore(result.store);
-    setStats(result.stats);
-    setDemo(result.demo || getDemoConfig());
+    try {
+      const result = await loadAdminWorkspace();
+      setStore(result.store);
+      setStats(result.stats);
+      setDemo(result.demo || getDemoConfig());
+    } catch {
+      setError("Tidak dapat memuat data. Semak internet dan cuba lagi.");
+    }
   }
 
   useEffect(() => {
@@ -422,9 +426,14 @@ function AdultEditDialog({ adult, onClose, onSave }) {
     event.preventDefault();
     setBusy(true);
     setError("");
-    const result = await onSave({ name, email: adult.email, role, active, studentLimit });
-    setBusy(false);
-    if (!result?.ok) setError(result?.error || "Tidak berjaya menyimpan.");
+    try {
+      const result = await onSave({ name, email: adult.email, role, active, studentLimit });
+      if (!result?.ok) setError(result?.error || "Tidak berjaya menyimpan.");
+    } catch {
+      setError("Tidak berjaya menyimpan. Semak internet dan cuba lagi.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (

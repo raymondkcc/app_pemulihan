@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import LoadingScreen from "../kembara/LoadingScreen.jsx";
 import AdventureLogo from "./AdventureLogo.jsx";
 import { getActiveAdult, whenAuthReady } from "../../utils/kembaraStore.js";
+import { activityHref } from "../../utils/activityNavigation.js";
 
 const SUBJECTS = {
   bm: {
@@ -10,11 +11,11 @@ const SUBJECTS = {
     english: "Malay",
     Icon: BookOpen,
     items: [
-      { id: "bm-huruf", title: "Huruf", text: "Kenal huruf besar dan kecil", href: "/murid/bahasa-melayu" },
-      { id: "bm-vokal", title: "Vokal", text: "Dengar dan kenal bunyi vokal", href: "/murid/bahasa-melayu" },
-      { id: "bm-suku-kata", title: "Suku kata", text: "Latihan KV dan KVK", href: "/kvk" },
-      { id: "bm-perkataan", title: "Perkataan", text: "Bina dan kenal perkataan", href: "/murid/bahasa-melayu" },
-      { id: "bm-sebutan", title: "Sebutan", text: "Dengar dan sebut", href: "/murid/bahasa-melayu" }
+      { id: "bm-huruf", title: "Huruf", text: "Kenal huruf besar dan kecil", href: "/murid/bahasa-melayu?category=huruf" },
+      { id: "bm-vokal", title: "Vokal", text: "Dengar dan kenal bunyi vokal", href: "/murid/bahasa-melayu?category=vokal" },
+      { id: "bm-suku-kata", title: "Suku kata", text: "Latihan KV dan KVK", href: "/murid/bahasa-melayu?category=suku-kata" },
+      { id: "bm-perkataan", title: "Perkataan", text: "Bina dan kenal perkataan", href: "/murid/bahasa-melayu?category=perkataan" },
+      { id: "bm-sebutan", title: "Sebutan", text: "Dengar dan sebut", href: "/murid/bahasa-melayu?category=suku-kata&activity=ujian" }
     ]
   },
   math: {
@@ -78,10 +79,11 @@ function ActivityList({ data, heading = "Aktiviti / Activities", onActivitySelec
     <section className="teacher-activity-panel">
       <div className="section-heading-row"><div><span className="section-kicker">{heading}</span><h2><Icon size={22} /> {data.title}</h2></div></div>
       <div className="teacher-activity-list">{data.items.map((item, index) => {
+        const href = item.href ? activityHref(item.href, { teacherMode: true, returnTo: window.location.pathname }) : null;
         const action = item.href && onActivitySelect && item.operation
           ? <button type="button" onClick={() => onActivitySelect(item)} aria-label={`Pilih cara untuk ${item.title}`}><Play size={16} fill="currentColor" /> Buka / Open <ArrowRight size={15} /></button>
           : item.href
-            ? <a href={item.href} aria-label={`Buka ${item.title}`}><Play size={16} fill="currentColor" /> Buka / Open <ArrowRight size={15} /></a>
+            ? <a href={href} aria-label={`Buka ${item.title}`}><Play size={16} fill="currentColor" /> Buka / Open <ArrowRight size={15} /></a>
             : <span className="teacher-coming"><LockKeyhole size={15} /> Akan datang / Coming soon</span>;
         const description = onActivitySelect && item.teacherText ? item.teacherText : item.text;
         return <div className={`teacher-activity ${!item.href ? "is-locked" : ""}`} key={item.id}><span className="teacher-number">{String(index + 1).padStart(2, "0")}</span><span className="teacher-activity-copy"><strong>{item.title}</strong><span>{description}</span></span>{action}</div>;
@@ -100,12 +102,12 @@ function MathOperationChoice({ operation, onClose }) {
   }, [onClose]);
 
   const openLearning = () => {
-    if (operation.learningHref) window.location.href = operation.learningHref;
+    if (operation.learningHref) window.location.href = activityHref(operation.learningHref, { teacherMode: true, returnTo: window.location.pathname });
   };
   const openGame = (game) => {
-    window.location.href = game === "zombie"
-      ? `/zombie-defense?op=${operation.operation}&mode=teacher`
-      : `/mosquito-splat?op=${operation.operation}&mode=teacher`;
+    window.location.href = activityHref(game === "zombie"
+      ? `/zombie-defense?op=${operation.operation}`
+      : `/mosquito-splat?op=${operation.operation}&game=mosquito`, { teacherMode: true, returnTo: window.location.pathname });
   };
 
   return (
@@ -143,7 +145,10 @@ function GuideAside() {
 }
 
 function GuideHub({ initialSubject }) {
-  const [subject, setSubject] = useState(initialSubject);
+  const [subject, setSubject] = useState(() => {
+    const requested = new URLSearchParams(window.location.search).get("subject");
+    return Object.hasOwn(SUBJECTS, requested) ? requested : initialSubject;
+  });
   const data = SUBJECTS[subject];
 
   return (
@@ -155,7 +160,7 @@ function GuideHub({ initialSubject }) {
           <h1>Pilih aktiviti untuk anak</h1>
           <p>Choose an activity, then explore it together with your learner.</p>
         </div>
-        <SubjectTabs subject={subject} onChange={setSubject} />
+        <SubjectTabs subject={subject} onChange={(nextSubject) => { setSubject(nextSubject); window.history.replaceState(null, "", `${window.location.pathname}?subject=${nextSubject}`); }} />
         <div className="teacher-layout"><ActivityList data={data} /><GuideAside /></div>
       </section>
     </main>
@@ -163,7 +168,7 @@ function GuideHub({ initialSubject }) {
 }
 
 function TeachingMode() {
-  const [subject, setSubject] = useState("bm");
+  const [subject, setSubject] = useState(new URLSearchParams(window.location.search).get("subject") === "math" ? "math" : "bm");
   const [selectedMathOperation, setSelectedMathOperation] = useState(null);
   const data = SUBJECTS[subject];
 
@@ -176,7 +181,7 @@ function TeachingMode() {
           <h1>Pilih cara mengajar hari ini</h1>
           <p>Pilih subjek, kemudian buka aktiviti yang mahu digunakan bersama murid. Anda boleh kembali dan bertukar subjek pada bila-bila masa.</p>
         </div>
-        <SubjectTabs subject={subject} onChange={setSubject} />
+        <SubjectTabs subject={subject} onChange={(nextSubject) => { setSubject(nextSubject); window.history.replaceState(null, "", `/cikgu/mengajar?subject=${nextSubject}`); }} />
         <div className="teacher-layout"><ActivityList data={data} heading="Mod pembelajaran / Learning modes" onActivitySelect={subject === "math" ? setSelectedMathOperation : undefined} /><GuideAside /></div>
       </section>
       {selectedMathOperation && <MathOperationChoice operation={selectedMathOperation} onClose={() => setSelectedMathOperation(null)} />}

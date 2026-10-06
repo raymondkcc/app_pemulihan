@@ -1,5 +1,6 @@
 import { ArrowLeft, ArrowRight, BookOpen, Calculator, ClipboardCheck, Gamepad2, Minus, Plus, Sparkles, Star, X, Bug, Shield } from "lucide-react";
 import { useEffect, useState } from "react";
+import { activityHref } from "../../utils/activityNavigation.js";
 
 const MATH_OPERATIONS = [
   { id: "tambah", title: "Operasi tambah", english: "Addition", symbol: "+", helper: "Gabung nombor", color: "coral", Icon: Plus, learningHref: "/addition-regroup" },
@@ -8,7 +9,8 @@ const MATH_OPERATIONS = [
   { id: "bahagi", title: "Operasi bahagi", english: "Division", symbol: "÷", helper: "Kongsi sama rata", color: "blue", Icon: Calculator }
 ];
 
-export default function MathHub({ onBack, onComingSoon, notice }) {
+export default function MathHub({ onBack, onComingSoon, notice, teachingMode = false, teacherReturnTo }) {
+  const hrefFor = (path) => activityHref(path, { teacherMode: teachingMode, returnTo: teacherReturnTo });
   const [selectedOperation, setSelectedOperation] = useState(null);
   const [choiceStep, setChoiceStep] = useState("mode");
   const closeChoice = () => {
@@ -23,25 +25,25 @@ export default function MathHub({ onBack, onComingSoon, notice }) {
   }, [selectedOperation]);
   const openLearning = () => {
     if (!selectedOperation?.learningHref) return;
-    window.location.href = selectedOperation.learningHref;
+    window.location.href = hrefFor(selectedOperation.learningHref);
   };
   const openPlayChoices = () => setChoiceStep("games");
   const openGame = (game) => {
     const operation = selectedOperation?.id;
     if (!operation) return;
-    window.location.href = game === "zombie"
+    window.location.href = hrefFor(game === "zombie"
       ? `/zombie-defense?op=${operation}`
-      : `/mosquito-splat?op=${operation}&game=mosquito`;
+      : `/mosquito-splat?op=${operation}&game=mosquito`);
   };
   const openAssessment = () => {
     const operation = selectedOperation?.id;
-    if (operation) window.location.href = `/zombie-defense?op=${operation}&assessment=1`;
+    if (operation) window.location.href = hrefFor(`/zombie-defense?op=${operation}&assessment=1`);
   };
 
   return (
     <div className="home-content hub-content math-hub-content">
       <div className="hub-hero math-hero">
-        <button className="back-button" type="button" onClick={onBack} title="Kembali pilih subjek"><ArrowLeft size={18} /> <span>Subjek</span></button>
+        <button className="back-button" type="button" onClick={onBack} title="Kembali"><ArrowLeft size={18} /> <span>Kembali</span></button>
         <div className="hub-title-block">
           <span className="hub-eyebrow"><Calculator size={15} /> Matematik <span>/ Mathematics</span></span>
           <h1>Kira, cuba, tepuk tangan!</h1>
@@ -77,7 +79,7 @@ export default function MathHub({ onBack, onComingSoon, notice }) {
       <section className="math-game-strip" aria-label="Permainan matematik">
         <span className="math-game-icon"><Sparkles size={26} /></span>
         <div className="math-game-copy"><span className="section-kicker">Permainan laju</span><strong>Hempaplah Nyamuk!</strong><em>Tambah, tolak, darab dan bahagi dalam 60 saat.</em></div>
-        <a className="math-game-link" href="/mosquito-splat">Main <ArrowRight size={15} /></a>
+        <a className="math-game-link" href={hrefFor("/mosquito-splat")}>Main <ArrowRight size={15} /></a>
       </section>
       {notice && <div className="home-notice" role="status"><Sparkles size={17} /> <span>{notice}</span></div>}
       {selectedOperation && (

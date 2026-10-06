@@ -2,7 +2,7 @@ import { ArrowRight, BookOpen, Check, Gift, LockKeyhole, Map, Sparkles } from "l
 import { getCollectiblesForMap } from "../../data/collectibles.js";
 import { MAP_THEMES, DEFAULT_MAP_THEME, getMapTheme } from "../../data/mapThemes.js";
 import { getMissionsForTrack, missionIconForState } from "../../data/missions.js";
-import { getFoundCollectibles, hasCollectedMap } from "../../utils/collectibleProgress.js";
+import { getFoundCollectibles, getUnlockedMapCount } from "../../utils/collectibleProgress.js";
 import { getMissionProgress, isMissionUnlocked, subscribeToMissionProgress } from "../../utils/missionProgress.js";
 import CollectibleSprite from "./CollectibleSprite.jsx";
 import { useEffect, useState } from "react";
@@ -80,14 +80,7 @@ export default function MissionMap({ student }) {
   }, [student.id]);
 
   const completedCount = missions.filter((mission) => visibleCompletedIds.includes(mission.id)).length;
-  const unlockedMapCount = isDemo
-    ? MAP_THEMES.length
-    : isGuest
-    ? 1
-    : availableThemes.reduce((count, mapTheme, index) => {
-      if (index === 0 || count !== index || !hasCollectedMap(student.id, availableThemes[index - 1].id)) return count;
-      return count + 1;
-    }, 1);
+  const unlockedMapCount = getUnlockedMapCount(student.id, availableMapCount, { isDemo, isGuest });
   const selectedThemeIndex = MAP_THEMES.findIndex((mapTheme) => mapTheme.id === theme.id);
   const activeTheme = selectedThemeIndex >= 0 && selectedThemeIndex < unlockedMapCount
     ? theme
@@ -173,7 +166,9 @@ export default function MissionMap({ student }) {
             : isMissionUnlocked(index, missions, visibleCompletedIds) && (!isGuest || isDemo || index === 0)
               ? "current"
               : "locked";
-          return <MissionNode key={mission.id} mission={mission} index={index} state={state} href={mission.route} position={activeTheme.positions[index] || activeTheme.positions[activeTheme.positions.length - 1]} />;
+          const href = new URL(mission.route, window.location.origin);
+          href.searchParams.set("map", activeTheme.id);
+          return <MissionNode key={mission.id} mission={mission} index={index} state={state} href={`${href.pathname}${href.search}`} position={activeTheme.positions[index] || activeTheme.positions[activeTheme.positions.length - 1]} />;
         })}
         {isGuest && missions.length > 1 && (
           <li className="mission-map-more-locked"><LockKeyhole size={17} /><span><strong>Lebih banyak misi menanti</strong><small>Simpan kemajuan dengan akaun murid.</small></span></li>

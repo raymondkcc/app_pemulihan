@@ -86,7 +86,7 @@ function playWord(word) {
   });
 }
 
-export default function PerkataanFlashCardGame({ onBack }) {
+export default function PerkataanFlashCardGame({ onBack, teachingMode = false }) {
   const allWords = useMemo(buildDeck, []);
   const [mode, setMode] = useState("wordToImage");
   const [deck, setDeck] = useState(() => shuffle(buildDeck()));
@@ -127,7 +127,7 @@ export default function PerkataanFlashCardGame({ onBack }) {
 
     advanceTimer.current = window.setTimeout(() => {
       if (cardIndex === deck.length - 1) {
-        const student = getActiveStudent();
+        const student = teachingMode ? null : getActiveStudent();
         void persistStudentAssessment({
           studentId: student?.id,
           subject: "bm",

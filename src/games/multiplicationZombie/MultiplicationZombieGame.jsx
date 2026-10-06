@@ -138,7 +138,7 @@ function NumberPicker({ engine, selectedNumbers, onToggleNumber, onSelectAll, on
   );
 }
 
-function SetupPanel({ mode, engine, selectedNumbers, difficulty, questionCount, onToggleNumber, onSelectAll, onClearAll, onDifficulty, onQuestionCount, onStart, error, startDisabled }) {
+function SetupPanel({ mode, engine, selectedNumbers, difficulty, questionCount, onToggleNumber, onSelectAll, onClearAll, onDifficulty, onQuestionCount, onStart, error, startDisabled, backHref }) {
   const copy = MODE_COPY[mode];
   const operationLabel = engine.info.label.toLowerCase();
   const usesNumberPicker = mode === "teacher" && engine.operation === "darab";
@@ -151,13 +151,14 @@ function SetupPanel({ mode, engine, selectedNumbers, difficulty, questionCount, 
       : `Pilih tahap kesukaran untuk semua fakta ${operationLabel}, kemudian mula serangan.`;
   return (
     <main className="mz-page mz-setup-page">
-      <a className="mz-back-link" href={mode === "teacher" ? "/cikgu/mengajar" : "/murid/matematik"}><ArrowLeft size={18} /> Kembali / Back</a>
+      <a className="mz-back-link" href={backHref}><ArrowLeft size={18} /> Kembali / Back</a>
       <section className="mz-setup-card">
         <div className="mz-hero-art" aria-hidden="true"><span className="mz-hero-zombie">🧟</span><span className="mz-hero-magic">✦</span><span className="mz-hero-brain">🧠</span></div>
         <div className="mz-setup-copy">
           <span className="mz-eyebrow"><Shield size={16} /> {copy.eyebrow}</span>
           <h1>{copy.title}</h1>
           <p>{subtitle}</p>
+          <p className="mz-setup-prompt">Kira soalan. Masukkan jawapan sebelum zombie sampai!</p>
         </div>
 
         {mode === "student" ? (
@@ -199,7 +200,7 @@ function SetupPanel({ mode, engine, selectedNumbers, difficulty, questionCount, 
   );
 }
 
-function GameSummary({ mode, operationInfo, summary, weakFacts, saveState, onReplay, onBack }) {
+function GameSummary({ mode, operationInfo, summary, weakFacts, saveState, onReplay, backHref }) {
   const accuracy = summary.answered ? Math.round((summary.correct / summary.answered) * 100) : 0;
   return (
     <main className="mz-page mz-summary-page">
@@ -221,15 +222,16 @@ function GameSummary({ mode, operationInfo, summary, weakFacts, saveState, onRep
         <p className={`mz-save-status ${saveState.kind}`} role="status">{saveState.text}</p>
         <div className="mz-summary-actions">
           <button className="mz-start-button" type="button" onClick={onReplay}><RotateCcw size={20} /> Main lagi</button>
-          <button className="mz-secondary-button" type="button" onClick={onBack}><ArrowLeft size={18} /> Kembali</button>
+          <a className="mz-secondary-button" href={backHref}><ArrowLeft size={18} /> Kembali</a>
         </div>
       </section>
     </main>
   );
 }
 
-export default function MultiplicationZombieGame({ initialMode = "student", initialOperation = "darab", assessmentMode = false, onComplete }) {
+export default function MultiplicationZombieGame({ initialMode = "student", initialOperation = "darab", assessmentMode = false, onComplete, backHref }) {
   const mode = initialMode === "teacher" ? "teacher" : "student";
+  const returnHref = backHref || (mode === "teacher" ? "/cikgu/mengajar?subject=math" : "/murid/matematik/aktiviti");
   const operation = OPERATION_KEYS.includes(initialOperation) ? initialOperation : "darab";
   const engine = useMemo(() => createOperationEngine(operation), [operation]);
   const operationInfo = engine.info;
@@ -414,7 +416,7 @@ export default function MultiplicationZombieGame({ initialMode = "student", init
       setSaveState({ kind: "saved", text: "Analisis disimpan dalam Firebase. / Analysis saved in Firebase." });
     }
     notifyMissionComplete();
-  }, [difficulty, engine, mode, onComplete, operation, questionCount, soundOn, studentId]);
+  }, [assessmentMode, difficulty, engine, mode, onComplete, operation, questionCount, soundOn, studentId]);
 
   const startSession = useCallback(() => {
     if (mode === "student" && !progressReady) return;
@@ -552,23 +554,24 @@ export default function MultiplicationZombieGame({ initialMode = "student", init
   const weakFacts = useMemo(() => engine.getWeakFacts(progress), [engine, progress]);
 
   if (phase === "setup") {
-    return <SetupPanel mode={mode} engine={engine} selectedNumbers={selectedNumbers} difficulty={difficulty} questionCount={questionCount} onToggleNumber={toggleNumber} onSelectAll={() => setSelectedNumbers(selectAllNumbers())} onClearAll={() => setSelectedNumbers(new Set())} onDifficulty={setDifficulty} onQuestionCount={setQuestionCount} onStart={startSession} error={error} startDisabled={mode === "student" ? !progressReady : operation === "darab" && selectedKeys.size === 0} />;
+    return <SetupPanel mode={mode} engine={engine} selectedNumbers={selectedNumbers} difficulty={difficulty} questionCount={questionCount} onToggleNumber={toggleNumber} onSelectAll={() => setSelectedNumbers(selectAllNumbers())} onClearAll={() => setSelectedNumbers(new Set())} onDifficulty={setDifficulty} onQuestionCount={setQuestionCount} onStart={startSession} error={error} startDisabled={mode === "student" ? !progressReady : operation === "darab" && selectedKeys.size === 0} backHref={returnHref} />;
   }
 
   if (phase === "summary" && summary) {
-    return <GameSummary mode={mode} operationInfo={operationInfo} summary={summary} weakFacts={weakFacts} saveState={saveState} onReplay={startSession} onBack={() => setPhase("setup")} />;
+    return <GameSummary mode={mode} operationInfo={operationInfo} summary={summary} weakFacts={weakFacts} saveState={saveState} onReplay={startSession} backHref={returnHref} />;
   }
 
   return (
     <main className="mz-page mz-game-page">
       <header className="mz-game-header">
-        <a className="mz-back-link" href={mode === "teacher" ? "/cikgu/mengajar" : "/murid/matematik"}><ArrowLeft size={18} /> Kembali</a>
+        <a className="mz-back-link" href={returnHref}><ArrowLeft size={18} /> Kembali</a>
         <div className="mz-game-brand"><span>🧟</span><strong>Zombie Defense</strong><small>{operationInfo.label} / {operationInfo.english}</small></div>
         <button className="mz-sound-button" type="button" onClick={() => setSoundOn((value) => !value)} aria-label={soundOn ? "Matikan bunyi" : "Hidupkan bunyi"}>{soundOn ? <Volume2 size={18} /> : <VolumeX size={18} />}</button>
       </header>
       <div className="mz-game-shell">
         <section className="mz-stage-panel">
           <ZombieCanvas state={gameState} onBrainReached={() => finishSession("brain")} onZombieDefeated={() => { sessionRef.current.waves += 1; zombieHitsRef.current = 0; }} />
+          <p className="mz-game-prompt">Kira soalan, kemudian serang zombie dengan jawapan yang betul.</p>
           <div className="mz-stage-caption"><span><Shield size={15} /> {mode === "student" ? "Fakta dipilih untuk kamu" : operation === "darab" ? `${selectedNumbers.size} nombor dipilih` : `Semua fakta ${operationInfo.label.toLowerCase()}`}</span><span><Zap size={15} /> {mode === "student" ? "Kelajuan automatik" : DIFFICULTY_INFO[difficulty].label}</span></div>
         </section>
         <aside className="mz-answer-panel">

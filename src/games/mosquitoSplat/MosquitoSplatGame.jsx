@@ -206,7 +206,7 @@ function Floater({ floater }) {
     </span>
   );
 }
-export default function MosquitoSplatGame({ initialOp = null, initialMode = "student" }) {
+export default function MosquitoSplatGame({ initialOp = null, initialMode = "student", backHref }) {
   const teacherMode = initialMode === "teacher";
   const [phase, setPhase] = useState("loading");
   const [loadProgress, setLoadProgress] = useState(0);
@@ -494,7 +494,7 @@ export default function MosquitoSplatGame({ initialOp = null, initialMode = "stu
   return (
     <main className="mos-app">
       <header className="mos-topbar">
-            <a className="mos-home-link" href={teacherMode ? "/cikgu/mengajar" : "/murid/ruang"} aria-label={teacherMode ? "Kembali ke mod mengajar" : "Kembali ke ruang belajar"}>
+            <a className="mos-home-link" href={backHref || (teacherMode ? "/cikgu/mengajar?subject=math" : "/murid/matematik/aktiviti")} aria-label="Kembali">
           <ArrowLeft size={17} /> <span>Ruang</span>
         </a>
         <div className="mos-brand">
@@ -532,6 +532,7 @@ export default function MosquitoSplatGame({ initialOp = null, initialMode = "stu
             <span className="mos-menu-kicker">Permainan Matematik</span>
             <h1>Hempaplah Nyamuk!</h1>
             <p>Kira jawapan, hempap nyamuk yang betul sebelum dia terbang!</p>
+            <p className="mos-menu-prompt">Kira dahulu. Cari nyamuk yang membawa jawapan betul!</p>
           </div>
 
           <div className="mos-menu-panel">

@@ -32,6 +32,7 @@ export default function AdultDashboard() {
   const [error, setError] = useState("");
   const [lockStudent, setLockStudent] = useState(null);
   const [ready, setReady] = useState(false);
+  const [loadError, setLoadError] = useState("");
   const [busy, setBusy] = useState(false);
   const [reportStudent, setReportStudent] = useState(null);
   const [reportRows, setReportRows] = useState([]);
@@ -63,8 +64,12 @@ export default function AdultDashboard() {
       }
       if (cancelled) return;
       setAdult(current);
-      await refresh(current);
-      if (!cancelled) setReady(true);
+      try {
+        await refresh(current);
+        if (!cancelled) setReady(true);
+      } catch {
+        if (!cancelled) setLoadError("Tidak dapat membuka ruang cikgu. Semak internet dan cuba lagi.");
+      }
     })();
     return () => { cancelled = true; };
   }, []);
@@ -73,6 +78,9 @@ export default function AdultDashboard() {
   const atLimit = students.length >= limit;
   const seatLabel = `Murid ${students.length}/${limit}`;
 
+  if (loadError) {
+    return <main className="portal-page"><section className="profile-content"><p className="form-error" role="alert">{loadError}</p><button className="profile-submit" type="button" onClick={() => window.location.reload()}>Cuba lagi</button><a className="text-link" href="/">Kembali</a></section></main>;
+  }
   if (!ready || !adult || !classRecord) {
     return <LoadingScreen variant="dashboard" />;
   }
@@ -84,6 +92,8 @@ export default function AdultDashboard() {
     try {
       const rows = await loadMultiplicationReport(student.id);
       setReportRows(rows);
+    } catch {
+      setError("Tidak dapat memuat laporan. Semak internet dan cuba lagi.");
     } finally {
       setReportBusy(false);
     }
@@ -97,16 +107,21 @@ export default function AdultDashboard() {
   async function submit(event) {
     event.preventDefault();
     setBusy(true);
-    const result = await addStudent({ nickname, avatarId: avatar, track });
-    setBusy(false);
-    if (!result.ok) {
-      setError(result.error === "limit" ? `Had percuma: ${limit} murid.` : result.error);
-      return;
-    }
-    setNickname("");
     setError("");
-    setLockStudent(result.student);
-    await refresh(adult);
+    try {
+      const result = await addStudent({ nickname, avatarId: avatar, track });
+      if (!result.ok) {
+        setError(result.error === "limit" ? `Had percuma: ${limit} murid.` : result.error);
+        return;
+      }
+      setNickname("");
+      setLockStudent(result.student);
+      await refresh(adult);
+    } catch {
+      setError("Tidak dapat melengkapkan permintaan. Semak senarai murid sebelum cuba lagi.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -154,11 +169,11 @@ export default function AdultDashboard() {
                 onSave={async (pictureIds) => {
                   const result = await setStudentLock(lockStudent.id, pictureIds);
                   if (!result.ok) {
-                    setError(result.error);
-                    return;
+                    return result;
                   }
                   setLockStudent(null);
                   await refresh(adult);
+                  return { ok: true };
                 }}
               />
             </section>
@@ -285,9 +300,14 @@ function StudentEditDialog({ student, onClose, onSave }) {
     event.preventDefault();
     setBusy(true);
     setError("");
-    const result = await onSave({ nickname, avatarId, track });
-    setBusy(false);
-    if (!result?.ok) setError(result?.error || "Tidak berjaya menyimpan.");
+    try {
+      const result = await onSave({ nickname, avatarId, track });
+      if (!result?.ok) setError(result?.error || "Tidak berjaya menyimpan.");
+    } catch {
+      setError("Tidak berjaya menyimpan. Semak internet dan cuba lagi.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (

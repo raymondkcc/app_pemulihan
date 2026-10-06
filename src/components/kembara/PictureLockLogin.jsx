@@ -29,7 +29,7 @@ export default function PictureLockLogin({ nickname, onSubmit, disabled }) {
           </button>
         ))}
       </div>
-      <button className="text-link" type="button" onClick={() => setPicked([])}>Cuba semula gambar / Reset pictures</button>
+      <button className="text-link" type="button" disabled={disabled} onClick={() => setPicked([])}>Cuba semula gambar / Reset pictures</button>
     </section>
   );
 }

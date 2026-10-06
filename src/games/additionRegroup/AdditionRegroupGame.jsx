@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { activityHref } from "../../utils/activityNavigation.js";
 import {
   ArrowLeft,
   ArrowRight,
@@ -193,7 +194,7 @@ function tone(context, frequency, duration, type = "sine", volume = 0.12) {
   oscillator.stop(context.currentTime + duration);
 }
 
-function AdditionRegroupGame({ onComplete }) {
+function AdditionRegroupGame({ onComplete, backHref = "/murid/ruang", teachingMode = false, teacherReturnTo }) {
   const [level, setLevel] = useState("100");
   const [groupingMode, setGroupingMode] = useState("mixed");
   const [problem, setProblem] = useState(DEFAULT_PROBLEM);
@@ -494,7 +495,7 @@ function AdditionRegroupGame({ onComplete }) {
   return (
     <main className="arg-app">
       <header className="arg-topbar">
-        <a className="arg-home-link" href="/murid/ruang" aria-label="Back to learning space"><ArrowLeft size={17} /> <span>Learning space</span></a>
+        <a className="arg-home-link" href={backHref} aria-label="Kembali"><ArrowLeft size={17} /> <span>Kembali</span></a>
         <div className="arg-equation-pill" aria-label={`${problem.n1} plus ${problem.n2}`}>
           <strong>{problem.n1} + {problem.n2} = </strong><span>{phase === "success" ? problem.n1 + problem.n2 : "?"}</span>
         </div>
@@ -509,7 +510,7 @@ function AdditionRegroupGame({ onComplete }) {
         <aside className="arg-bank">
           <div className="arg-bank-title">Block bank</div>
           <div className="arg-bank-content">
-            <div className="arg-bank-heading"><span>Click or drag</span><button type="button" onClick={() => setShowBuildClue(true)} aria-label="Open help" title="Help"><CircleHelp size={16} /></button></div>
+            <div className="arg-bank-heading"><span>Klik atau seret</span><button type="button" onClick={() => setShowBuildClue(true)} aria-label="Buka bantuan" title="Bantuan"><CircleHelp size={16} /></button></div>
             {renderBankSection("build1", "First number", problem.n1)}
             {renderBankSection("build2", "Second number", problem.n2)}
             <button className="arg-undo-button" type="button" onClick={handleUndo} disabled={history.length === 0 || phase !== "build"}><Undo2 size={17} /> Undo build</button>
@@ -535,13 +536,13 @@ function AdditionRegroupGame({ onComplete }) {
           </div>
 
           <div className="arg-merge-bar">
-            {phase === "build" && <span className="arg-board-hint"><Sparkles size={15} /> Build both numbers with blocks.</span>}
+            {phase === "build" && <span className="arg-board-hint"><Sparkles size={15} /> Bina kedua-dua nombor menggunakan blok.</span>}
             {phase === "carry" && showMergeTens && <button className="arg-merge-button arg-merge-h" type="button" onClick={() => mergeBlocks("T")}><span>10 tens</span><ArrowRight size={15} /><span>1 hundred</span></button>}
             {phase === "carry" && showMergeOnes && <button className="arg-merge-button arg-merge-o" type="button" onClick={() => mergeBlocks("O")}><span>10 ones</span><ArrowRight size={15} /><span>1 ten</span></button>}
-            {phase === "carry" && !showMergeTens && !showMergeOnes && <button className="arg-start-button" type="button" onClick={startSolving}>Start solving <ArrowRight size={17} /></button>}
-            {phase === "carry" && carryReady && (showMergeTens || showMergeOnes) && <button className="arg-start-button" type="button" onClick={startSolving}>Start solving <ArrowRight size={17} /></button>}
-            {phase === "solve" && <span className="arg-board-hint"><Plus size={15} /> Solve from Ones to Hundreds.</span>}
-            {phase === "success" && <span className="arg-board-success"><Check size={16} /> Correct. Nice work.</span>}
+            {phase === "carry" && !showMergeTens && !showMergeOnes && <button className="arg-start-button" type="button" onClick={startSolving}>Mula mengira <ArrowRight size={17} /></button>}
+            {phase === "carry" && carryReady && (showMergeTens || showMergeOnes) && <button className="arg-start-button" type="button" onClick={startSolving}>Mula mengira <ArrowRight size={17} /></button>}
+            {phase === "solve" && <span className="arg-board-hint"><Plus size={15} /> Kira dari unit ke puluh, kemudian ke ratus.</span>}
+            {phase === "success" && <span className="arg-board-success"><Check size={16} /> Betul! Hebat.</span>}
           </div>
         </section>
 
@@ -558,7 +559,7 @@ function AdditionRegroupGame({ onComplete }) {
         />
       </div>
 
-      <footer className="arg-footer"><span><Volume2 size={15} /> Round {round} - build, regroup, solve.</span><a className="arg-footer-game" href="/mosquito-splat?op=tambah">Permainan Nyamuk</a><a href="/" aria-label="Return to maths selection"><ArrowRight size={15} /> Maths</a></footer>
+      <footer className="arg-footer"><span><Volume2 size={15} /> Pusingan {round} - bina, gabung, jawab.</span><a className="arg-footer-game" href={activityHref("/mosquito-splat?op=tambah&game=mosquito", { teacherMode: teachingMode, returnTo: teacherReturnTo })}>Permainan Nyamuk</a><a href={teachingMode ? backHref : "/murid/matematik/aktiviti"} aria-label="Kembali ke pilihan matematik"><ArrowRight size={15} /> Matematik</a></footer>
 
       {errorMsg && <div className="arg-error-toast" role="alert"><X size={21} /> <span>{errorMsg}</span></div>}
 
@@ -567,14 +568,14 @@ function AdditionRegroupGame({ onComplete }) {
           <div className={`arg-overlay-card ${phase === "success" ? "is-success" : ""}`} role="dialog" aria-modal="true" aria-labelledby="arg-overlay-title">
             {phase !== "success" && <button className="arg-overlay-close" type="button" onClick={() => { setShowBuildClue(false); setShowCarryReminder(false); }} aria-label="Close"><X size={18} /></button>}
             <div className="arg-overlay-mark">{phase === "success" ? <Check size={28} /> : showCarryReminder ? <Sparkles size={28} /> : <CircleHelp size={28} />}</div>
-            <h2 id="arg-overlay-title">{phase === "success" ? "Correct!" : showCarryReminder ? "Numbers built" : "Build the addition"}</h2>
-            <p>{phase === "success" ? `${problem.n1} + ${problem.n2} = ${problem.n1 + problem.n2}.` : showCarryReminder ? (showMergeTens || showMergeOnes ? "Combine groups of ten before you write the answer." : "No regrouping is needed for this question.") : "Click or drag blocks into the matching space for each number."}</p>
+            <h2 id="arg-overlay-title">{phase === "success" ? "Betul!" : showCarryReminder ? "Nombor siap" : "Bina tambah"}</h2>
+            <p>{phase === "success" ? `${problem.n1} + ${problem.n2} = ${problem.n1 + problem.n2}.` : showCarryReminder ? (showMergeTens || showMergeOnes ? "Gabungkan kumpulan 10 sebelum menulis jawapan." : "Soalan ini tidak memerlukan pengumpulan semula.") : "Klik atau seret blok ke ruang yang sepadan untuk setiap nombor."}</p>
             {phase === "success" ? (
-              <button className="arg-overlay-action" type="button" onClick={() => startProblem(level, groupingMode)}>Next question <ArrowRight size={18} /></button>
+              <><button className="arg-overlay-action" type="button" onClick={() => startProblem(level, groupingMode)}>Soalan seterusnya <ArrowRight size={18} /></button><a className="text-link" href={backHref}>Kembali</a></>
             ) : showCarryReminder ? (
-              <button className="arg-overlay-action" type="button" onClick={() => { setShowCarryReminder(false); if (!showMergeTens && !showMergeOnes) startSolving(); }}>Continue <ArrowRight size={18} /></button>
+              <button className="arg-overlay-action" type="button" onClick={() => { setShowCarryReminder(false); if (!showMergeTens && !showMergeOnes) startSolving(); }}>Teruskan <ArrowRight size={18} /></button>
             ) : (
-              <button className="arg-overlay-action" type="button" onClick={() => setShowBuildClue(false)}>Got it <ArrowRight size={18} /></button>
+              <button className="arg-overlay-action" type="button" onClick={() => setShowBuildClue(false)}>Faham <ArrowRight size={18} /></button>
             )}
           </div>
         </div>

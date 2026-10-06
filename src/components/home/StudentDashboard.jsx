@@ -1,4 +1,4 @@
-import { Check, Gift, LogOut, Sparkles, UserRound, X } from "lucide-react";
+import { BookOpen, Calculator, Check, Gift, LogOut, Sparkles, UserRound, X } from "lucide-react";
 import { AVATARS } from "../../data/appAssets.js";
 import { getMapTheme } from "../../data/mapThemes.js";
 import { clearPendingCollectible, readPendingCollectible } from "../../utils/collectibleProgress.js";
@@ -43,6 +43,10 @@ export default function StudentDashboard() {
       <section className="dashboard-content">
         {profile.isDemo && <p className="demo-banner">Demo murid tanpa had: semua peta, koleksi, latihan dan ujian tersedia.</p>}
         {profile.isGuest && <p className="guest-banner">Demo tahap 1 sahaja. Simpan kembara dengan akaun percuma.</p>}
+        <nav className="dashboard-actions student-subject-links" aria-label="Subjek">
+          {profile.track !== "math" && <a href="/murid/bahasa-melayu"><BookOpen size={18} /> Bahasa Melayu</a>}
+          {profile.track !== "bm" && <a href="/murid/matematik"><Calculator size={18} /> Matematik</a>}
+        </nav>
         <MissionMap student={profile} />
       </section>
       {discovery && (

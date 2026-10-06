@@ -1,4 +1,5 @@
 import { getCollectiblesForMap } from "../data/collectibles.js";
+import { MAP_THEMES } from "../data/mapThemes.js";
 
 const STORAGE_KEY = "kembara-pintar-collectibles-v1";
 const PENDING_KEY = "kembara-pintar-pending-collectible-v1";
@@ -59,6 +60,20 @@ export function hasCollectedMap(studentId, mapId) {
   if (!items.length) return false;
   const foundIds = getFoundCollectibles(studentId, mapId);
   return items.every((item) => foundIds.includes(item.id));
+}
+
+export function getUnlockedMapCount(studentId, availableCount, { isDemo = false, isGuest = false } = {}) {
+  if (isDemo) return MAP_THEMES.length;
+  if (isGuest) return 1;
+  let count = 1;
+  while (count < availableCount && hasCollectedMap(studentId, MAP_THEMES[count - 1].id)) count += 1;
+  return count;
+}
+
+export function missionRewardMap(studentId, requestedMapId, availableCount, options = {}) {
+  const index = MAP_THEMES.findIndex((theme) => theme.id === requestedMapId);
+  const count = getUnlockedMapCount(studentId, availableCount, options);
+  return MAP_THEMES[index >= 0 && index < count ? index : 0];
 }
 
 export { STORAGE_KEY as COLLECTIBLES_STORAGE_KEY, PENDING_KEY as PENDING_COLLECTIBLE_KEY };

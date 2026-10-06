@@ -14,6 +14,7 @@ export default function PictureLockSetup({ studentName, onCancel, onSave }) {
   const [practice, setPractice] = useState([]);
   const [practiceWins, setPracticeWins] = useState(0);
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
   const [adultHere, setAdultHere] = useState(false);
   const [practiceNoticeOpen, setPracticeNoticeOpen] = useState(false);
   const [firstSuccessNoticeOpen, setFirstSuccessNoticeOpen] = useState(false);
@@ -71,6 +72,20 @@ export default function PictureLockSetup({ studentName, onCancel, onSave }) {
   const second = pictureById(picked[1]);
   const firstSlot = step === "practice" ? pictureById(practice[0]) : first;
   const secondSlot = step === "practice" ? pictureById(practice[1]) : second;
+
+  async function saveLock() {
+    if (saving) return;
+    setSaving(true);
+    setError("");
+    try {
+      const result = await onSave(picked);
+      if (result?.ok === false) setError(result.error || "Tidak dapat menyimpan kunci. Cuba lagi.");
+    } catch {
+      setError("Tidak dapat menyimpan kunci. Semak internet dan cuba lagi.");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <section className="lock-setup" data-silent-interface>
@@ -140,14 +155,14 @@ export default function PictureLockSetup({ studentName, onCancel, onSave }) {
             <input type="checkbox" checked={adultHere} onChange={(event) => setAdultHere(event.target.checked)} />
             Saya ada bersama anak / I am with the child
           </label>
-          <button className="profile-submit" type="button" disabled={!adultHere} onClick={() => onSave(picked)}>
-            Simpan kunci / Save lock <Check size={16} />
+          <button className="profile-submit" type="button" disabled={!adultHere || saving} onClick={saveLock}>
+            {saving ? "Menyimpan..." : "Simpan kunci / Save lock"} <Check size={16} />
           </button>
         </div>
       )}
 
       {error && <p className="form-error" role="alert">{error}</p>}
-      <button className="text-link" type="button" onClick={onCancel}>Batal / Cancel</button>
+      <button className="text-link" type="button" disabled={saving} onClick={onCancel}>Batal / Cancel</button>
     </section>
   );
 }

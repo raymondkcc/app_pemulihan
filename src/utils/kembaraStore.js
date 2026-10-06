@@ -471,7 +471,7 @@ async function claimFirstAdmin(user, { name, email }) {
     if (existing.role === "admin") {
       await setDoc(metaRef, { adminExists: true, firstAdminId: user.uid, updatedAt: nowIso() }, { merge: true });
     }
-    writeSession({ ...readSession(), adultId: user.uid, studentId: null, guest: false });
+    writeSession({ ...emptySession(), adultId: user.uid });
     return existing;
   }
   const adult = {
@@ -487,7 +487,7 @@ async function claimFirstAdmin(user, { name, email }) {
   await setDoc(metaRef, { adminExists: true, firstAdminId: user.uid, updatedAt: nowIso() }, { merge: true });
   cachedAdult = adultFromDoc(user.uid, adult);
   cachedHasAdmin = true;
-  writeSession({ ...readSession(), adultId: user.uid, studentId: null, guest: false });
+  writeSession({ ...emptySession(), adultId: user.uid });
   return cachedAdult;
 }
 
@@ -620,7 +620,7 @@ export async function loginAdult(email, password) {
     }
     cachedAdult = adult;
     cachedHasAdmin = cachedHasAdmin || adult.role === "admin";
-    writeSession({ ...readSession(), adultId: adult.id, studentId: null, guest: false });
+    writeSession({ ...emptySession(), adultId: adult.id });
     return { ok: true, adult };
   } catch (error) {
     return { ok: false, error: authMessage(error) };
@@ -985,7 +985,8 @@ export async function loginStudentWithPictures(studentId, pictureIds) {
     ...cachedStore,
     students: cachedStore.students.map((item) => item.id === studentId ? unlocked : item)
   };
-  writeSession({ ...readSession(), studentId, guest: false, demoComplete: false, student: unlocked });
+  cachedAdult = null;
+  writeSession({ ...emptySession(), studentId, student: unlocked });
   return { ok: true, student: unlocked };
 }
 
