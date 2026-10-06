@@ -68,7 +68,6 @@ service cloud.firestore {
         && request.auth.uid == uid
         && request.auth.token.firebase.sign_in_provider == "google.com"
         && request.auth.token.email_verified == true
-        && request.auth.token.email.matches("^[^@]+@moe-dl[.]edu[.]my$")
         && request.resource.data.email == request.auth.token.email
         && request.resource.data.authProvider == "google.com"
         && request.resource.data.role == "teacher"

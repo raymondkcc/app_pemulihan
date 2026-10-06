@@ -41,7 +41,7 @@ export default function RoleChooser() {
       <div className="google-entry-block">
         <button className="google-entry-button" type="button" onClick={signInWithGoogle} disabled={googleBusy}>
           <span className="google-entry-mark" aria-hidden="true">G</span>
-          <span>{googleBusy ? "Membuka Google..." : "Log masuk dengan Google"}<small>Cikgu Delima / @moe-dl.edu.my</small></span>
+          <span>{googleBusy ? "Membuka Google..." : "Log masuk dengan Google"}<small>Utamakan akaun Delima @moe-dl.edu.my · Akaun Google lain juga boleh</small></span>
           <ArrowRight size={19} />
         </button>
         {googleError && <p className="form-error" role="alert">{googleError}</p>}

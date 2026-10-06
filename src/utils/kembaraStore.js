@@ -252,12 +252,9 @@ function authMessage(error) {
   if (code === "auth/network-request-failed") return "Rangkaian gagal. Semak internet.";
   if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") return "Log masuk Google dibatalkan.";
   if (code === "auth/popup-blocked") return "Pelayar menyekat tetingkap Google. Benarkan pop-up dan cuba lagi.";
+  if (code === "auth/unauthorized-domain") return "Alamat laman ini belum dibenarkan dalam Firebase Authentication. Tambah domain laman di Firebase Console > Authentication > Settings > Authorized domains.";
   if (code === "permission-denied") return "Firestore menolak akses. Kemas kini rules dahulu.";
   return error?.message || "Tidak berjaya. Cuba lagi.";
-}
-
-function isMoeDlEmail(email) {
-  return /^[^@]+@moe-dl\.edu\.my$/i.test(String(email || "").trim());
 }
 
 function cacheAdultSession(adult) {
@@ -648,9 +645,9 @@ export async function loginAdultWithGoogle() {
     const credential = await signInWithPopup(auth, provider);
     const user = credential.user;
     const email = String(user.email || "").trim().toLowerCase();
-    if (!user.emailVerified || !isMoeDlEmail(email)) {
+    if (!user.emailVerified) {
       await signOut(auth);
-      return { ok: false, error: "Guna akaun Google Delima yang disahkan dengan e-mel @moe-dl.edu.my." };
+      return { ok: false, error: "Guna akaun Google yang mempunyai e-mel disahkan." };
     }
 
     const adultRef = doc(db, "adults", user.uid);
