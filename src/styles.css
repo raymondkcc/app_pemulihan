@@ -3688,8 +3688,10 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 }
 
 .word-card-picture {
+  position: relative;
   display: grid;
   min-width: 0;
+  min-height: 0;
   place-items: center;
   border: 2px dashed #c5d2cd;
   border-radius: 6px;
@@ -3704,15 +3706,21 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 }
 
 .word-card-picture img {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
+  min-width: 0;
+  min-height: 0;
   object-fit: contain;
   padding: .35rem;
 }
 
 .word-card strong {
+  grid-area: 2 / 1;
   align-self: center;
+  padding-inline: 2rem;
   overflow-wrap: anywhere;
   font-family: "Comic Sans MS", "Comic Sans", "Comic Neue", "Chalkboard SE", cursive;
   font-size: 1.35rem;
@@ -3720,9 +3728,8 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 }
 
 .word-card-listen {
-  position: absolute;
-  top: .5rem;
-  right: .5rem;
+  grid-area: 2 / 1;
+  place-self: center end;
   display: grid;
   width: 31px;
   height: 31px;
@@ -3834,7 +3841,8 @@ html:fullscreen .app-shell { min-height: 100vh; display: grid; align-items: cent
 .word-focus-stage .word-card-picture { border: 0; background: white; }
 .word-focus-stage .word-card-picture img { padding: 1rem; }
 .word-focus-stage .word-syllable-text { font-size: clamp(2.5rem, 7vh, 5rem); }
-.word-focus-stage .word-card-listen { width: 52px; height: 52px; top: 1rem; right: 1rem; }
+.word-focus-stage .word-card strong { padding-inline: 3.5rem; }
+.word-focus-stage .word-card-listen { width: 52px; height: 52px; }
 .word-focus-stage .word-card-listen { border-color: #19384a; background: #5879e8; }
 .word-focus-stage .word-card-listen svg { width: 23px; height: 23px; }
 
